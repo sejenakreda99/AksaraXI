@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createGroup } from './actions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Controller, useForm } from 'react-hook-form';
+import { FormControl } from '@/components/ui/form';
 
 
 const initialState = {
@@ -31,7 +32,7 @@ function SubmitButton() {
 export function AddGroupForm() {
   const [state, formAction] = useActionState(createGroup, initialState);
   const { toast } = useToast();
-  const { control } = useForm();
+  const { control, setValue } = useForm();
 
   useEffect(() => {
     if (state?.type === 'success') {
@@ -65,7 +66,13 @@ export function AddGroupForm() {
                 name="className"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setValue('className', value);
+                    }}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                        <SelectTrigger>
                           <SelectValue placeholder="Pilih Kelas" />
@@ -78,8 +85,6 @@ export function AddGroupForm() {
                   </Select>
                 )}
               />
-            <input type="hidden" name="className" id="classNameInput" />
-
             {typeof state.message !== 'string' && state.message?.className && (
               <p className="text-sm font-medium text-destructive">{state.message.className[0]}</p>
             )}
@@ -90,7 +95,13 @@ export function AddGroupForm() {
                   name="groupName"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setValue('groupName', value);
+                      }}
+                      defaultValue={field.value}
+                    >
                        <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih Kelompok" />
@@ -106,7 +117,6 @@ export function AddGroupForm() {
                     </Select>
                   )}
                 />
-            <input type="hidden" name="groupName" id="groupNameInput" />
             {typeof state.message !== 'string' && state.message?.groupName && (
               <p className="text-sm font-medium text-destructive">{state.message.groupName[0]}</p>
             )}
