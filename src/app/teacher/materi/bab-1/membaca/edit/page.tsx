@@ -14,7 +14,6 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -25,12 +24,39 @@ type ReadingStatement = {
   evidencePoints: number;
 };
 
+type LatihanStatement = {
+  statement: string;
+  answer: 'benar' | 'salah';
+  points: number;
+  evidencePoints: number;
+}
+
 type ReadingContent = {
   learningObjective: string;
-  mainText: string;
-  statements: ReadingStatement[];
-  feedbackText: string;
-  infoBoxText: string;
+  // Kegiatan 1
+  kegiatan1MainText: string;
+  kegiatan1Statements: ReadingStatement[];
+  kegiatan1FeedbackText: string;
+  kegiatan1InfoBoxText: string;
+  // Kegiatan 2 & Latihan
+  kegiatan2Intro: string;
+  latihanIntro: string;
+  latihanMainText: string;
+  latihanStatements: LatihanStatement[];
+};
+
+const defaultContent: ReadingContent = {
+    learningObjective: "Mengevaluasi gagasan dan pandangan berdasarkan kaidah logika berpikir dari membaca teks deskripsi.",
+    // Kegiatan 1
+    kegiatan1MainText: `TEMPO.CO, Jakarta - ...`,
+    kegiatan1Statements: [{ statement: '', answer: 'benar', points: 10, evidencePoints: 10 }],
+    kegiatan1FeedbackText: '',
+    kegiatan1InfoBoxText: '',
+    // Kegiatan 2
+    kegiatan2Intro: '',
+    latihanIntro: '',
+    latihanMainText: '',
+    latihanStatements: [{ statement: '', answer: 'benar', points: 10, evidencePoints: 10 }],
 };
 
 
@@ -47,15 +73,12 @@ export default function EditMembacaPage() {
         const docRef = doc(db, 'chapters', '1');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists() && docSnap.data().membaca) {
-          setContent(docSnap.data().membaca);
+          const fetchedData = docSnap.data().membaca;
+           // Ensure all fields from defaultContent exist
+          const mergedContent = { ...defaultContent, ...fetchedData };
+          setContent(mergedContent);
         } else {
-          setContent({
-            learningObjective: '',
-            mainText: '',
-            statements: [{ statement: '', answer: 'benar', points: 10, evidencePoints: 10 }],
-            feedbackText: '',
-            infoBoxText: ''
-          });
+          setContent(defaultContent);
         }
       } catch (error) {
         console.error("Failed to fetch content:", error);
@@ -71,9 +94,16 @@ export default function EditMembacaPage() {
     fetchContent();
   }, [toast]);
 
-  const handleStatementChange = (index: number, field: keyof ReadingStatement, value: string | number) => {
+  const handleStatementChange = (index: number, field: keyof ReadingStatement, value: string | number, type: 'kegiatan1' | 'latihan') => {
     if (!content) return;
-    const newStatements = [...content.statements];
+
+    let newStatements;
+    if (type === 'kegiatan1') {
+      newStatements = [...content.kegiatan1Statements];
+    } else {
+      newStatements = [...content.latihanStatements];
+    }
+
     const statementToUpdate = { ...newStatements[index] };
   
     if (field === 'statement') {
@@ -88,27 +118,42 @@ export default function EditMembacaPage() {
     }
     
     newStatements[index] = statementToUpdate;
-    setContent({ ...content, statements: newStatements });
+    if (type === 'kegiatan1') {
+       setContent({ ...content, kegiatan1Statements: newStatements as ReadingStatement[] });
+    } else {
+       setContent({ ...content, latihanStatements: newStatements as LatihanStatement[] });
+    }
   };
   
-  const addStatement = () => {
+  const addStatement = (type: 'kegiatan1' | 'latihan') => {
     if (!content) return;
-    setContent({ ...content, statements: [...content.statements, { statement: '', answer: 'benar', points: 10, evidencePoints: 10 }] });
+    const newStatement = { statement: '', answer: 'benar' as 'benar' | 'salah', points: 10, evidencePoints: 10 };
+     if (type === 'kegiatan1') {
+        setContent({ ...content, kegiatan1Statements: [...content.kegiatan1Statements, newStatement] });
+    } else {
+        setContent({ ...content, latihanStatements: [...content.latihanStatements, newStatement] });
+    }
   };
 
-  const removeStatement = (index: number) => {
+  const removeStatement = (index: number, type: 'kegiatan1' | 'latihan') => {
     if (!content) return;
-    const newStatements = content.statements.filter((_, i) => i !== index);
-    setContent({ ...content, statements: newStatements });
+     if (type === 'kegiatan1') {
+        const newStatements = content.kegiatan1Statements.filter((_, i) => i !== index);
+        setContent({ ...content, kegiatan1Statements: newStatements });
+    } else {
+        const newStatements = content.latihanStatements.filter((_, i) => i !== index);
+        setContent({ ...content, latihanStatements: newStatements });
+    }
   };
   
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!content) return;
 
-    const finalContent = {
+    const finalContent: ReadingContent = {
         ...content,
-        statements: content.statements.filter(q => q.statement.trim() !== '')
+        kegiatan1Statements: content.kegiatan1Statements.filter(q => q.statement.trim() !== ''),
+        latihanStatements: content.latihanStatements.filter(q => q.statement.trim() !== ''),
     };
 
     startTransition(async () => {
@@ -170,30 +215,30 @@ export default function EditMembacaPage() {
                     <Label htmlFor="learningObjective">Tujuan Pembelajaran</Label>
                     <Textarea id="learningObjective" value={content.learningObjective} onChange={(e) => setContent({...content, learningObjective: e.target.value})} rows={2} />
                   </div>
-                   <div className="space-y-2">
-                    <Label htmlFor="mainText">Teks Utama (Keunikan Adat Istiadat Suku Abuy)</Label>
-                    <Textarea id="mainText" value={content.mainText} onChange={(e) => setContent({...content, mainText: e.target.value})} placeholder="Tulis atau salin tempel teks deskripsi di sini..." rows={20} />
-                  </div>
                 </CardContent>
               </Card>
 
               <Card>
-                  <CardHeader><CardTitle>Tugas: Pernyataan Benar/Salah</CardTitle></CardHeader>
-                  <CardContent className="space-y-4">
-                    <Label className="text-base font-semibold">Daftar Pernyataan & Penilaian</Label>
-                    {content.statements.map((stmt, index) => (
+                  <CardHeader><CardTitle>Kegiatan 1: Menganalisis Teks Deskripsi (Suku Abuy)</CardTitle></CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="kegiatan1MainText">Teks Utama</Label>
+                      <Textarea id="kegiatan1MainText" value={content.kegiatan1MainText} onChange={(e) => setContent({...content, kegiatan1MainText: e.target.value})} placeholder="Tulis atau salin tempel teks deskripsi di sini..." rows={15} />
+                    </div>
+                    <Label className="text-base font-semibold">Tugas: Pernyataan Benar/Salah</Label>
+                    {content.kegiatan1Statements.map((stmt, index) => (
                       <Card key={index} className="p-4 bg-slate-50/50">
                         <div className="flex justify-between items-start gap-4">
                            <div className="flex-1 space-y-2">
                                <Label htmlFor={`stmt-text-${index}`}>Pernyataan #{index + 1}</Label>
-                               <Textarea id={`stmt-text-${index}`} value={stmt.statement} onChange={(e) => handleStatementChange(index, 'statement', e.target.value)} placeholder={`Isi pernyataan...`} rows={2}/>
+                               <Textarea id={`stmt-text-${index}`} value={stmt.statement} onChange={(e) => handleStatementChange(index, 'statement', e.target.value, 'kegiatan1')} placeholder={`Isi pernyataan...`} rows={2}/>
                            </div>
-                           <Button type="button" variant="ghost" size="icon" onClick={() => removeStatement(index)} className="mt-7 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
+                           <Button type="button" variant="ghost" size="icon" onClick={() => removeStatement(index, 'kegiatan1')} className="mt-7 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div className='space-y-2'>
                                 <Label>Kunci Jawaban</Label>
-                                <Select value={stmt.answer} onValueChange={(value) => handleStatementChange(index, 'answer', value)}>
+                                <Select value={stmt.answer} onValueChange={(value) => handleStatementChange(index, 'answer', value, 'kegiatan1')}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Pilih jawaban"/>
                                     </SelectTrigger>
@@ -205,38 +250,78 @@ export default function EditMembacaPage() {
                             </div>
                              <div className='space-y-2'>
                                 <Label>Poin Jawaban</Label>
-                                <Input 
-                                  type="number"
-                                  value={stmt.points || ''}
-                                  onChange={(e) => handleStatementChange(index, 'points', e.target.value)}
-                                />
+                                <Input type="number" value={stmt.points || ''} onChange={(e) => handleStatementChange(index, 'points', e.target.value, 'kegiatan1')} />
                             </div>
                              <div className='space-y-2'>
                                 <Label>Poin Bukti</Label>
-                                <Input 
-                                  type="number"
-                                  value={stmt.evidencePoints || ''}
-                                  onChange={(e) => handleStatementChange(index, 'evidencePoints', e.target.value)}
-                                />
+                                <Input type="number" value={stmt.evidencePoints || ''} onChange={(e) => handleStatementChange(index, 'evidencePoints', e.target.value, 'kegiatan1')} />
                             </div>
                         </div>
                       </Card>
                     ))}
-                    <Button type="button" variant="outline" onClick={addStatement}><PlusCircle className="mr-2 h-4 w-4" />Tambah Pernyataan</Button>
+                    <Button type="button" variant="outline" onClick={() => addStatement('kegiatan1')}><PlusCircle className="mr-2 h-4 w-4" />Tambah Pernyataan</Button>
+                    <div className="space-y-2">
+                        <Label htmlFor="kegiatan1FeedbackText">Teks Umpan Balik & Pembahasan</Label>
+                        <Textarea id="kegiatan1FeedbackText" value={content.kegiatan1FeedbackText} onChange={(e) => setContent({...content, kegiatan1FeedbackText: e.target.value})} rows={10} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="kegiatan1InfoBoxText">Teks untuk Kotak Info</Label>
+                        <Textarea id="kegiatan1InfoBoxText" value={content.kegiatan1InfoBoxText} onChange={(e) => setContent({...content, kegiatan1InfoBoxText: e.target.value})} rows={4} />
+                    </div>
                   </CardContent>
               </Card>
 
               <Card>
-                  <CardHeader><CardTitle>Umpan Balik & Info Tambahan</CardTitle></CardHeader>
+                  <CardHeader><CardTitle>Kegiatan 2 & Latihan (Bandara Manado)</CardTitle></CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="feedbackText">Teks Umpan Balik & Pembahasan</Label>
-                        <Textarea id="feedbackText" value={content.feedbackText} onChange={(e) => setContent({...content, feedbackText: e.target.value})} rows={10} />
+                     <div className="space-y-2">
+                        <Label htmlFor="kegiatan2Intro">Pengantar Kegiatan 2</Label>
+                        <Textarea id="kegiatan2Intro" value={content.kegiatan2Intro} onChange={(e) => setContent({...content, kegiatan2Intro: e.target.value})} rows={4} />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="infoBoxText">Teks untuk Kotak Info</Label>
-                        <Textarea id="infoBoxText" value={content.infoBoxText} onChange={(e) => setContent({...content, infoBoxText: e.target.value})} rows={4} />
+                     <div className="space-y-2">
+                        <Label htmlFor="latihanIntro">Pengantar Latihan</Label>
+                        <Textarea id="latihanIntro" value={content.latihanIntro} onChange={(e) => setContent({...content, latihanIntro: e.target.value})} rows={4} />
                     </div>
+                     <div className="space-y-2">
+                      <Label htmlFor="latihanMainText">Teks Utama Latihan</Label>
+                      <Textarea id="latihanMainText" value={content.latihanMainText} onChange={(e) => setContent({...content, latihanMainText: e.target.value})} placeholder="Tulis atau salin tempel teks deskripsi di sini..." rows={15} />
+                    </div>
+
+                    <Label className="text-base font-semibold">Tugas: Tabel Identifikasi</Label>
+                     {content.latihanStatements.map((stmt, index) => (
+                      <Card key={index} className="p-4 bg-slate-50/50">
+                        <div className="flex justify-between items-start gap-4">
+                           <div className="flex-1 space-y-2">
+                               <Label htmlFor={`latihan-stmt-text-${index}`}>Ciri-Ciri Teks Deskripsi #{index + 1}</Label>
+                               <Textarea id={`latihan-stmt-text-${index}`} value={stmt.statement} onChange={(e) => handleStatementChange(index, 'statement', e.target.value, 'latihan')} placeholder={`Isi ciri-ciri...`} rows={2}/>
+                           </div>
+                           <Button type="button" variant="ghost" size="icon" onClick={() => removeStatement(index, 'latihan')} className="mt-7 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div className='space-y-2'>
+                                <Label>Kunci Jawaban</Label>
+                                <Select value={stmt.answer} onValueChange={(value) => handleStatementChange(index, 'answer', value, 'latihan')}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih jawaban"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="benar">Benar</SelectItem>
+                                        <SelectItem value="salah">Salah</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                             <div className='space-y-2'>
+                                <Label>Poin Jawaban</Label>
+                                <Input type="number" value={stmt.points || ''} onChange={(e) => handleStatementChange(index, 'points', e.target.value, 'latihan')} />
+                            </div>
+                             <div className='space-y-2'>
+                                <Label>Poin Bukti</Label>
+                                <Input type="number" value={stmt.evidencePoints || ''} onChange={(e) => handleStatementChange(index, 'evidencePoints', e.target.value, 'latihan')} />
+                            </div>
+                        </div>
+                      </Card>
+                    ))}
+                    <Button type="button" variant="outline" onClick={() => addStatement('latihan')}><PlusCircle className="mr-2 h-4 w-4" />Tambah Ciri</Button>
                   </CardContent>
               </Card>
 

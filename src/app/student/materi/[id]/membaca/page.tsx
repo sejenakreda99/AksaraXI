@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -19,33 +18,61 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
 type ReadingStatement = {
   statement: string;
   answer: 'benar' | 'salah';
+  points: number;
+  evidencePoints: number;
 };
+
+type LatihanStatement = {
+  statement: string;
+  answer: 'benar' | 'salah';
+  points: number;
+  evidencePoints: number;
+}
 
 type ReadingContent = {
   learningObjective: string;
-  mainText: string;
-  statements: ReadingStatement[];
-  feedbackText: string;
-  infoBoxText: string;
+  // Kegiatan 1
+  kegiatan1MainText: string;
+  kegiatan1Statements: ReadingStatement[];
+  kegiatan1FeedbackText: string;
+  kegiatan1InfoBoxText: string;
+  // Kegiatan 2 & Latihan
+  kegiatan2Intro: string;
+  latihanIntro: string;
+  latihanMainText: string;
+  latihanStatements: LatihanStatement[];
 };
 
 type ReadingAnswers = {
-    [key: number]: {
-        choice: 'benar' | 'salah' | '';
-        evidence: string;
-    }
+    kegiatan1: {
+        [key: number]: {
+            choice: 'benar' | 'salah' | '';
+            evidence: string;
+        }
+    },
+    latihan: {
+        [key: number]: {
+            choice: 'benar' | 'salah' | '';
+            evidence: string;
+        }
+    },
+    simpulan: string;
 }
 
 const steps = [
     { id: 'tujuan', title: 'Tujuan Pembelajaran' },
-    { id: 'baca', title: 'Baca Teks' },
-    { id: 'tugas', title: 'Kerjakan Tugas' },
-    { id: 'umpan-balik', title: 'Umpan Balik' },
+    { id: 'kegiatan1-baca', title: 'Kegiatan 1: Baca Teks' },
+    { id: 'kegiatan1-tugas', title: 'Kegiatan 1: Kerjakan Tugas' },
+    { id: 'kegiatan1-umpan-balik', title: 'Kegiatan 1: Umpan Balik' },
+    { id: 'kegiatan2-baca', title: 'Kegiatan 2 & Latihan: Teks Baru' },
+    { id: 'latihan-tugas', title: 'Latihan: Identifikasi Ciri' },
+    { id: 'latihan-simpulan', title: 'Latihan: Simpulan' },
 ];
 
 export default function MembacaSiswaPage() {
@@ -56,7 +83,7 @@ export default function MembacaSiswaPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user] = useAuthState(auth);
   const { toast } = useToast();
-  const [answers, setAnswers] = useState<ReadingAnswers>({});
+  const [answers, setAnswers] = useState<ReadingAnswers>({kegiatan1: {}, latihan: {}, simpulan: ''});
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
@@ -70,9 +97,12 @@ export default function MembacaSiswaPage() {
           const fetchedContent = docSnap.data().membaca as ReadingContent;
           setContent(fetchedContent);
           // Initialize answers state
-          const initialAnswers: ReadingAnswers = {};
-          fetchedContent.statements.forEach((_, index) => {
-              initialAnswers[index] = { choice: '', evidence: '' };
+          const initialAnswers: ReadingAnswers = {kegiatan1: {}, latihan: {}, simpulan: ''};
+          fetchedContent.kegiatan1Statements.forEach((_, index) => {
+              initialAnswers.kegiatan1[index] = { choice: '', evidence: '' };
+          });
+           fetchedContent.latihanStatements.forEach((_, index) => {
+              initialAnswers.latihan[index] = { choice: '', evidence: '' };
           });
           setAnswers(initialAnswers);
         } else {
@@ -92,15 +122,22 @@ export default function MembacaSiswaPage() {
     fetchContent();
   }, [chapterId, toast]);
   
-  const handleAnswerChange = (index: number, type: 'choice' | 'evidence', value: string) => {
+  const handleAnswerChange = (kegiatan: 'kegiatan1' | 'latihan', index: number, type: 'choice' | 'evidence', value: string) => {
     setAnswers(prev => ({
         ...prev,
-        [index]: {
-            ...prev[index],
-            [type]: value
+        [kegiatan]: {
+            ...prev[kegiatan],
+            [index]: {
+                ...prev[kegiatan][index],
+                [type]: value
+            }
         }
     }));
   };
+
+  const handleSimpulanChange = (value: string) => {
+      setAnswers(prev => ({...prev, simpulan: value}));
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -117,7 +154,7 @@ export default function MembacaSiswaPage() {
             studentId: user.uid,
             chapterId: chapterId,
             activity: 'membaca',
-            kegiatan1: { answers },
+            answers,
             lastSubmitted: serverTimestamp()
         }, { merge: true });
         
@@ -141,7 +178,7 @@ export default function MembacaSiswaPage() {
 
   const progressPercentage = useMemo(() => {
     if (currentStep >= steps.length) return 100;
-    return ((currentStep + 1) / steps.length) * 100;
+    return ((currentStep + 1) / (steps.length + 1)) * 100;
   }, [currentStep]);
 
 
@@ -196,41 +233,41 @@ export default function MembacaSiswaPage() {
                     </CardContent>
                 </Card>
             )
-        case 'baca':
+        case 'kegiatan1-baca':
             return (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Langkah 1: Baca Teks Deskripsi</CardTitle>
+                        <CardTitle>Kegiatan 1: Baca Teks Deskripsi</CardTitle>
                     </CardHeader>
                     <CardContent className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground">
                         <h3 className="font-bold text-center mb-4">Keunikan Adat Istiadat Suku Abuy di Kampung Takpala Alor</h3>
-                        {content.mainText}
+                        {content.kegiatan1MainText}
                     </CardContent>
                 </Card>
             )
-        case 'tugas':
+        case 'kegiatan1-tugas':
             return (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Langkah 2: Kerjakan Tugas</CardTitle>
+                        <CardTitle>Kegiatan 1: Kerjakan Tugas</CardTitle>
                         <CardDescription>Setelah kalian menyimak teks tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.3. Lalu, berikan bukti informasi yang mendukung analisis kalian.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        {content.statements.map((stmt, index) => (
+                        {content.kegiatan1Statements.map((stmt, index) => (
                              <div key={index} className="border p-4 rounded-lg bg-slate-50/50">
                                 <p className="font-semibold">Pernyataan #{index+1}</p>
                                 <p className="mt-1 text-sm">{stmt.statement}</p>
                                 <div className="mt-4 space-y-4">
                                     <div>
                                     <Label className="font-medium">Tentukan jawaban Anda:</Label>
-                                    <RadioGroup className="flex gap-4 mt-2" onValueChange={(value) => handleAnswerChange(index, 'choice', value)} value={answers[index]?.choice}>
+                                    <RadioGroup className="flex gap-4 mt-2" onValueChange={(value) => handleAnswerChange('kegiatan1', index, 'choice', value)} value={answers.kegiatan1[index]?.choice}>
                                         <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`r-${index}-benar`} /><Label htmlFor={`r-${index}-benar`}>Benar</Label></div>
                                         <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`r-${index}-salah`} /><Label htmlFor={`r-${index}-salah`}>Salah</Label></div>
                                     </RadioGroup>
                                     </div>
                                     <div>
                                     <Label htmlFor={`evidence-${index}`} className="font-medium">Tuliskan bukti informasinya:</Label>
-                                    <Textarea id={`evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange(index, 'evidence', e.target.value)} value={answers[index]?.evidence} />
+                                    <Textarea id={`evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('kegiatan1', index, 'evidence', e.target.value)} value={answers.kegiatan1[index]?.evidence} />
                                     </div>
                                 </div>
                             </div>
@@ -238,24 +275,97 @@ export default function MembacaSiswaPage() {
                     </CardContent>
                 </Card>
             )
-        case 'umpan-balik':
+        case 'kegiatan1-umpan-balik':
              return (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Langkah 3: Umpan Balik & Pembahasan</CardTitle>
+                        <CardTitle>Kegiatan 1: Umpan Balik & Pembahasan</CardTitle>
                     </CardHeader>
                     <CardContent>
-                         <div className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground">{content.feedbackText}</div>
+                         <div className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground">{content.kegiatan1FeedbackText}</div>
                          <Separator className="my-6" />
                           <Card className="bg-primary/10 border-primary">
                               <CardHeader><CardTitle className="text-primary text-base">Info</CardTitle></CardHeader>
                               <CardContent className="text-primary/90 text-sm whitespace-pre-wrap">
-                                  {content.infoBoxText}
+                                  {content.kegiatan1InfoBoxText}
                               </CardContent>
                           </Card>
                     </CardContent>
                 </Card>
             )
+        case 'kegiatan2-baca':
+            return (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Kegiatan 2 & Latihan</CardTitle>
+                    </CardHeader>
+                    <CardContent className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground space-y-4">
+                        <div className="p-4 bg-slate-50 rounded-lg border">
+                            <h4 className="font-bold not-prose">Kegiatan 2: Mengevaluasi gagasan dan pandangan</h4>
+                            <p>{content.kegiatan2Intro}</p>
+                        </div>
+                         <div className="p-4 bg-slate-50 rounded-lg border">
+                            <h4 className="font-bold not-prose">Latihan</h4>
+                            <p>{content.latihanIntro}</p>
+                        </div>
+
+                        <Separator/>
+                        
+                        <h3 className="font-bold text-center mb-4">Terminal Baru Bandara Sam Ratulangi Manado, Perpaduan Konsep Tradisional dan Modern</h3>
+                        {content.latihanMainText}
+                    </CardContent>
+                </Card>
+            )
+        case 'latihan-tugas':
+            return (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Latihan: Identifikasi Ciri Teks Deskripsi</CardTitle>
+                        <CardDescription>Untuk memudahkan kalian membuktikan teks tersebut termasuk teks deskripsi atau bukan, gunakanlah Tabel 1.4. Centanglah pernyataan benar atau salah. Lalu, berikan buktikan informasi yang mendukung analisis kalian.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Ciri-Ciri Teks Deskripsi</TableHead>
+                                    <TableHead className="w-[150px] text-center">Benar / Salah</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {content.latihanStatements.map((stmt, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <p className="font-semibold">{stmt.statement}</p>
+                                             <Label htmlFor={`latihan-evidence-${index}`} className="font-medium mt-4 block">Bukti Informasi:</Label>
+                                             <Textarea id={`latihan-evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('latihan', index, 'evidence', e.target.value)} value={answers.latihan[index]?.evidence} />
+                                        </TableCell>
+                                        <TableCell>
+                                            <RadioGroup className="flex flex-col gap-4 mt-2 items-center" onValueChange={(value) => handleAnswerChange('latihan', index, 'choice', value)} value={answers.latihan[index]?.choice}>
+                                                <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`l-r-${index}-benar`} /><Label htmlFor={`l-r-${index}-benar`}>Benar</Label></div>
+                                                <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`l-r-${index}-salah`} /><Label htmlFor={`l-r-${index}-salah`}>Salah</Label></div>
+                                            </RadioGroup>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            )
+        case 'latihan-simpulan':
+             return (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Latihan: Simpulan</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Label htmlFor="simpulan">Berdasarkan hasil analisis ciri-ciri teks deskripsi, maka teks berjudul “Terminal Baru Bandara Sam Ratulangi Manado, Perpaduan Konsep Tradisional dan Modern” ...</Label>
+                        <Textarea id="simpulan" className="mt-2" placeholder="termasuk/tidak termasuk teks deskripsi karena..." rows={6} value={answers.simpulan} onChange={(e) => handleSimpulanChange(e.target.value)} />
+                        <Separator className="my-6" />
+                        <p className="text-sm text-muted-foreground">Sampaikan secara lisan hasil analisis kalian di depan kelas. Buka kesempatan tanya jawab sehingga teman kalian yang menyimak memberikan tanggapan. Kalian yang mendapatkan giliran menyampaikan hasil analisis, kemudian menjawab tanggapan tersebut.</p>
+                    </CardContent>
+                </Card>
+             )
         default:
             return null;
     }
@@ -286,8 +396,8 @@ export default function MembacaSiswaPage() {
                  {/* Progress Indicator */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                        <span>Langkah {currentStep + 1} dari {steps.length}</span>
-                        <span>{steps[currentStep]?.title}</span>
+                        <span>Langkah {currentStep >= steps.length ? steps.length + 1 : currentStep + 1} dari {steps.length + 1}</span>
+                        <span>{steps[currentStep]?.title || 'Selesai'}</span>
                     </div>
                     <Progress value={progressPercentage} className="w-full" />
                 </div>
@@ -304,7 +414,7 @@ export default function MembacaSiswaPage() {
                             Kembali
                          </Button>
 
-                         {currentStep < steps.length - 1 ? (
+                         {steps[currentStep].id !== 'latihan-simpulan' ? (
                               <Button type="button" onClick={() => setCurrentStep(s => s + 1)}>
                                 Lanjut
                                 <ArrowRight className="ml-2 h-4 w-4"/>
@@ -323,5 +433,3 @@ export default function MembacaSiswaPage() {
     </AuthenticatedLayout>
   );
 }
-
-    
