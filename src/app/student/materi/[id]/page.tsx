@@ -45,9 +45,9 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
       { title: "B. Membaca", slug: "membaca", icon: FileText, status: 'active', href: `/student/materi/${chapterId}/membaca` },
       { title: "C. Menulis", slug: "menulis", icon: Pencil, status: 'active', href: `/student/materi/${chapterId}/menulis` },
       { title: "D. Mempresentasikan", slug: "mempresentasikan", icon: Presentation, status: 'active', href: `/student/materi/${chapterId}/mempresentasikan` },
-      { title: "E. Asesmen", slug: "asesmen", icon: CheckCircle, status: 'locked' },
-      { title: "Jurnal Membaca", slug: "jurnal-membaca", icon: BookOpen, status: 'locked' },
-      { title: "Refleksi", slug: "refleksi", icon: PenSquare, status: 'locked' },
+      { title: "E. Asesmen", slug: "asesmen", icon: CheckCircle, status: 'locked', href: '#' },
+      { title: "Jurnal Membaca", slug: "jurnal-membaca", icon: BookOpen, status: 'locked', href: '#' },
+      { title: "Refleksi", slug: "refleksi", icon: PenSquare, status: 'locked', href: '#' },
     ];
     
     const sections = initialSections.map(section => ({
