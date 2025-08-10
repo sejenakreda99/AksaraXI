@@ -131,9 +131,15 @@ export default function MenyimakSiswaPage() {
                     fetchedContent.statements.forEach((stmt) => {
                         initialAnswers.kegiatan1[stmt.no.toString()] = { choice: '', evidence: '' };
                     });
-                     fetchedContent.latihan.statements.forEach((_, index) => {
+                     (fetchedContent.latihan?.statements || []).forEach((_, index) => {
                         initialAnswers.latihan[(index + 1).toString()] = { choice: '', analysis: '' };
                     });
+                     (fetchedContent.activity2Questions || []).forEach((q) => {
+                         initialAnswers.kegiatan2[q] = '';
+                     });
+                     initialAnswers.kegiatan2['comparison'] = '';
+                     initialAnswers.kegiatan2['dialogue-fix'] = '';
+
                 }
                 
                 if (submissionSnap.exists()) {
@@ -144,7 +150,7 @@ export default function MenyimakSiswaPage() {
                         });
                     }
                     if (existingAnswers.kegiatan2) {
-                         initialAnswers.kegiatan2 = existingAnswers.kegiatan2;
+                         initialAnswers.kegiatan2 = {...initialAnswers.kegiatan2, ...existingAnswers.kegiatan2};
                     }
                     if (existingAnswers.latihan) {
                          Object.keys(initialAnswers.latihan).forEach(key => {
@@ -488,5 +494,3 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
-
-    
