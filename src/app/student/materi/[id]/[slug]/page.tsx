@@ -38,6 +38,8 @@ type MenyimakContentData = {
 // --- Component for Menyimak Content ---
 function MenyimakContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const activity = searchParams.get('kegiatan');
   const chapterId = params.id as string;
   const [content, setContent] = useState<MenyimakContentData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -164,7 +166,7 @@ function MenyimakContent() {
                 Kembali ke Pilihan Kegiatan
               </Link>
             </Button>
-            <h1 className="text-2xl font-bold text-foreground capitalize">A. Menyimak</h1>
+            <h1 className="text-2xl font-bold text-foreground capitalize">A. Menyimak - Kegiatan {activity}</h1>
             <p className="text-muted-foreground mt-1">
               Bab {chapterId}: Membicarakan Teks Deskripsi
             </p>
@@ -270,14 +272,8 @@ export default function ChapterSlugPage() {
     const activity = searchParams.get('kegiatan');
 
     // This logic determines what to render based on the 'kegiatan' search param.
-    if (activity === '1') {
-        // A more robust implementation might have separate components for each activity.
-        // For now, we render the full 'MenyimakContent' which contains both.
-        // This can be improved later to show only Activity 1 content.
-        return <MenyimakContent />;
-    }
-     if (activity === '2') {
-        // Similarly, this would render only Activity 2 content.
+    // If a 'kegiatan' param exists, we render the full content page.
+    if (activity) {
         return <MenyimakContent />;
     }
     
@@ -286,17 +282,18 @@ export default function ChapterSlugPage() {
     const activityCards = {
         menyimak: [
             {
-                title: "Kegiatan Inti",
+                title: "Kegiatan 1: Menganalisis Teks Deskripsi",
                 kegiatan: "1", 
                 icon: Youtube,
-                description: "Analisis video, kerjakan tugas, dan evaluasi gagasan."
+                description: "Menganalisis video dan menilai kebenaran pernyataan.",
+                disabled: false,
             },
             {
-                title: "Kegiatan Lanjutan",
+                title: "Kegiatan 2: Mengevaluasi Gagasan",
                 kegiatan: "2",
                 icon: ClipboardCheck,
-                description: "Akan segera hadir!",
-                disabled: true
+                description: "Menjawab pertanyaan analisis dan membandingkan video.",
+                disabled: false, 
             }
         ],
         membaca: [ // Placeholder for 'membaca' activities
