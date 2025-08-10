@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { Separator } from '@/components/ui/separator';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
 import { cn } from '@/lib/utils';
 
@@ -159,9 +159,9 @@ function MenyimakContent() {
         <header className="bg-card border-b p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
             <Button asChild variant="outline" size="sm" className="mb-4">
-              <Link href={`/student/materi/${chapterId}`}>
+              <Link href={`/student/materi/${chapterId}/${params.slug}`}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Kembali ke Peta Petualangan
+                Kembali ke Pilihan Kegiatan
               </Link>
             </Button>
             <h1 className="text-2xl font-bold text-foreground capitalize">A. Menyimak</h1>
@@ -262,33 +262,58 @@ function MenyimakContent() {
 // --- Main Router Component ---
 export default function ChapterSlugPage() {
     const params = useParams();
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
     const slug = params.slug as string;
     const chapterId = params.id as string;
-    
-    const activityCards = [
-        {
-            title: "Kegiatan Inti",
-            slug: "menyimak", // This slug should navigate to the main content.
-            icon: Youtube,
-            description: "Analisis video, kerjakan tugas, dan evaluasi gagasan."
-        },
-        {
-            title: "Kegiatan Lanjutan",
-            slug: "#", // This can be a placeholder for now
-            icon: ClipboardCheck,
-            description: "Akan segera hadir!",
-            disabled: true
-        }
-    ];
+    const activity = searchParams.get('kegiatan');
 
-    // This logic determines what to render.
-    // If we're on the 'menyimak' slug, we render the full content.
-    // For other slugs, we show a hub page.
-    if (slug === 'menyimak') {
+    // This logic determines what to render based on the 'kegiatan' search param.
+    if (activity === '1') {
+        // A more robust implementation might have separate components for each activity.
+        // For now, we render the full 'MenyimakContent' which contains both.
+        // This can be improved later to show only Activity 1 content.
+        return <MenyimakContent />;
+    }
+     if (activity === '2') {
+        // Similarly, this would render only Activity 2 content.
         return <MenyimakContent />;
     }
     
-    // This is the "Hub Page" for other sections like Membaca, Menulis, etc.
+    // This is the "Hub Page" for the specific slug (e.g., 'menyimak')
+    // It shows the different activities available.
+    const activityCards = {
+        menyimak: [
+            {
+                title: "Kegiatan Inti",
+                kegiatan: "1", 
+                icon: Youtube,
+                description: "Analisis video, kerjakan tugas, dan evaluasi gagasan."
+            },
+            {
+                title: "Kegiatan Lanjutan",
+                kegiatan: "2",
+                icon: ClipboardCheck,
+                description: "Akan segera hadir!",
+                disabled: true
+            }
+        ],
+        membaca: [ // Placeholder for 'membaca' activities
+            {
+                title: "Membaca Teks",
+                kegiatan: "1",
+                icon: FileText,
+                description: "Baca dan pahami teks deskripsi.",
+                disabled: true
+            }
+        ]
+        // Add other slugs like 'menulis', 'mempresentasikan' here
+    };
+
+    const currentActivities = activityCards[slug as keyof typeof activityCards] || [];
+
+
     return (
         <AuthenticatedLayout>
             <div className="flex flex-col h-full">
@@ -308,39 +333,49 @@ export default function ChapterSlugPage() {
                 </header>
                 <main className="flex-1 p-4 md:p-8">
                     <div className="max-w-4xl mx-auto">
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Pilih Kegiatan</CardTitle>
-                                <CardDescription>Pilih kegiatan yang ingin Anda mulai dari tahap &quot;{slug}&quot; ini.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {activityCards.map((act) => {
-                                     const cardContent = (
-                                        <Card className={cn(
-                                            "w-full p-6 flex flex-col items-center justify-center text-center hover:bg-slate-100 transition-colors hover:shadow-lg rounded-xl",
-                                            act.disabled && "bg-slate-50 opacity-60 cursor-not-allowed"
-                                        )}>
-                                           <act.icon className="w-12 h-12 text-primary mb-3" />
-                                           <h3 className="font-semibold text-lg">{act.title}</h3>
-                                           <p className="text-sm text-muted-foreground mt-1">{act.description}</p>
-                                        </Card>
-                                     );
+                         {currentActivities.length > 0 ? (
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Pilih Kegiatan</CardTitle>
+                                    <CardDescription>Pilih kegiatan yang ingin Anda mulai dari tahap &quot;{slug}&quot; ini.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {currentActivities.map((act) => {
+                                         const cardContent = (
+                                            <Card className={cn(
+                                                "w-full p-6 flex flex-col items-center justify-center text-center hover:bg-slate-100 transition-colors hover:shadow-lg rounded-xl",
+                                                act.disabled && "bg-slate-50 opacity-60 cursor-not-allowed"
+                                            )}>
+                                               <act.icon className="w-12 h-12 text-primary mb-3" />
+                                               <h3 className="font-semibold text-lg">{act.title}</h3>
+                                               <p className="text-sm text-muted-foreground mt-1">{act.description}</p>
+                                            </Card>
+                                         );
 
-                                     if(act.disabled) {
-                                         return <div key={act.title} className="flex">{cardContent}</div>
-                                     }
-                                     
-                                     // For now, we only have 'menyimak' content. All other links are placeholders.
-                                     const href = slug === 'menyimak' ? `/student/materi/${chapterId}/${act.slug}` : '#';
+                                         if(act.disabled) {
+                                             return <div key={act.title} className="flex">{cardContent}</div>
+                                         }
+                                         
+                                         const href = `/student/materi/${chapterId}/${slug}?kegiatan=${act.kegiatan}`;
 
-                                     return (
-                                        <Link href={href} key={act.title} className="flex">
-                                            {cardContent}
-                                        </Link>
-                                     )
-                                })}
-                            </CardContent>
-                        </Card>
+                                         return (
+                                            <Link href={href} key={act.title} className="flex">
+                                                {cardContent}
+                                            </Link>
+                                         )
+                                    })}
+                                </CardContent>
+                            </Card>
+                         ) : (
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Segera Hadir</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p>Konten untuk bagian &quot;{slug}&quot; belum tersedia. Silakan periksa kembali nanti.</p>
+                                </CardContent>
+                             </Card>
+                         )}
                     </div>
                 </main>
             </div>
