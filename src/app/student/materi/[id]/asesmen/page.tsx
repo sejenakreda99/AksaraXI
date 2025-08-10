@@ -170,7 +170,7 @@ export default function AsesmenSiswaPage() {
                                 <CardContent className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {content.youtubeLinks.map((link, i) => (
-                                            <div key={i} className="aspect-video w-full rounded-lg overflow-hidden border">
+                                            link && <div key={i} className="aspect-video w-full rounded-lg overflow-hidden border">
                                                 <iframe className="w-full h-full" src={getYoutubeEmbedUrl(link)} title={`YouTube video ${i+1}`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
                                             </div>
                                         ))}
