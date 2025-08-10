@@ -71,13 +71,11 @@ export default function MenyimakSiswaPage() {
             if (videoId) {
                 return `https://www.youtube.com/embed/${videoId}`;
             }
-            // Handle youtu.be links
             const pathSegments = videoUrl.pathname.split('/');
             const shortId = pathSegments[pathSegments.length - 1];
              if(shortId) {
                 return `https://www.youtube.com/embed/${shortId}`;
             }
-
         } catch (error) {
             console.error("Invalid YouTube URL", error);
             return '';
