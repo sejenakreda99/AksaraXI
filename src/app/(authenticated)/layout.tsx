@@ -90,9 +90,8 @@ export default function AuthenticatedLayout({
         <SidebarContent>
           <SidebarMenu>
             {sidebarNavItems.map((item) => {
-              const isActive = item.href === '/student'
-                ? pathname === '/student'
-                : (item.href ? pathname.startsWith(item.href) : false);
+              const isActive = (pathname === "/student" && item.href === "/student") || 
+                             (item.href !== "/student" && item.href && pathname.startsWith(item.href));
               return (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
