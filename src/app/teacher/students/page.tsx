@@ -53,7 +53,7 @@ export default function TeacherStudentsPage() {
                             Belum ada kelompok yang ditambahkan.
                           </TableCell>
                         </TableRow>
-                    </Body>
+                    </TableBody>
                   </Table>
                 </CardContent>
               </Card>
