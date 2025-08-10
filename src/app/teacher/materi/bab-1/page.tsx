@@ -5,7 +5,7 @@ import AuthenticatedLayout from "@/app/(authenticated)/layout";
 import { TeacherHeader } from "@/components/layout/teacher-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, Edit } from "lucide-react";
+import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, Edit, BarChart } from "lucide-react";
 import Link from "next/link";
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -19,6 +19,7 @@ const sections = [
   { title: "C. Menulis Teks Deskripsi", href: "/teacher/materi/bab-1/menulis", icon: Pencil },
   { title: "D. Mempresentasikan Teks Deskripsi", href: "/teacher/materi/bab-1/mempresentasikan", icon: Presentation },
   { title: "E. Asesmen", href: "/teacher/materi/bab-1/asesmen", icon: CheckCircle },
+  { title: "Laporan & Penilaian", href: "/teacher/progress?bab=1", icon: BarChart },
   { title: "Jurnal Membaca", href: "/teacher/materi/bab-1/jurnal-membaca", icon: BookOpen },
   { title: "Refleksi", href: "/teacher/materi/bab-1/refleksi", icon: PenSquare },
 ];
@@ -74,13 +75,13 @@ export default function Bab1Page() {
                         </Link>
                     </Button>
                 </CardHeader>
-                <CardContent className="prose max-w-none text-sm">
+                <CardContent className="prose max-w-none text-sm space-y-4">
                     {loading ? (
                         <div className="space-y-4">
                             <Skeleton className="h-4 w-full" />
                             <Skeleton className="h-4 w-full" />
                             <Skeleton className="h-4 w-3/4" />
-                            <Separator className="my-4" />
+                            <Separator/>
                              <Skeleton className="h-4 w-full" />
                              <Skeleton className="h-4 w-1/2" />
                         </div>
@@ -89,7 +90,7 @@ export default function Bab1Page() {
                             <p>
                                 <strong>Pengantar:</strong> {content?.introduction || "Belum ada konten."}
                             </p>
-                             <Separator className="my-4" />
+                            <Separator/>
                             <p>
                                 <strong>Tujuan Pembelajaran:</strong> {content?.learningObjective || "Belum ada konten."}
                             </p>

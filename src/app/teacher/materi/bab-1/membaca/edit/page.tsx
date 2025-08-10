@@ -21,6 +21,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 type ReadingStatement = {
   statement: string;
   answer: 'benar' | 'salah';
+  points: number;
+  evidencePoints: number;
 };
 
 type ReadingContent = {
@@ -50,7 +52,7 @@ export default function EditMembacaPage() {
           setContent({
             learningObjective: '',
             mainText: '',
-            statements: [{ statement: '', answer: 'benar' }],
+            statements: [{ statement: '', answer: 'benar', points: 10, evidencePoints: 10 }],
             feedbackText: '',
             infoBoxText: ''
           });
@@ -69,16 +71,29 @@ export default function EditMembacaPage() {
     fetchContent();
   }, [toast]);
 
-  const handleStatementChange = (index: number, field: 'statement' | 'answer', value: string) => {
+  const handleStatementChange = (index: number, field: keyof ReadingStatement, value: string | number) => {
     if (!content) return;
     const newStatements = [...content.statements];
-    newStatements[index][field] = value as any;
+    const statementToUpdate = { ...newStatements[index] };
+  
+    if (field === 'statement') {
+      statementToUpdate.statement = value as string;
+    } else if (field === 'answer') {
+      statementToUpdate.answer = value as 'benar' | 'salah';
+    } else if (field === 'points' || field === 'evidencePoints') {
+      const numValue = Number(value);
+      if (!isNaN(numValue)) {
+        statementToUpdate[field] = numValue;
+      }
+    }
+    
+    newStatements[index] = statementToUpdate;
     setContent({ ...content, statements: newStatements });
   };
   
   const addStatement = () => {
     if (!content) return;
-    setContent({ ...content, statements: [...content.statements, { statement: '', answer: 'benar' }] });
+    setContent({ ...content, statements: [...content.statements, { statement: '', answer: 'benar', points: 10, evidencePoints: 10 }] });
   };
 
   const removeStatement = (index: number) => {
@@ -165,7 +180,7 @@ export default function EditMembacaPage() {
               <Card>
                   <CardHeader><CardTitle>Tugas: Pernyataan Benar/Salah</CardTitle></CardHeader>
                   <CardContent className="space-y-4">
-                    <Label className="text-base font-semibold">Daftar Pernyataan</Label>
+                    <Label className="text-base font-semibold">Daftar Pernyataan & Penilaian</Label>
                     {content.statements.map((stmt, index) => (
                       <Card key={index} className="p-4 bg-slate-50/50">
                         <div className="flex justify-between items-start gap-4">
@@ -173,19 +188,37 @@ export default function EditMembacaPage() {
                                <Label htmlFor={`stmt-text-${index}`}>Pernyataan #{index + 1}</Label>
                                <Textarea id={`stmt-text-${index}`} value={stmt.statement} onChange={(e) => handleStatementChange(index, 'statement', e.target.value)} placeholder={`Isi pernyataan...`} rows={2}/>
                            </div>
-                           <div className="space-y-2">
-                                <Label htmlFor={`stmt-answer-${index}`}>Kunci Jawaban</Label>
+                           <Button type="button" variant="ghost" size="icon" onClick={() => removeStatement(index)} className="mt-7 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div className='space-y-2'>
+                                <Label>Kunci Jawaban</Label>
                                 <Select value={stmt.answer} onValueChange={(value) => handleStatementChange(index, 'answer', value)}>
-                                    <SelectTrigger id={`stmt-answer-${index}`}>
-                                        <SelectValue/>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih jawaban"/>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="benar">Benar</SelectItem>
                                         <SelectItem value="salah">Salah</SelectItem>
                                     </SelectContent>
                                 </Select>
-                           </div>
-                           <Button type="button" variant="ghost" size="icon" onClick={() => removeStatement(index)} className="mt-7 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
+                            </div>
+                             <div className='space-y-2'>
+                                <Label>Poin Jawaban</Label>
+                                <Input 
+                                  type="number"
+                                  value={stmt.points || ''}
+                                  onChange={(e) => handleStatementChange(index, 'points', e.target.value)}
+                                />
+                            </div>
+                             <div className='space-y-2'>
+                                <Label>Poin Bukti</Label>
+                                <Input 
+                                  type="number"
+                                  value={stmt.evidencePoints || ''}
+                                  onChange={(e) => handleStatementChange(index, 'evidencePoints', e.target.value)}
+                                />
+                            </div>
                         </div>
                       </Card>
                     ))}
