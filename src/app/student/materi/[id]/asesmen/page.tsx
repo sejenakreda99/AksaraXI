@@ -103,18 +103,21 @@ export default function AsesmenSiswaPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Bagian I: Analisis Teks "Keindahan Alam Indonesia"</CardTitle>
-                                <CardDescription>Bacalah teks berikut dengan saksama dan jawablah pertanyaan di bawahnya.</CardDescription>
+                                <CardDescription className="text-justify">Bacalah teks berjudul <strong>“Keindahan Alam Indonesia”</strong> untuk menjawab soal 1-6.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="prose prose-sm max-w-none bg-slate-50 border rounded-lg p-4">
-                                    <h3 className="text-center">Keindahan Alam Indonesia</h3>
-                                    <p>Indonesia adalah negara dengan kekayaan alam yang melimpah ruah dari Sabang hingga Merauke. Keindahan alam Indonesia memang dinilai tak ada yang mampu menandingi di negara mana pun di dunia...</p>
-                                    <p>(Teks lengkap ditampilkan di sini)</p>
+                                <div className="prose prose-sm max-w-none bg-slate-50 border rounded-lg p-4 text-justify">
+                                    <h3 className="text-center font-bold">Keindahan Alam Indonesia</h3>
+                                    <p>Indonesia adalah negara dengan kekayaan alam yang melimpah ruah dari Sabang hingga Merauke. Keindahan alam Indonesia memang dinilai tak ada yang mampu menandingi di negara mana pun di dunia. Hampir semua pesona alam terdapat di Indonesia mulai dari daratan hingga laut. Oleh sebab itu, tidak heran apabila banyak wisatawan asing yang rela datang jauh-jauh ke Indonesia untuk menikmati keindahan alam bumi pertiwi.</p>
+                                    <p>Selain keindahan alam yang disajikan ternyata di dalam keindahan tersebut terdapat banyak hal tersembunyi yang jarang diketahui seperti flora dan fauna yang sangat langka dan eksotis. Alam Indonesia yang paling tersohor di mata dunia adalah keindahan pantainya yang terbentang dari barat hingga ke timur. Banyaknya pulau yang ada di Indonesia membuat kekayaan laut dan pantai semakin berwarna.</p>
+                                    <p>Selain pantai, keindahan dunia bawah laut juga menjadi incaran para wisatawan untuk masuk ke dalamnya dan ikut menikmati kehidupan bawah laut di Indonesia. Daerah yang memiliki keindahan pantai yang menakjubkan di Indonesia yang paling tersohor adalah Manado, Bali, dan Raja Ampat.</p>
+                                    <p>Tidak hanya keindahan pantai, Indonesia juga merupakan negara dengan cangkupan hutan terbesar di Dunia. Oleh karena itu, Indonesia disebut sebagai paru-paru dunia sebab ⅓ hutan di dunia terdapat di Indonesia. Keindahan hutan di Indonesia memang tak perlu diragukan lagi, sebab memang hijau hamparan pohon membuat mata seakan terhipnotis. Selain itu, hewan dan tumbuhan endemik juga banyak yang menjadi buruan wisatawan yang hanya untuk berfoto untuk mengabadikan momen tersebut.</p>
+                                     <p className="text-xs italic">Sumber: https://notepam.com/contoh-teks-deskripsi/</p>
                                 </div>
                                 <div className="space-y-4">
                                 {assessmentQuestions1.map((q, i) => (
                                     <div key={i} className="space-y-2">
-                                        <Label htmlFor={`q1-${i}`}>{i + 1}. {q}</Label>
+                                        <Label htmlFor={`q1-${i}`} className="text-justify">{i + 1}. {q}</Label>
                                         <Textarea id={`q1-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} />
                                     </div>
                                 ))}
@@ -126,7 +129,7 @@ export default function AsesmenSiswaPage() {
                          <Card>
                             <CardHeader>
                                 <CardTitle>Bagian II: Perbandingan Video Deskripsi</CardTitle>
-                                <CardDescription>Simaklah dua video berikut, lalu jawablah pertanyaan perbandingannya.</CardDescription>
+                                <CardDescription className="text-justify">Simaklah dua teks deskripsi pada youtube berikut ini untuk menjawab soal nomor 7-10.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -139,7 +142,7 @@ export default function AsesmenSiswaPage() {
                                 <div className="space-y-4">
                                 {assessmentQuestions2.map((q, i) => (
                                     <div key={i} className="space-y-2">
-                                        <Label htmlFor={`q2-${i}`}>{i + 7}. {q}</Label>
+                                        <Label htmlFor={`q2-${i}`} className="text-justify">{i + 7}. {q}</Label>
                                         <Textarea id={`q2-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} />
                                     </div>
                                 ))}

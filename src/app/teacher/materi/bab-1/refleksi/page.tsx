@@ -45,15 +45,15 @@ export default function RefleksiPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Pratinjau Pertanyaan Refleksi</CardTitle>
-                <CardDescription>Pertanyaan ini akan ditampilkan kepada siswa di akhir bab.</CardDescription>
+                <CardDescription className="text-justify">Pertanyaan ini akan ditampilkan kepada siswa di akhir bab.</CardDescription>
               </CardHeader>
               <CardContent>
-                <ol className="list-decimal list-inside space-y-2">
+                <ol className="list-decimal list-inside space-y-2 text-justify">
                   {reflectionQuestions.map((q, index) => <li key={index}>{q}</li>)}
                 </ol>
                  <div className="bg-slate-100 p-4 rounded-lg mt-6">
                     <h4 className="font-bold">Area Tugas Siswa</h4>
-                    <p className="text-muted-foreground italic">(Di halaman siswa, akan tersedia area teks untuk menjawab pertanyaan-pertanyaan refleksi ini).</p>
+                    <p className="text-muted-foreground italic text-left">(Di halaman siswa, akan tersedia area teks untuk menjawab pertanyaan-pertanyaan refleksi ini).</p>
                 </div>
               </CardContent>
             </Card>

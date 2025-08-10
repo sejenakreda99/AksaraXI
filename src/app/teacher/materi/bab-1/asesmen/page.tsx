@@ -89,11 +89,11 @@ export default function AsesmenPage() {
                     <Card className="p-6">
                         <CardHeader className="px-0 pt-0">
                             <CardTitle>Bagian I: Analisis Teks "Keindahan Alam Indonesia"</CardTitle>
-                            <CardDescription>Siswa akan membaca teks berikut dan menjawab 6 soal esai.</CardDescription>
+                            <CardDescription className="text-justify">Siswa akan membaca teks berikut dan menjawab 6 soal esai.</CardDescription>
                         </CardHeader>
                         <CardContent className="px-0 pb-0">
-                            <div className="prose prose-sm max-w-none bg-slate-50 border rounded-lg p-4 mb-6">
-                                <h3 className="text-center">Keindahan Alam Indonesia</h3>
+                            <div className="prose prose-sm max-w-none bg-slate-50 border rounded-lg p-4 mb-6 text-justify">
+                                <h3 className="text-center font-bold">Keindahan Alam Indonesia</h3>
                                 <p>Indonesia adalah negara dengan kekayaan alam yang melimpah ruah dari Sabang hingga Merauke. Keindahan alam Indonesia memang dinilai tak ada yang mampu menandingi di negara mana pun di dunia.</p>
                                 <p>Hampir semua pesona alam terdapat di Indonesia mulai dari daratan hingga laut. Oleh sebab itu, tidak heran apabila banyak wisatawan asing yang rela datang jauh-jauh ke Indonesia untuk menikmati keindahan alam bumi pertiwi.</p>
                                 <p>Selain keindahan alam yang disajikan ternyata di dalam keindahan tersebut terdapat banyak hal tersembunyi yang jarang diketahui seperti flora dan fauna yang sangat langka dan eksotis.</p>
@@ -105,7 +105,7 @@ export default function AsesmenPage() {
                             </div>
                             
                             <h4 className="font-semibold mb-2">Soal:</h4>
-                            <ol className="list-decimal list-inside space-y-2 text-sm">
+                            <ol className="list-decimal list-inside space-y-2 text-sm text-justify">
                                 {assessmentQuestions1.map((q, i) => <li key={i}>{q}</li>)}
                             </ol>
                         </CardContent>
@@ -117,7 +117,7 @@ export default function AsesmenPage() {
                     <Card className="p-6">
                          <CardHeader className="px-0 pt-0">
                             <CardTitle>Bagian II: Perbandingan Video Deskripsi</CardTitle>
-                            <CardDescription>Siswa akan menyimak dua video berikut dan menjawab 4 soal perbandingan.</CardDescription>
+                            <CardDescription className="text-justify">Siswa akan menyimak dua video berikut dan menjawab 4 soal perbandingan.</CardDescription>
                         </CardHeader>
                          <CardContent className="px-0 pb-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -128,7 +128,7 @@ export default function AsesmenPage() {
                                 ))}
                             </div>
                              <h4 className="font-semibold mb-2">Soal:</h4>
-                             <ol className="list-decimal list-inside space-y-2 text-sm" start={7}>
+                             <ol className="list-decimal list-inside space-y-2 text-sm text-justify" start={7}>
                                 {assessmentQuestions2.map((q, i) => <li key={i}>{q}</li>)}
                             </ol>
                          </CardContent>

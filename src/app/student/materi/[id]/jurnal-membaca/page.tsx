@@ -57,14 +57,15 @@ export default function JurnalMembacaSiswaPage() {
                             <CardHeader>
                                 <CardTitle>Instruksi Kegiatan Literasi</CardTitle>
                             </CardHeader>
-                            <CardContent className="prose prose-sm max-w-none">
-                                <p>Kali ini kalian akan melakukan kegiatan literasi membaca yang berhubungan dengan teks deskripsi. Kalian akan lebih memahami bahwa tidak hanya sekadar deskripsi faktual yang menggambarkan sesuatu berupa fakta yang dapat diindra secara langsung, tetapi juga dapat kita jumpai dalam karya prosa fiksi, seperti novel dan cerita pendek.</p>
+                            <CardContent className="prose prose-sm max-w-none text-justify">
+                                <p>Kali ini kalian akan melakukan kegiatan literasi membaca yang berhubungan dengan teks deskripsi. Kalian akan lebih memahami bahwa tidak hanya sekadar deskripsi faktual yang menggambarkan sesuatu berupa fakta yang dapat diindra secara langsung, tetapi juga dapat kita jumpai dalam karya prosa fiksi, seperti novel dan cerita pendek. Bahkan, boleh dikatakan bahwa teks deskripsi tidak bisa dilepaskan dari cerita fiksi karena penulis perlu untuk menggambarkan tokoh, menggambarkan latar, dan lain-lain untuk mendukung keberhasilan penyampaian gagasannya dalam karya tersebut.</p>
                                 <p>Beberapa novel di bawah ini sangat tajam dalam mendeskripsikan latarnya.</p>
                                 <ol>
                                     <li><strong>Ronggeng Dukuh Paruk</strong> karya Ahmad Tohari</li>
                                     <li><strong>Harimau! Harimau!</strong> karya Mochtar Lubis</li>
                                     <li><strong>Upacara</strong> karya Korrie Layun Rampan</li>
                                 </ol>
+                                 <p>Novel <i>Ronggeng Dukuh Paruk</i> banyak mendeskrispikan situasi pedesaan di Jawa Tengah pada masa 1965. <i>Harimau! Harimau!</i> mendeskripsikan situasi hutan Sumatera. Sedangkan <i>Upacara</i> banyak mendeskipsikan adat budaya Suku Dayak di Kalimantan.</p>
                                 <p>Coba kalian apresiasi teks deskripsi dalam salah satu novel tersebut. Untuk melakukan kegiatan apresiasi, kalian bisa menunjukkan kelebihan dan kekurangan novel itu, khususnya dari segi pendeskripsian.</p>
                             </CardContent>
                         </Card>

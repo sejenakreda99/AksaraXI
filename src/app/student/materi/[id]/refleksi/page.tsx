@@ -65,7 +65,7 @@ export default function RefleksiSiswaPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Mari Berefleksi</CardTitle>
-                                <CardDescription>Jawablah pertanyaan-pertanyaan berikut berdasarkan pengalaman belajar Anda di bab ini.</CardDescription>
+                                <CardDescription className="text-justify">Jawablah pertanyaan-pertanyaan berikut berdasarkan pengalaman belajar Anda di bab ini.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {reflectionQuestions.map((q, i) => (
