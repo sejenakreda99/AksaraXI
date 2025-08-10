@@ -2,12 +2,12 @@ import AuthenticatedLayout from "@/app/(authenticated)/layout";
 import { TeacherHeader } from "@/components/layout/teacher-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation } from "lucide-react";
+import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle } from "lucide-react";
 import Link from "next/link";
 
 const sections = [
   { title: "Tujuan Pembelajaran", href: "/teacher/materi/bab-1/tujuan-pembelajaran", icon: CheckCircle },
-  { title: "Pertanyaan Pemantik", href: "/teacher/materi/bab-1/pertanyaan-pemantik", icon: PenSquare },
+  { title: "Pertanyaan Pemantik", href: "/teacher/materi/bab-1/pertanyaan-pemantik", icon: HelpCircle },
   { title: "A. Menyimak Teks Deskripsi", href: "/teacher/materi/bab-1/menyimak", icon: BookOpen },
   { title: "B. Membaca Teks Deskripsi", href: "/teacher/materi/bab-1/membaca", icon: FileText },
   { title: "C. Menulis Teks Deskripsi", href: "/teacher/materi/bab-1/menulis", icon: Pencil },
@@ -27,6 +27,23 @@ export default function Bab1Page() {
         />
         <main className="flex-1 p-4 md:p-8">
           <div className="max-w-4xl mx-auto">
+             <Card className="mb-8">
+                <CardHeader>
+                    <CardTitle>Pengantar Bab</CardTitle>
+                </CardHeader>
+                <CardContent className="prose max-w-none text-sm">
+                    <p>
+                        Tuhan Maha Pemurah karena bangsa Indonesia dianugerahi dengan alam yang sangat indah. Kita patut mensyukurinya. Salah satu bentuk rasa syukur kita pada Tuhan atas alam adalah kita mampu mengapresiasi keindahan alam yang kita punya.
+                    </p>
+                    <p>
+                        Alam Indonesia begitu luas. Di daerah kalian, tentu juga ada alam yang patut dilestarikan dan dijaga keindahannya. Kalian pun bisa memperkenalkan alam kalian pada dunia luar. Kalian bisa memotretnya, lalu mengunggahnya ke media daring atau menuliskannya dengan bahasa Indonesia yang baik dan benar. Orang lain akan terkagumkagum menyimak, memirsa, melihat, dan membaca teks yang kalian buat.
+                    </p>
+                    <p>
+                        Bagaimana kalian bisa membuat teks itu dengan bagus agar orang lain turut merasakan keindahan alam yang kalian perkenalkan? Melalui pembelajaran pada bab ini, dengan tema “Keindahan Alam”, kalian akan belajar memperkaya diri dengan menyimak, membaca, menulis, dan mempresentasikan teks deskripsi tentang keindahan alam Indonesia.
+                    </p>
+                </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Struktur Bab</CardTitle>
