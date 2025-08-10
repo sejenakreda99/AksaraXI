@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createGroup } from './actions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Controller, useForm } from 'react-hook-form';
-import { FormControl } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 
 
 const initialState = {
@@ -32,7 +32,7 @@ function SubmitButton() {
 export function AddGroupForm() {
   const [state, formAction] = useActionState(createGroup, initialState);
   const { toast } = useToast();
-  const { control, setValue } = useForm();
+  const form = useForm();
 
   useEffect(() => {
     if (state?.type === 'success') {
@@ -40,6 +40,7 @@ export function AddGroupForm() {
         title: 'Berhasil',
         description: state.message as string,
       });
+      form.reset();
     } else if (state?.type === 'error') {
        toast({
         variant: 'destructive',
@@ -47,7 +48,7 @@ export function AddGroupForm() {
         description: typeof state.message === 'string' ? state.message : 'Silakan periksa kembali isian Anda.',
       });
     }
-  }, [state, toast]);
+  }, [state, toast, form]);
 
 
   return (
@@ -59,96 +60,89 @@ export function AddGroupForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="space-y-4">
-           <div className="space-y-2">
-            <Label htmlFor="className">Kelas</Label>
-             <Controller
-                name="className"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      setValue('className', value);
-                    }}
-                    defaultValue={field.value}
-                  >
+        <Form {...form}>
+          <form
+            action={formAction}
+            className="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="className"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Kelas</Label>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                       <SelectTrigger>
-                          <SelectValue placeholder="Pilih Kelas" />
-                       </SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Kelas" />
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="XI-2">XI-2</SelectItem>
                       <SelectItem value="XI-3">XI-3</SelectItem>
                     </SelectContent>
                   </Select>
-                )}
-              />
-            {typeof state.message !== 'string' && state.message?.className && (
-              <p className="text-sm font-medium text-destructive">{state.message.className[0]}</p>
-            )}
-          </div>
-           <div className="space-y-2">
-            <Label htmlFor="groupName">Nama Kelompok</Label>
-             <Controller
-                  name="groupName"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        setValue('groupName', value);
-                      }}
-                      defaultValue={field.value}
-                    >
-                       <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih Kelompok" />
-                          </SelectTrigger>
-                       </FormControl>
-                      <SelectContent>
+                  {typeof state.message !== 'string' && state.message?.className && (
+                    <p className="text-sm font-medium text-destructive">{state.message.className[0]}</p>
+                  )}
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="groupName"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Nama Kelompok</Label>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Kelompok" />
+                      </SelectTrigger>
+                    </FormControl>
+                     <SelectContent>
                         {Array.from({ length: 6 }, (_, i) => i + 1).map((num) => (
                           <SelectItem key={num} value={`Kelompok ${num}`}>
                             Kelompok {num}
                           </SelectItem>
                         ))}
                       </SelectContent>
-                    </Select>
+                  </Select>
+                  {typeof state.message !== 'string' && state.message?.groupName && (
+                    <p className="text-sm font-medium text-destructive">{state.message.groupName[0]}</p>
                   )}
-                />
-            {typeof state.message !== 'string' && state.message?.groupName && (
-              <p className="text-sm font-medium text-destructive">{state.message.groupName[0]}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Kelompok</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="contoh@email.com"
-              required
+                </FormItem>
+              )}
             />
-             {typeof state.message !== 'string' && state.message?.email && (
-              <p className="text-sm font-medium text-destructive">{state.message.email[0]}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Kata Sandi</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="********"
-              required
-            />
-            {typeof state.message !== 'string' && state.message?.password && (
-              <p className="text-sm font-medium text-destructive">{state.message.password[0]}</p>
-            )}
-          </div>
-          <SubmitButton />
-        </form>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Kelompok</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="contoh@email.com"
+                required
+              />
+              {typeof state.message !== 'string' && state.message?.email && (
+                <p className="text-sm font-medium text-destructive">{state.message.email[0]}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Kata Sandi</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="********"
+                required
+              />
+              {typeof state.message !== 'string' && state.message?.password && (
+                <p className="text-sm font-medium text-destructive">{state.message.password[0]}</p>
+              )}
+            </div>
+            <SubmitButton />
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
