@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
@@ -123,6 +124,13 @@ export default function EditMenulisPage() {
         const newItems = content.checklistItems.filter((_, i) => i !== index);
         setContent({ ...content, checklistItems: newItems });
     };
+    
+    const handleStepChange = (index: number, field: 'title' | 'description', value: string) => {
+        if (!content) return;
+        const newSteps = [...content.kegiatan1Steps];
+        newSteps[index] = { ...newSteps[index], [field]: value };
+        setContent({ ...content, kegiatan1Steps: newSteps });
+    };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -181,15 +189,16 @@ export default function EditMenulisPage() {
                                         <Label>Pengantar Kegiatan 1</Label>
                                         <Textarea value={content.kegiatan1Intro} onChange={(e) => setContent({...content, kegiatan1Intro: e.target.value})} rows={3} />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-4">
                                         <Label>Langkah-Langkah Menulis</Label>
-                                        <Textarea value={content.kegiatan1Steps.map(s => `${s.title}\n${s.description}`).join('\n\n')} onChange={(e) => {
-                                            const steps = e.target.value.split('\n\n').map(chunk => {
-                                                const [title, ...desc] = chunk.split('\n');
-                                                return { title: title || '', description: desc.join('\n') };
-                                            });
-                                            setContent({...content, kegiatan1Steps: steps });
-                                        }} rows={10} placeholder="Title\nDescription..." />
+                                        {content.kegiatan1Steps.map((step, index) => (
+                                            <div key={index} className="p-4 bg-slate-50/50 rounded-lg border space-y-2">
+                                                 <Label htmlFor={`step-title-${index}`}>Langkah {index + 1}: Judul</Label>
+                                                 <Input id={`step-title-${index}`} value={step.title} onChange={e => handleStepChange(index, 'title', e.target.value)} />
+                                                  <Label htmlFor={`step-desc-${index}`}>Langkah {index + 1}: Deskripsi</Label>
+                                                 <Textarea id={`step-desc-${index}`} value={step.description} onChange={e => handleStepChange(index, 'description', e.target.value)} rows={2} />
+                                            </div>
+                                        ))}
                                     </div>
                                      <div className="space-y-2">
                                         <Label>Pengantar Latihan</Label>
@@ -203,9 +212,10 @@ export default function EditMenulisPage() {
                                      <div className="space-y-4">
                                         <Label className="text-base font-semibold">Tabel Checklist Diri</Label>
                                         {content.checklistItems.map((item, index) => (
-                                          <Card key={index} className="p-4 bg-slate-50/50 flex justify-between items-center">
-                                            <Textarea value={item.text} onChange={(e) => handleChecklistItemChange(index, e.target.value)} placeholder={`Isi teks checklist...`} rows={2} className="flex-1"/>
-                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeChecklistItem(index)} className="ml-2 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></Button>
+                                          <Card key={index} className="p-4 bg-slate-50/50 flex justify-between items-center gap-2">
+                                            <Label htmlFor={`check-item-${index}`} className="sr-only">Item {index + 1}</Label>
+                                            <Textarea id={`check-item-${index}`} value={item.text} onChange={(e) => handleChecklistItemChange(index, e.target.value)} placeholder={`Isi teks checklist...`} rows={2} className="flex-1"/>
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeChecklistItem(index)} className="text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></Button>
                                           </Card>
                                         ))}
                                         <Button type="button" variant="outline" onClick={addChecklistItem}><PlusCircle className="mr-2 h-4 w-4" />Tambah Item Checklist</Button>
@@ -217,16 +227,16 @@ export default function EditMenulisPage() {
                                 <CardHeader><CardTitle>Kegiatan 2: Publikasi</CardTitle></CardHeader>
                                 <CardContent className="space-y-6">
                                     <div className="space-y-2">
-                                        <Label>Pengantar Kegiatan 2</Label>
-                                        <Textarea value={content.kegiatan2Intro} onChange={(e) => setContent({...content, kegiatan2Intro: e.target.value})} rows={15} />
+                                        <Label htmlFor="kegiatan2Intro">Pengantar Kegiatan 2</Label>
+                                        <Textarea id="kegiatan2Intro" value={content.kegiatan2Intro} onChange={(e) => setContent({...content, kegiatan2Intro: e.target.value})} rows={15} />
                                     </div>
                                      <div className="space-y-2">
-                                        <Label>Tips Publikasi</Label>
-                                        <Textarea value={content.kegiatan2Tips.join('\n')} onChange={e => setContent({...content, kegiatan2Tips: e.target.value.split('\n')})} rows={10} placeholder="Satu tips per baris..."/>
+                                        <Label htmlFor="kegiatan2Tips">Tips Publikasi</Label>
+                                        <Textarea id="kegiatan2Tips" value={content.kegiatan2Tips.join('\n')} onChange={e => setContent({...content, kegiatan2Tips: e.target.value.split('\n')})} rows={10} placeholder="Satu tips per baris..."/>
                                     </div>
                                      <div className="space-y-2">
-                                        <Label>Tautan Video YouTube Referensi</Label>
-                                        <Textarea value={content.youtubeLinks.join('\n')} onChange={e => setContent({...content, youtubeLinks: e.target.value.split('\n')})} rows={4} placeholder="Satu URL YouTube per baris..."/>
+                                        <Label htmlFor="youtubeLinks">Tautan Video YouTube Referensi</Label>
+                                        <Textarea id="youtubeLinks" value={content.youtubeLinks.join('\n')} onChange={e => setContent({...content, youtubeLinks: e.target.value.split('\n')})} rows={4} placeholder="Satu URL YouTube per baris..."/>
                                     </div>
                                 </CardContent>
                             </Card>
