@@ -30,6 +30,7 @@ type Group = {
   className: string;
   groupName: string;
   email: string;
+  members: string[];
 }
 
 export default function TeacherStudentsPage() {
@@ -66,12 +67,12 @@ export default function TeacherStudentsPage() {
           description="Tambah kelompok baru dan lihat daftar kelompok yang terdaftar."
         />
         <main className="flex-1 p-4 md:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-6xl mx-auto">
             <div className="w-full">
               <AddGroupForm onGroupAdded={fetchGroups} />
             </div>
-            <div className="w-full">
-              <Card>
+            <div className="w-full md:col-span-1">
+              <Card className="h-full">
                 <CardHeader>
                   <CardTitle>Daftar Kelompok</CardTitle>
                   <CardDescription>Berikut adalah daftar kelompok yang terdaftar.</CardDescription>
@@ -82,7 +83,7 @@ export default function TeacherStudentsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nama Kelompok</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead>Anggota</TableHead>
                         <TableHead>Kelas</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -98,8 +99,12 @@ export default function TeacherStudentsPage() {
                       ) : groups.length > 0 ? (
                         groups.map((group) => (
                           <TableRow key={group.id}>
-                            <TableCell>{group.groupName}</TableCell>
-                            <TableCell>{group.email}</TableCell>
+                            <TableCell className="font-medium">{group.groupName}</TableCell>
+                            <TableCell>
+                                <ul className="list-disc list-inside">
+                                    {(group.members || []).map(member => <li key={member}>{member}</li>)}
+                                </ul>
+                            </TableCell>
                             <TableCell>{group.className}</TableCell>
                           </TableRow>
                         ))

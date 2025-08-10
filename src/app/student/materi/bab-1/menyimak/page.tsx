@@ -1,16 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Youtube, FileText, ArrowLeft } from 'lucide-react';
+import { Youtube, FileText, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 type Statement = {
   no: number;
@@ -29,18 +31,23 @@ type MenyimakContent = {
 export default function MenyimakSiswaPage() {
   const [content, setContent] = useState<MenyimakContent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const [user] = useAuthState(auth);
+
   const [answers, setAnswers] = useState<
     Record<string, { choice: 'benar' | 'salah' | ''; evidence: string }>
   >({});
-  const chapterId = '1'; // sementara hardcode
+  const chapterId = '1';
 
   useEffect(() => {
     async function fetchContent() {
+      if (!chapterId) return;
+      setLoading(true);
       try {
-        // FIX: Path is changed to match teacher's data structure
         const docRef = doc(db, 'chapters', chapterId);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists() && docSnap.data().menyimak) {
           const fetchedContent = docSnap.data().menyimak as MenyimakContent;
           setContent(fetchedContent);
@@ -52,12 +59,17 @@ export default function MenyimakSiswaPage() {
         }
       } catch (error) {
         console.error('Failed to fetch content:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Gagal Memuat',
+          description: 'Tidak dapat memuat konten materi.',
+        });
       } finally {
         setLoading(false);
       }
     }
     fetchContent();
-  }, [chapterId]);
+  }, [chapterId, toast]);
 
   const handleAnswerChange = (no: number, type: 'choice' | 'evidence', value: string) => {
     setAnswers((prev) => ({
@@ -84,6 +96,43 @@ export default function MenyimakSiswaPage() {
       return '';
     }
     return '';
+  };
+  
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!user) {
+        toast({ variant: "destructive", title: "Error", description: "Anda harus masuk untuk mengirimkan jawaban." });
+        return;
+    }
+
+    setIsSubmitting(true);
+    try {
+        const submissionId = `${user.uid}_${chapterId}_menyimak`;
+        const submissionRef = doc(db, 'submissions', submissionId);
+        
+        await setDoc(submissionRef, {
+            studentId: user.uid,
+            chapterId: chapterId,
+            activity: 'menyimak',
+            answers: answers,
+            submittedAt: serverTimestamp()
+        });
+        
+        toast({
+            title: "Berhasil!",
+            description: "Jawaban Anda telah berhasil disimpan.",
+        });
+
+    } catch (error) {
+        console.error("Error submitting answers:", error);
+        toast({
+            variant: "destructive",
+            title: "Gagal Menyimpan",
+            description: "Terjadi kesalahan saat menyimpan jawaban Anda.",
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -167,7 +216,7 @@ export default function MenyimakSiswaPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <form>
+                  <form onSubmit={handleSubmit}>
                     {content.statements.map((stmt) => (
                       <div key={stmt.no} className="border p-4 rounded-lg bg-slate-50/50">
                         <p className="font-semibold">Pernyataan #{stmt.no}</p>
@@ -210,8 +259,9 @@ export default function MenyimakSiswaPage() {
                         </div>
                       </div>
                     ))}
-                    <Button type="submit" className="mt-6 w-full" disabled>
-                      <FileText className="mr-2 h-4 w-4" /> Simpan & Kirim Jawaban (Segera)
+                    <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
+                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                      {isSubmitting ? 'Mengirim...' : 'Simpan & Kirim Jawaban'}
                     </Button>
                   </form>
                 </CardContent>

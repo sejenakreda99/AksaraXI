@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { Textarea } from '@/components/ui/textarea';
 
 export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
   const [isPending, setIsPending] = useState(false);
@@ -37,26 +38,29 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
     const password = formData.get('password') as string;
     const className = formData.get('className') as string;
     const groupName = formData.get('groupName') as string;
+    const members = (formData.get('members') as string)
+      .split('\n')
+      .map((name) => name.trim())
+      .filter(Boolean);
 
-    if (!email || !password || !className || !groupName) {
-        toast({
-            variant: 'destructive',
-            title: 'Gagal',
-            description: 'Semua kolom harus diisi.',
-        });
-        setIsPending(false);
-        return;
+    if (!email || !password || !className || !groupName || members.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Gagal',
+        description: 'Semua kolom harus diisi.',
+      });
+      setIsPending(false);
+      return;
     }
-     if (password.length < 8) {
-        toast({
-            variant: 'destructive',
-            title: 'Gagal',
-            description: 'Kata sandi minimal 8 karakter.',
-        });
-        setIsPending(false);
-        return;
+    if (password.length < 8) {
+      toast({
+        variant: 'destructive',
+        title: 'Gagal',
+        description: 'Kata sandi minimal 8 karakter.',
+      });
+      setIsPending(false);
+      return;
     }
-
 
     try {
       // Create a temporary auth instance to create the user
@@ -65,17 +69,22 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
       const { getAuth: getTempAuth } = await import('firebase/auth');
       const tempAuth = getTempAuth(tempApp);
 
-      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        tempAuth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       // Set displayName for role distinction
-      await updateProfile(user, { displayName: "Siswa" });
+      await updateProfile(user, { displayName: 'Siswa' });
 
       // Save group info to Firestore
       await setDoc(doc(db, 'groups', user.uid), {
         className,
         groupName,
         email,
+        members,
       });
 
       toast({
@@ -92,13 +101,13 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
         message = 'Kata sandi terlalu lemah. Gunakan minimal 8 karakter.';
       }
       console.error('Error creating user:', error);
-       toast({
+      toast({
         variant: 'destructive',
         title: 'Gagal',
         description: message,
       });
     } finally {
-        setIsPending(false);
+      setIsPending(false);
     }
   };
 
@@ -139,6 +148,17 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          
+           <div className="space-y-2">
+            <Label htmlFor="members">Anggota Kelompok</Label>
+            <Textarea
+              id="members"
+              name="members"
+              placeholder="Tuliskan nama anggota, satu nama per baris..."
+              required
+              rows={5}
+            />
           </div>
 
           <div className="space-y-2">
