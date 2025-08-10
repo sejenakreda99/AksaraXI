@@ -90,10 +90,10 @@ export default function AuthenticatedLayout({
         <SidebarContent>
           <SidebarMenu>
             {sidebarNavItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
+              <SidebarMenuItem key={item.label}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={item.href ? pathname.startsWith(item.href) && (item.href === '/' || item.href.length > 1) || pathname === item.href : false}
                 >
                   <Link href={item.href!}>
                     <item.icon className="h-5 w-5" />
