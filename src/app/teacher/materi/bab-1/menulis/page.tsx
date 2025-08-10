@@ -161,7 +161,7 @@ export default function MenulisPage() {
                                                     <div className="prose prose-sm max-w-none">
                                                         <p>{content.kegiatan1Intro}</p>
                                                         <h4 className="font-bold">Langkah-Langkah Menulis</h4>
-                                                        {content.kegiatan1Steps.map((step, i) => <div key={i}><h5>{i+1}. {step.title}</h5><p>{step.description}</p></div>)}
+                                                        {content.kegiatan1Steps.map((step, i) => <div key={i}><h5 className='font-semibold'>{i+1}. {step.title}</h5><p>{step.description}</p></div>)}
                                                         <Separator className="my-4"/>
                                                          <h4 className="font-bold">Panduan Latihan</h4>
                                                         <p>{content.latihanIntro}</p>
@@ -169,10 +169,10 @@ export default function MenulisPage() {
                                                     </div>
                                                     <Separator/>
                                                      <div>
-                                                        <CardHeader className="px-0">
+                                                        <div className='mb-4'>
                                                             <CardTitle>Tabel 1.5 Memeriksa Unsur</CardTitle>
                                                             <CardDescription>Siswa akan menggunakan tabel ini untuk memeriksa mandiri.</CardDescription>
-                                                        </CardHeader>
+                                                        </div>
                                                         <Table>
                                                             <TableHeader><TableRow><TableHead>Unsur yang Diperiksa</TableHead><TableHead className="w-[100px] text-center">Ya</TableHead></TableRow></TableHeader>
                                                             <TableBody>
@@ -192,7 +192,7 @@ export default function MenulisPage() {
                                             <AccordionItem value="kegiatan-2">
                                                 <AccordionTrigger className="p-6 text-lg font-semibold">Kegiatan 2: Publikasi</AccordionTrigger>
                                                 <AccordionContent className="p-6 pt-0 space-y-6">
-                                                    <div className="prose prose-sm max-w-none">
+                                                    <div className="prose prose-sm max-w-none whitespace-pre-wrap">
                                                         <p>{content.kegiatan2Intro}</p>
                                                         <h4 className="font-bold">Tips Publikasi</h4>
                                                         <ol className="list-decimal list-outside pl-5 space-y-2">{content.kegiatan2Tips.map((tip, i) => <li key={i}>{tip}</li>)}</ol>

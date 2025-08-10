@@ -123,6 +123,10 @@ export default function MenulisSiswaPage() {
         event.preventDefault();
         if (!user) return toast({ variant: "destructive", title: "Error", description: "Anda harus masuk untuk mengirimkan jawaban." });
         
+        if (answers.finalText.trim() === '' && answers.submissionLink.trim() === '') {
+            return toast({ variant: "destructive", title: "Tugas Belum Lengkap", description: "Anda harus mengisi teks deskripsi atau memberikan tautan publikasi." });
+        }
+        
         setIsSubmitting(true);
         try {
             const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menulis`);
@@ -336,7 +340,7 @@ export default function MenulisSiswaPage() {
                                     <ArrowLeft className="mr-2 h-4 w-4"/>
                                     Kembali
                                 </Button>
-                                {steps[currentStep].id !== 'pengumpulan' ? (
+                                {steps[currentStep].id !== 'publikasi' ? (
                                     <Button type="button" onClick={() => setCurrentStep(s => s + 1)}>
                                         Lanjut
                                         <ArrowRight className="ml-2 h-4 w-4"/>

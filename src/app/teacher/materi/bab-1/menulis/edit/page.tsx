@@ -90,7 +90,9 @@ export default function EditMenulisPage() {
                 const docRef = doc(db, 'chapters', '1');
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists() && docSnap.data().menulis) {
-                     setContent(docSnap.data().menulis);
+                     const fetchedData = docSnap.data().menulis;
+                     const mergedContent = { ...defaultContent, ...fetchedData };
+                     setContent(mergedContent);
                 } else {
                     setContent(defaultContent);
                 }
@@ -180,7 +182,7 @@ export default function EditMenulisPage() {
                                         <Textarea value={content.kegiatan1Intro} onChange={(e) => setContent({...content, kegiatan1Intro: e.target.value})} rows={3} />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Langkah-Langkah Menulis (Format: Judul, lalu deskripsi di baris baru)</Label>
+                                        <Label>Langkah-Langkah Menulis</Label>
                                         <Textarea value={content.kegiatan1Steps.map(s => `${s.title}\n${s.description}`).join('\n\n')} onChange={(e) => {
                                             const steps = e.target.value.split('\n\n').map(chunk => {
                                                 const [title, ...desc] = chunk.split('\n');
@@ -216,7 +218,7 @@ export default function EditMenulisPage() {
                                 <CardContent className="space-y-6">
                                     <div className="space-y-2">
                                         <Label>Pengantar Kegiatan 2</Label>
-                                        <Textarea value={content.kegiatan2Intro} onChange={(e) => setContent({...content, kegiatan2Intro: e.target.value})} rows={10} />
+                                        <Textarea value={content.kegiatan2Intro} onChange={(e) => setContent({...content, kegiatan2Intro: e.target.value})} rows={15} />
                                     </div>
                                      <div className="space-y-2">
                                         <Label>Tips Publikasi</Label>
