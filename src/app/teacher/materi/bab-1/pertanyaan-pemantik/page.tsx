@@ -6,7 +6,7 @@ import { TeacherHeader } from "@/components/layout/teacher-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Edit, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit } from "lucide-react";
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -62,9 +62,11 @@ export default function PertanyaanPemantikPage() {
                   Kembali ke Struktur Bab
                 </Link>
               </Button>
-               <Button variant="outline" size="sm" disabled>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit (Segera)
+               <Button asChild variant="outline" size="sm">
+                  <Link href="/teacher/materi/bab-1/pertanyaan-pemantik/edit">
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
               </Button>
             </div>
             <Card>
