@@ -36,7 +36,7 @@ type MenulisContent = {
 
 const defaultContent: MenulisContent = {
     learningObjective: "Menulis gagasan dalam bentuk teks deskripsi",
-    kegiatan1Intro: "Pada pembelajaran kali ini, kalian akan belajar menulis teks deskripsi. Sebelum menulis teks deskripsi, tentu saja kalian harus melakukan pengamatan terhadap objek yang akan dideskrispsikan.",
+    kegiatan1Intro: "Pada pembelajaran kali ini, kalian akan belajar menulis teks deskripsi. Sebelum menulis teks deskripsi, tentu saja kalian harus melakukan pengamatan terhadap objek yang akan dideskrispsikan.\n\nLangkah apa saja yang harus dilakukan untuk mencapai tujuan pembelajaran menulis teks deskripsi? Langkah-langkah pembelajaran ini akan diterangkan dalam bentuk tahapan-tahapan kegiatan sebagai berikut.",
     kegiatan1Steps: [
         { title: "Menentukan topik", description: "Topik dalam teks deskripsi dapat ditentukan sesuai dengan tujuan penulisan atau kebutuhan informasi hal atau barang yang dideskripsikan." },
         { title: "Membuat kerangka", description: "Kerangka karangan untuk penulisan teks deskripsi tetap dibutuhkan agar hal atau barang yang dideskripsikan dapat digambarkan ciri-cirinya sesuai dengan yang sebenarnya." },
@@ -187,7 +187,7 @@ export default function EditMenulisPage() {
                                 <CardContent className="space-y-6">
                                      <div className="space-y-2">
                                         <Label>Pengantar Kegiatan 1</Label>
-                                        <Textarea value={content.kegiatan1Intro} onChange={(e) => setContent({...content, kegiatan1Intro: e.target.value})} rows={3} />
+                                        <Textarea value={content.kegiatan1Intro} onChange={(e) => setContent({...content, kegiatan1Intro: e.target.value})} rows={5} />
                                     </div>
                                     <div className="space-y-4">
                                         <Label>Langkah-Langkah Menulis</Label>
@@ -228,7 +228,7 @@ export default function EditMenulisPage() {
                                 <CardContent className="space-y-6">
                                     <div className="space-y-2">
                                         <Label htmlFor="kegiatan2Intro">Pengantar Kegiatan 2</Label>
-                                        <Textarea id="kegiatan2Intro" value={content.kegiatan2Intro} onChange={(e) => setContent({...content, kegiatan2Intro: e.target.value})} rows={15} />
+                                        <Textarea id="kegiatan2Intro" value={content.kegiatan2Intro} onChange={(e) => setContent({...content, kegiatan2Intro: e.target.value})} rows={20} />
                                     </div>
                                      <div className="space-y-2">
                                         <Label htmlFor="kegiatan2Tips">Tips Publikasi</Label>
