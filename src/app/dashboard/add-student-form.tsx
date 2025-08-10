@@ -63,11 +63,17 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
     }
 
     try {
-      // Create a temporary auth instance to create the user
       // This is a workaround to create a user without signing them in on the admin's device.
-      const { app: tempApp } = await import('@/lib/firebase');
+      // We're re-initializing a temporary app instance. 
+      // NOTE: This is not the recommended way for a real production app. 
+      // A backend function would be more secure and robust.
+      const { initializeApp: initializeTempApp, getApps: getTempApps } = await import('firebase/app');
       const { getAuth: getTempAuth } = await import('firebase/auth');
+      
+      const tempAppName = 'temp-auth-instance';
+      const tempApp = getTempApps().find(app => app.name === tempAppName) || initializeTempApp(auth.app.options, tempAppName);
       const tempAuth = getTempAuth(tempApp);
+
 
       const userCredential = await createUserWithEmailAndPassword(
         tempAuth,
@@ -99,11 +105,13 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
         message = 'Email ini sudah terdaftar. Silakan gunakan email lain.';
       } else if (error.code === 'auth/weak-password') {
         message = 'Kata sandi terlalu lemah. Gunakan minimal 8 karakter.';
+      } else if (error.code === 'auth/invalid-credential') {
+          message = 'Terjadi kesalahan kredensial. Silakan coba lagi.'
       }
       console.error('Error creating user:', error);
       toast({
         variant: 'destructive',
-        title: 'Gagal',
+        title: 'Gagal Membuat Akun',
         description: message,
       });
     } finally {
@@ -112,7 +120,7 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Tambah Kelompok Baru</CardTitle>
         <CardDescription>
