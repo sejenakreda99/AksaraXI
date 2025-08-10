@@ -108,7 +108,7 @@ export default function AuthenticatedLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="pb-16 md:pb-0">{children}</SidebarInset>
-      <BottomNavBar homeHref={isTeacher ? "/dashboard" : "/student"} />
+      <BottomNavBar navItems={navItems} />
     </SidebarProvider>
   );
 }
