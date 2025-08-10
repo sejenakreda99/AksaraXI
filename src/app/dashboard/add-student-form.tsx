@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ function SubmitButton() {
 }
 
 export function AddStudentForm() {
-  const [state, formAction] = useFormState(createStudent, initialState);
+  const [state, formAction] = useActionState(createStudent, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
