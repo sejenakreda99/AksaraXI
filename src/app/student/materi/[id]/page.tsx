@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import AuthenticatedLayout from "@/app/(authenticated)/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -13,10 +12,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
 const sections = [
-  { title: "A. Menyimak Teks Deskripsi", href: "/student/materi/bab-1/menyimak", icon: BookOpen },
-  { title: "B. Membaca Teks Deskripsi", href: "/student/materi/bab-1/membaca", icon: FileText },
-  { title: "C. Menulis Teks Deskripsi", href: "/student/materi/bab-1/menulis", icon: Pencil },
-  { title: "D. Mempresentasikan Teks Deskripsi", href: "/student/materi/bab-1/mempresentasikan", icon: Presentation },
+  { title: "A. Menyimak", href: "/student/materi/bab-1/menyimak", icon: BookOpen },
+  { title: "B. Membaca", href: "/student/materi/bab-1/membaca", icon: FileText },
+  { title: "C. Menulis", href: "/student/materi/bab-1/menulis", icon: Pencil },
+  { title: "D. Mempresentasikan", href: "/student/materi/bab-1/mempresentasikan", icon: Presentation },
   { title: "E. Asesmen", href: "/student/materi/bab-1/asesmen", icon: CheckCircle },
   { title: "Jurnal Membaca", href: "/student/materi/bab-1/jurnal-membaca", icon: BookOpen },
   { title: "Refleksi", href: "/student/materi/bab-1/refleksi", icon: PenSquare },
@@ -55,8 +54,8 @@ export default function BabSiswaPage({ params }: { params: { id: string } }) {
 
   return (
     <AuthenticatedLayout>
-      <div className="flex flex-col h-full">
-         <header className="bg-card border-b p-4 md:p-6">
+      <div className="flex flex-col h-full bg-slate-50">
+         <header className="bg-background border-b p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
                 <Button asChild variant="outline" size="sm" className="mb-4">
                     <Link href="/student">
@@ -70,7 +69,7 @@ export default function BabSiswaPage({ params }: { params: { id: string } }) {
         </header>
         <main className="flex-1 p-4 md:p-8">
           <div className="max-w-4xl mx-auto space-y-8">
-             <Card>
+            <Card>
                 <CardHeader>
                     <CardTitle>Pengantar & Tujuan Pembelajaran</CardTitle>
                 </CardHeader>
@@ -123,7 +122,7 @@ export default function BabSiswaPage({ params }: { params: { id: string } }) {
                 )}
               </CardContent>
             </Card>
-
+            
             <Card>
               <CardHeader>
                 <CardTitle>Mulai Belajar</CardTitle>
@@ -132,16 +131,13 @@ export default function BabSiswaPage({ params }: { params: { id: string } }) {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {sections.map((section, index) => (
-                    <Link href={section.href} key={index} className="block rounded-md hover:bg-slate-50 transition-colors">
-                       <div className="flex items-center justify-between p-3">
-                          <div className="flex items-center">
-                            <section.icon className="h-5 w-5 mr-3 text-primary" />
-                            <span className="font-medium">{section.title}</span>
-                          </div>
-                           <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                       </div>
+                    <Link href={section.href} key={index} className="flex">
+                       <Card className="w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md hover:bg-slate-100 transition-colors">
+                           <section.icon className="w-10 h-10 text-primary mb-2" />
+                           <p className="font-semibold text-center text-sm">{section.title}</p>
+                       </Card>
                     </Link>
                   ))}
                 </div>
@@ -153,5 +149,3 @@ export default function BabSiswaPage({ params }: { params: { id: string } }) {
     </AuthenticatedLayout>
   );
 }
-
-    
