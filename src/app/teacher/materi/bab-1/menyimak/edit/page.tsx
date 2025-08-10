@@ -408,7 +408,7 @@ export default function EditMenyimakPage() {
                   </div>
                   <Separator />
                   <div className="space-y-4">
-                    <Label className="text-lg font-semibold">Daftar Pernyataan Latihan</Label>
+                    <Label className="text-lg font-semibold">Daftar Pernyataan & Penilaian Latihan</Label>
                     {content.latihan.statements.map((statement, index) => (
                       <Card key={index} className="p-4 bg-slate-50">
                         <div className="flex justify-between items-start">
