@@ -457,7 +457,7 @@ export default function MenyimakSiswaPage() {
                                     Kembali
                                 </Button>
 
-                                {currentStep < steps.length - 1 ? (
+                                {steps[currentStep]?.id !== 'latihan' ? (
                                     <Button type="button" onClick={() => setCurrentStep(s => s + 1)}>
                                         Lanjut
                                         <ArrowRight className="ml-2 h-4 w-4"/>
@@ -476,5 +476,3 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
-
-    
