@@ -268,20 +268,27 @@ export default function ChapterSlugPage() {
     const activityCards = [
         {
             title: "Kegiatan Inti",
-            slug: "content",
-            icon: BookCopy,
+            slug: "menyimak", // This slug should navigate to the main content.
+            icon: Youtube,
             description: "Analisis video, kerjakan tugas, dan evaluasi gagasan."
         },
-        // Future activities can be added here
+        {
+            title: "Kegiatan Lanjutan",
+            slug: "#", // This can be a placeholder for now
+            icon: ClipboardCheck,
+            description: "Akan segera hadir!",
+            disabled: true
+        }
     ];
 
-    // For now, any slug for "menyimak" will go directly to the content.
-    // In the future, this can be expanded to a hub page.
+    // This logic determines what to render.
+    // If we're on the 'menyimak' slug, we render the full content.
+    // For other slugs, we show a hub page.
     if (slug === 'menyimak') {
         return <MenyimakContent />;
     }
     
-    // Fallback for other slugs (Membaca, Menulis, etc.)
+    // This is the "Hub Page" for other sections like Membaca, Menulis, etc.
     return (
         <AuthenticatedLayout>
             <div className="flex flex-col h-full">
@@ -307,20 +314,31 @@ export default function ChapterSlugPage() {
                                 <CardDescription>Pilih kegiatan yang ingin Anda mulai dari tahap &quot;{slug}&quot; ini.</CardDescription>
                             </CardHeader>
                             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {activityCards.map((act) => (
-                                    <Link href="#" key={act.title} className="flex">
-                                        <Card className="w-full p-6 flex flex-col items-center justify-center text-center hover:bg-slate-100 transition-colors hover:shadow-lg rounded-xl">
+                                {activityCards.map((act) => {
+                                     const cardContent = (
+                                        <Card className={cn(
+                                            "w-full p-6 flex flex-col items-center justify-center text-center hover:bg-slate-100 transition-colors hover:shadow-lg rounded-xl",
+                                            act.disabled && "bg-slate-50 opacity-60 cursor-not-allowed"
+                                        )}>
                                            <act.icon className="w-12 h-12 text-primary mb-3" />
                                            <h3 className="font-semibold text-lg">{act.title}</h3>
                                            <p className="text-sm text-muted-foreground mt-1">{act.description}</p>
                                         </Card>
-                                    </Link>
-                                ))}
-                                <Card className="w-full p-6 flex flex-col items-center justify-center text-center bg-slate-50 opacity-60 cursor-not-allowed rounded-xl">
-                                   <ClipboardCheck className="w-12 h-12 text-slate-400 mb-3" />
-                                   <h3 className="font-semibold text-lg text-slate-500">Kegiatan Lanjutan</h3>
-                                   <p className="text-sm text-muted-foreground mt-1">Akan segera hadir!</p>
-                                </Card>
+                                     );
+
+                                     if(act.disabled) {
+                                         return <div key={act.title} className="flex">{cardContent}</div>
+                                     }
+                                     
+                                     // For now, we only have 'menyimak' content. All other links are placeholders.
+                                     const href = slug === 'menyimak' ? `/student/materi/${chapterId}/${act.slug}` : '#';
+
+                                     return (
+                                        <Link href={href} key={act.title} className="flex">
+                                            {cardContent}
+                                        </Link>
+                                     )
+                                })}
                             </CardContent>
                         </Card>
                     </div>
@@ -329,5 +347,3 @@ export default function ChapterSlugPage() {
         </AuthenticatedLayout>
     );
 }
-
-    
