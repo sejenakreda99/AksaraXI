@@ -7,7 +7,7 @@ import { db, auth } from '@/lib/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Youtube, FileText, ArrowLeft, Loader2, BookCopy, Send, ClipboardCheck } from 'lucide-react';
+import { Youtube, FileText, ArrowLeft, Loader2, BookCopy, Send, ClipboardCheck, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -18,6 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
 import { cn } from '@/lib/utils';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type Statement = {
   no: number;
@@ -51,6 +52,9 @@ function MenyimakContent() {
     Record<string, { choice: 'benar' | 'salah' | ''; evidence: string }>
   >({});
   const [activity2Answers, setActivity2Answers] = useState<Record<string, string>>({});
+  const [latihanAnswers, setLatihanAnswers] = useState<
+    Record<string, { choice: 'benar' | 'salah' | ''; analysis: string }>
+  >({});
 
   useEffect(() => {
     async function fetchContent() {
@@ -87,6 +91,13 @@ function MenyimakContent() {
     setAnswers((prev) => ({
       ...prev,
       [no]: { ...prev[no], [type]: value },
+    }));
+  };
+  
+  const handleLatihanAnswerChange = (no: string, type: 'choice' | 'analysis', value: string) => {
+    setLatihanAnswers(prev => ({
+        ...prev,
+        [no]: { ...prev[no], [type]: value }
     }));
   };
 
@@ -126,10 +137,14 @@ function MenyimakContent() {
 
     setIsSubmitting(true);
     try {
-        const submissionId = `${user.uid}_${chapterId}_menyimak_kegiatan${activity}`;
-        const submissionData = activity === '1' 
-            ? { answers: answers } 
-            : { activity2Answers: activity2Answers };
+        let submissionData = {};
+        if (activity === '1') {
+            submissionData = { answers };
+        } else if (activity === '2') {
+            submissionData = { activity2Answers };
+        } else if (activity === '3') {
+            submissionData = { latihanAnswers };
+        }
 
         const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menyimak`);
         
@@ -270,8 +285,86 @@ function MenyimakContent() {
         )
     }
 
+     if (activity === '3') {
+      const latihanStatements = [
+        { no: 1, statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
+        { no: 2, statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },
+        { no: 3, statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut." },
+        { no: 4, statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap." },
+        { no: 5, statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya." }
+      ];
+
+      return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Latihan</CardTitle>
+                <CardDescription>
+                    Simaklah tayangan deskripsi pada laman YouTube Info Sumut dengan kata kunci pencarian pesona Danau Toba. Setelah kalian menyimak tayangan tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.2. Lalu, berikan analisis terhadap gagasan dan pandangan yang disampaikan narator dalam tayangan tersebut.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                    <iframe className="w-full h-full" src="https://www.youtube.com/embed/nVLkAFx519M" title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Tabel 1.2 Pernyataan Penilaian</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[50px]">No.</TableHead>
+                                    <TableHead>Pernyataan</TableHead>
+                                    <TableHead className="w-[150px] text-center">Benar / Salah</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {latihanStatements.map((item) => (
+                                    <TableRow key={item.no}>
+                                        <TableCell>{item.no}</TableCell>
+                                        <TableCell>
+                                            <p>{item.statement}</p>
+                                            <Label className="mt-4 block font-medium">Jika tidak, seharusnya....</Label>
+                                            <Textarea
+                                                className="mt-2"
+                                                placeholder="Tuliskan analisis Anda..."
+                                                onChange={e => handleLatihanAnswerChange(item.no.toString(), 'analysis', e.target.value)}
+                                                value={latihanAnswers[item.no.toString()]?.analysis || ''}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <RadioGroup
+                                                className="flex flex-col space-y-2 items-center justify-center"
+                                                onValueChange={(value) => handleLatihanAnswerChange(item.no.toString(), 'choice', value)}
+                                                value={latihanAnswers[item.no.toString()]?.choice || ''}
+                                            >
+                                                <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`l-${item.no}-benar`} /><Label htmlFor={`l-${item.no}-benar`}>Benar</Label></div>
+                                                <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`l-${item.no}-salah`} /><Label htmlFor={`l-${item.no}-salah`}>Salah</Label></div>
+                                            </RadioGroup>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </CardContent>
+        </Card>
+      );
+    }
+
     return null; // Should not happen if activity param is present
   };
+
+  const getPageTitle = () => {
+    switch (activity) {
+        case '1': return 'A. Menyimak - Kegiatan 1';
+        case '2': return 'A. Menyimak - Kegiatan 2';
+        case '3': return 'A. Menyimak - Latihan';
+        default: return 'A. Menyimak';
+    }
+  }
 
   return (
     <AuthenticatedLayout>
@@ -284,7 +377,7 @@ function MenyimakContent() {
                 Kembali ke Pilihan Kegiatan
               </Link>
             </Button>
-            <h1 className="text-2xl font-bold text-foreground capitalize">A. Menyimak - Kegiatan {activity}</h1>
+            <h1 className="text-2xl font-bold text-foreground capitalize">{getPageTitle()}</h1>
             <p className="text-muted-foreground mt-1">
               Bab {chapterId}: Membicarakan Teks Deskripsi
             </p>
@@ -300,7 +393,7 @@ function MenyimakContent() {
               {!loading && content && (
                 <Button type="submit" className="w-full mt-6" disabled={isSubmitting}>
                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                    {isSubmitting ? 'Mengirim...' : 'Simpan & Kirim Jawaban Kegiatan Ini'}
+                    {isSubmitting ? 'Mengirim...' : `Simpan & Kirim Jawaban ${activity === '3' ? 'Latihan' : 'Kegiatan' } Ini`}
                 </Button>
               )}
           </form>
@@ -344,6 +437,13 @@ export default function ChapterSlugPage() {
                 icon: ClipboardCheck,
                 description: "Menjawab pertanyaan analisis dan membandingkan video.",
                 disabled: false, 
+            },
+            {
+                title: "Latihan",
+                kegiatan: "3",
+                icon: ClipboardList,
+                description: "Menganalisis video baru dan menilai gagasan narator.",
+                disabled: false,
             }
         ],
         membaca: [ // Placeholder for 'membaca' activities

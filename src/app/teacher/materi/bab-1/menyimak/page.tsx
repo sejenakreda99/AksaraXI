@@ -7,7 +7,7 @@ import { TeacherHeader } from "@/components/layout/teacher-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Edit, Youtube, Check, X } from "lucide-react";
+import { ArrowLeft, Edit, Youtube, Check, X, ClipboardList } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -107,6 +107,15 @@ export default function MenyimakPage() {
     }
     return '';
   };
+  
+    const latihanStatements = [
+        { no: 1, statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
+        { no: 2, statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },
+        { no: 3, statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut." },
+        { no: 4, statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap." },
+        { no: 5, statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya." }
+      ];
+
 
   return (
     <AuthenticatedLayout>
@@ -259,6 +268,46 @@ export default function MenyimakPage() {
                                     </div>
                                     <p className="font-semibold">Tugas Siswa:</p>
                                     <p className="text-muted-foreground italic">(Siswa akan melihat kolom isian untuk menulis ulang dialog.)</p>
+                                </CardContent>
+                            </Card>
+
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Latihan</CardTitle>
+                                    <CardDescription>
+                                        Tugas mandiri untuk siswa setelah menyelesaikan Kegiatan 1 dan 2.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                     <div className="prose prose-sm max-w-none text-foreground">
+                                        <p>Simaklah tayangan deskripsi pada laman YouTube Info Sumut dengan kata kunci pencarian pesona Danau Toba yang bisa dipindai pada kode QR di samping. Setelah kalian menyimak tayangan tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.2. Lalu, berikan analisis terhadap gagasan dan pandangan yang disampaikan narator dalam tayangan tersebut.</p>
+                                    </div>
+                                     <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                        <iframe className="w-full h-full" src="https://www.youtube.com/embed/nVLkAFx519M" title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                                    </div>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-[50px]">No.</TableHead>
+                                                <TableHead>Pernyataan</TableHead>
+                                                <TableHead className="w-[100px] text-center">Benar</TableHead>
+                                                <TableHead className="w-[100px] text-center">Salah</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {latihanStatements.map((item) => (
+                                                <TableRow key={item.no}>
+                                                    <TableCell>{item.no}</TableCell>
+                                                    <TableCell>
+                                                        <p>{item.statement}</p>
+                                                        <p className="text-muted-foreground italic mt-2">Jika tidak, seharusnya .... (Siswa mengisi bagian ini)</p>
+                                                    </TableCell>
+                                                    <TableCell className="text-center">✓</TableCell>
+                                                    <TableCell className="text-center">✓</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </CardContent>
                             </Card>
                         </>
