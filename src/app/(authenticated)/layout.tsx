@@ -56,7 +56,7 @@ export default function AuthenticatedLayout({
   
   const studentNavItems: NavItem[] = [
     { href: "/student", label: "Beranda", icon: Home },
-    { href: "/student/materi", label: "Materi", icon: BookCopy },
+    { href: "/student", label: "Materi", icon: BookCopy },
     { href: "/student/profil", label: "Profil", icon: User },
     { label: "Keluar", icon: LogOut, onClick: handleSignOut },
   ];

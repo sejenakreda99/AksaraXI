@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -25,7 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const studentNavItems = [
   { href: "/student", label: "Beranda", icon: Home },
-  { href: "/student/materi", label: "Materi", icon: BookCopy },
+  { href: "/student", label: "Materi", icon: BookCopy },
   { href: "/student/profil", label: "Profil", icon: User },
 ];
 

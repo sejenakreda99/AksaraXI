@@ -117,11 +117,14 @@ export default function MenyimakSiswaPage() {
                 if (docSnap.exists() && docSnap.data().menyimak) {
                     const fetchedContent = docSnap.data().menyimak as MenyimakContentData;
                     setContent(fetchedContent);
-                    const initialAnswers1: Record<string, { choice: '' | 'benar' | 'salah'; evidence: '' }> = {};
+                    const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
                     fetchedContent.statements.forEach((stmt) => {
-                        initialAnswers1[stmt.no.toString()] = { choice: '', evidence: '' };
+                        initialAnswers.kegiatan1[stmt.no.toString()] = { choice: '', evidence: '' };
                     });
-                     setAnswers(prev => ({ ...prev, kegiatan1: initialAnswers1 }));
+                     fetchedContent.latihan.statements.forEach((stmt, index) => {
+                        initialAnswers.latihan[(index + 1).toString()] = { choice: '', analysis: '' };
+                    });
+                    setAnswers(initialAnswers);
                 }
             } catch (error) {
                 console.error('Failed to fetch content:', error);
@@ -139,7 +142,7 @@ export default function MenyimakSiswaPage() {
 
     const handleAnswerChange = (kegiatan: keyof MenyimakAnswers, key: string, type: string, value: string) => {
         setAnswers(prev => {
-            const currentKegiatan = prev[kegiatan];
+            const currentKegiatanAnswers = prev[kegiatan] || {};
             
             if (kegiatan === 'kegiatan2') {
                  return {
@@ -151,13 +154,14 @@ export default function MenyimakSiswaPage() {
                 };
             }
 
-            const currentAnswers = (currentKegiatan as any)[key] || {};
+            const currentSubtaskAnswers = (currentKegiatanAnswers as any)[key] || {};
+            
             return {
                 ...prev,
                 [kegiatan]: {
-                    ...currentKegiatan,
+                    ...currentKegiatanAnswers,
                     [key]: {
-                        ...currentAnswers,
+                        ...currentSubtaskAnswers,
                         [type]: value,
                     }
                 }
@@ -458,5 +462,3 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
-
-    
