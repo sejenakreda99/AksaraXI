@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -32,7 +33,7 @@ type MenulisContent = {
 
 const defaultContent: MenulisContent = {
     learningObjective: "Menulis gagasan dalam bentuk teks deskripsi",
-    kegiatan1Intro: "Pada pembelajaran kali ini, kalian akan belajar menulis teks deskripsi. Sebelum menulis teks deskripsi, tentu saja kalian harus melakukan pengamatan terhadap objek yang akan dideskrispsikan.",
+    kegiatan1Intro: "Pada pembelajaran kali ini, kalian akan belajar menulis teks deskripsi. Sebelum menulis teks deskripsi, tentu saja kalian harus melakukan pengamatan terhadap objek yang akan dideskrispsikan.\n\nLangkah apa saja yang harus dilakukan untuk mencapai tujuan pembelajaran menulis teks deskripsi? Langkah-langkah pembelajaran ini akan diterangkan dalam bentuk tahapan-tahapan kegiatan sebagai berikut.",
     kegiatan1Steps: [
         { title: "Menentukan topik", description: "Topik dalam teks deskripsi dapat ditentukan sesuai dengan tujuan penulisan atau kebutuhan informasi hal atau barang yang dideskripsikan." },
         { title: "Membuat kerangka", description: "Kerangka karangan untuk penulisan teks deskripsi tetap dibutuhkan agar hal atau barang yang dideskripsikan dapat digambarkan ciri-cirinya sesuai dengan yang sebenarnya." },
@@ -58,20 +59,9 @@ const defaultContent: MenulisContent = {
         { text: "Gagasan dalam teks deskripsi disajikan dengan menarik." },
         { text: "Pandangan dalam teks deskripsi disajikan dengan menarik." }
     ],
-    kegiatan2Intro: "Kalian sudah belajar menulis teks deskripsi dan saling menilai antarteman atas hasil tulisan kalian. Sekarang, tiba waktunya untuk menyempurnakan tulisan tersebut agar dapat dikirim dan dipublikasikan di media massa, baik media cetak maupun elektronik. Sebelum mengirimkan ke media massa, perhatikanlah penjelasan berikut.\n\nSetiap kelompok orang, dengan bahasanya masing-masing, kerap menggunakan teks deskripsi untuk menggambarkan sesuatu. Ketika orang bercerita, “Saya tadi menemukan ular besar sekali,” pada saat itu ia sedang membuat atau menyampaikan teks deskripsi. Ia menyebutkan objek berupa ular dan sudah mulai digambarkan dengan ciri ular itu dengan kata “besar sekali”. Kalau ia ditanya seperti apa ular itu, ia akan menjelaskan―selain ukurannya yang besar―panjangnya, warna kulitnya, mulutnya, jalannya, dan lain-lain sebagai detail atau bagian-bagian dari ular tersebut. Orang yang mendengarkannya pun akan merasakan seolah-olah sedang melihat, mendengar, atau merasa apa yang disampaikan orang itu.\n\nPada masyarakat modern, teks deskripsi tidak hanya dilisankan, tetapi juga dituliskan. Tulisan-tulisan itu dapat kita temukan, misalnya, pada media massa cetak, seperti surat kabar dan majalah. Terlebih era teknologi informasi seperti saat ini, sejauh ada koneksi internet, teks deskripsi akan banyak kita temukan juga pada situs web daring.\n\nSetiap surat kabar atau majalah biasanya membuka rubrik tersendiri yang isinya menggambarkan suatu objek yang menarik disertai dengan foto-foto yang menarik pula. Misalnya, objek wisata. Nama rubriknya pun macam-macam. Ada yang menyebutnya rubrik Hasanah, ada yang menamainya Jelajah, dan lain sebagainya.\n\nSiapa yang akan mengisi rubrik-rubrik tersebut? Bagi media massa (seperti surat kabar atau majalah), biasanya sudah memiliki wartawan tersendiri yang ditugaskan khusus untuk meliput objek-objek tersebut. Namun, ada pula penulis lepas (bukan wartawan) yang diperbolehkan untuk mengirim tulisan deskripsi yang menarik tentang objek-objek tertentu. Apakah nantinya surat kabar atau majalah tersebut memuatnya? Tentu harus melalui seleksi terlebih dahulu. Sejauh tulisan tersebut berkualitas, menarik, dan selaras dengan visi-misi media, biasanya akan dimuat. Bagi tulisannya yang dimuat, akan mendapat imbalan atau honor. Berapa nilai honor yang diberikan? Bergantung pada medianya. Tiap-tiap media memiliki standar berbeda soal ini.\n\nBaik dalam media cetak maupun elektronik, muatan tulisan berupa teks deskrispsi tetap diperlukan. Artinya, teks deskripsi tidak bergantung pada cetak atau elektronik. Pada media massa apa pun, tulisan deskripsi akan tetap kita jumpai.",
-    kegiatan2Tips: [
-        "Tentukan media yang akan menjadi sasaran naskah kita. Menentukan media ini penting, di antaranya untuk mengetahui visi dan misi serta isu utama media tersebut. Koran atau majalah perempuan, misalnya, tentu akan lebih banyak menyajikan tulisan-tulisan seputar kehidupan perempuan. Karena itu, tidak tepat jika kita mengirim teks deskripsi tentang otomotif ke media ini.",
-        "Buat judul yang menarik. Dalam tulisan di media massa, judul terdiri maksimal 7 kata dan ditulis dengan menggunakan huruf kapital pada huruf awal setiap kata. Judul yang menarik biasanya akan langsung menarik perhatian redaktur untuk membacanya.",
-        "Pastikan tulisan sudah memenuhi syarat tata tulis. Di antaranya, penggunaan tanda baca, penggunaan huruf miring, penggunaan huruf kapital, dan sebagainya.",
-        "Perhatikan panjang tulisan. Untuk teks deskripsi, panjang tulisan maksimal 4 halaman ukuran A4 dengan spasi 1,5pt. Jika berdasarkan jumlah karakter, tulisan maksimal 1.200 karakter. Namun, hal ini bergantung persyaratan yang ditentukan oleh media. Masing-masing media memiliki ketentuan berbeda. Ada yang mensyaratkan 1.000 karakter, ada pula yang mensyaratkan maksimal 1.500 karakter.",
-        "Penggunaan bahasa. Bahasa yang mudah dimengerti, dan tidak berbelit-belit, biasanya akan menjadi pilihan redaksi untuk segera memuatnya.",
-        "Untuk tulisan berbentuk teks deskripsi, akan lebih baik jika disertakan foto jurnalistik, sebuah foto yang bisa “berbicara” walaupun tidak disertai kata-kata. Foto pemain sepak bola di lapangan, harus menggambarkan ekspresi yang menarik. Misalnya, saat dia loncat sambil menyundul bola. Foto pesepak bola tersohor sekalipun yang sedang duduk santai bukanlah foto jurnalistik jika yang ingin dilukiskan adalah serunya pertandingan sepak bola."
-    ],
-    youtubeLinks: [
-        "https://youtu.be/5qmAdX4ez-g?si=t7sRBzT6aQpa634S",
-        "https://youtu.be/dsyuDCmDCAs?si=fj5q6aybekODR-oQ",
-        "https://youtu.be/ROcDzEfFIro?si=3SQDaJqWZjr-VS5F"
-    ]
+    kegiatan2Intro: "Konten untuk Kegiatan 2 akan ditambahkan nanti.",
+    kegiatan2Tips: [],
+    youtubeLinks: []
 };
 
 function getYoutubeEmbedUrl(url: string) {
@@ -194,13 +184,17 @@ export default function MenulisPage() {
                                                 <AccordionContent className="p-6 pt-0 space-y-6">
                                                     <div className="prose prose-sm max-w-none whitespace-pre-wrap">
                                                         <p>{content.kegiatan2Intro}</p>
-                                                        <h4 className="font-bold">Tips Publikasi</h4>
-                                                        <ol className="list-decimal list-outside pl-5 space-y-2">{content.kegiatan2Tips.map((tip, i) => <li key={i}>{tip}</li>)}</ol>
+                                                         {(content.kegiatan2Tips && content.kegiatan2Tips.length > 0 && content.kegiatan2Tips[0]) && (
+                                                            <>
+                                                            <h4 className="font-bold">Tips Publikasi</h4>
+                                                            <ol className="list-decimal list-outside pl-5 space-y-2">{content.kegiatan2Tips.map((tip, i) => <li key={i}>{tip}</li>)}</ol>
+                                                            </>
+                                                        )}
                                                     </div>
-                                                    <Separator/>
+                                                    {(content.youtubeLinks && content.youtubeLinks.length > 0 && content.youtubeLinks[0]) && <Separator/>}
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                                         {content.youtubeLinks.map((link, i) => (
-                                                            <div key={i} className="aspect-video rounded-lg overflow-hidden border">
+                                                            link && <div key={i} className="aspect-video rounded-lg overflow-hidden border">
                                                                  <iframe className="w-full h-full" src={getYoutubeEmbedUrl(link)} title={`YouTube Video ${i+1}`} allowFullScreen></iframe>
                                                             </div>
                                                         ))}

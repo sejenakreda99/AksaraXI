@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -186,7 +187,7 @@ export default function MenulisSiswaPage() {
                             <CardTitle>C. Menulis Teks Deskripsi</CardTitle>
                             <CardDescription>{content.learningObjective}</CardDescription>
                         </CardHeader>
-                        <CardContent className="prose prose-sm max-w-none">
+                        <CardContent className="prose prose-sm max-w-none whitespace-pre-wrap">
                             <p>{content.kegiatan1Intro}</p>
                         </CardContent>
                     </Card>
@@ -201,7 +202,7 @@ export default function MenulisSiswaPage() {
                             {content.kegiatan1Steps.map((step, index) => (
                                 <div key={index} className="p-4 bg-slate-50 border rounded-lg">
                                     <h3 className="font-semibold text-primary">{index + 1}. {step.title}</h3>
-                                    <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
+                                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{step.description}</p>
                                 </div>
                             ))}
                         </CardContent>
@@ -281,23 +282,27 @@ export default function MenulisSiswaPage() {
                             <CardDescription className="whitespace-pre-wrap">{content.kegiatan2Intro}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                            <div className="prose prose-sm max-w-none">
-                                <h4 className="font-semibold">Tips Publikasi</h4>
-                                <ol className="list-decimal list-outside pl-5 space-y-2">
-                                    {content.kegiatan2Tips.map((tip, index) => <li key={index}>{tip}</li>)}
-                                </ol>
-                            </div>
-                            <Separator />
-                            <div>
-                                <h4 className="font-semibold mb-4">Video Referensi</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                     {content.youtubeLinks.map((link, index) => (
-                                        <div key={index} className="aspect-video w-full rounded-lg overflow-hidden border">
-                                            <iframe className="w-full h-full" src={getYoutubeEmbedUrl(link)} title={`YouTube video ${index+1}`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-                                        </div>
-                                    ))}
+                             {(content.kegiatan2Tips && content.kegiatan2Tips.length > 0 && content.kegiatan2Tips[0]) && (
+                                <div className="prose prose-sm max-w-none">
+                                    <h4 className="font-semibold">Tips Publikasi</h4>
+                                    <ol className="list-decimal list-outside pl-5 space-y-2">
+                                        {content.kegiatan2Tips.map((tip, index) => <li key={index}>{tip}</li>)}
+                                    </ol>
                                 </div>
-                            </div>
+                             )}
+                            {(content.youtubeLinks && content.youtubeLinks.length > 0 && content.youtubeLinks[0]) && <Separator />}
+                            {(content.youtubeLinks && content.youtubeLinks.length > 0 && content.youtubeLinks[0]) && (
+                                <div>
+                                    <h4 className="font-semibold mb-4">Video Referensi</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {content.youtubeLinks.map((link, index) => (
+                                            link && <div key={index} className="aspect-video w-full rounded-lg overflow-hidden border">
+                                                <iframe className="w-full h-full" src={getYoutubeEmbedUrl(link)} title={`YouTube video ${index+1}`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 );
