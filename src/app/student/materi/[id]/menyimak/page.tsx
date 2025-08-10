@@ -129,6 +129,10 @@ export default function MenyimakSiswaPage() {
 
                 if (submissionSnap.exists()) {
                     setAnswers(submissionSnap.data().answers);
+                     // Check if it was already completed
+                    if (submissionSnap.data().status === 'completed') {
+                        setIsCompleted(true);
+                    }
                 } else if (fetchedContent) {
                      // Initialize answers structure if no submission exists
                      const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
@@ -184,8 +188,7 @@ export default function MenyimakSiswaPage() {
         });
     };
     
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const handleSaveAndFinish = async () => {
         if (!user || !answers) return toast({ variant: "destructive", title: "Anda harus masuk." });
         setIsSubmitting(true);
         try {
@@ -195,7 +198,8 @@ export default function MenyimakSiswaPage() {
                 chapterId: chapterId,
                 activity: 'menyimak',
                 answers, 
-                lastSubmitted: serverTimestamp()
+                lastSubmitted: serverTimestamp(),
+                status: 'completed'
             }, { merge: true });
             
             toast({ title: "Berhasil!", description: "Seluruh jawaban Anda di bagian Menyimak telah berhasil disimpan." });
@@ -210,7 +214,7 @@ export default function MenyimakSiswaPage() {
     
     const progressPercentage = useMemo(() => {
         if(isCompleted) return 100;
-        return ((currentStep + 1) / (steps.length + 1)) * 100;
+        return (currentStep / steps.length) * 100;
     }, [currentStep, isCompleted]);
 
 
@@ -434,7 +438,7 @@ export default function MenyimakSiswaPage() {
                 </header>
 
                 <main className="flex-1 p-4 md:p-8">
-                     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+                     <div className="max-w-4xl mx-auto space-y-6">
                  
                         {!isCompleted && (
                             <div className="space-y-2">
@@ -442,7 +446,7 @@ export default function MenyimakSiswaPage() {
                                     <span>Langkah {currentStep + 1} dari {steps.length}</span>
                                     <span>{steps[currentStep]?.title || ''}</span>
                                 </div>
-                                <Progress value={((currentStep + 1) / steps.length) * 100} className="w-full" />
+                                <Progress value={progressPercentage} className="w-full" />
                             </div>
                         )}
                         
@@ -463,16 +467,18 @@ export default function MenyimakSiswaPage() {
                                         <ArrowRight className="ml-2 h-4 w-4"/>
                                     </Button>
                                 ) : (
-                                    <Button type="submit" disabled={isSubmitting || loading}>
+                                    <Button onClick={handleSaveAndFinish} disabled={isSubmitting || loading}>
                                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                         {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Semua Jawaban'}
                                     </Button>
                                 )}
                             </div>
                         )}
-                    </form>
+                    </div>
                 </main>
             </div>
         </AuthenticatedLayout>
     );
 }
+
+    
