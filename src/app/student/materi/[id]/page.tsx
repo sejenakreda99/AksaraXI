@@ -14,16 +14,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-const initialSections = [
-  { title: "A. Menyimak", href: "/student/materi/bab-1/menyimak", icon: BookOpen, status: 'completed' },
-  { title: "B. Membaca", href: "/student/materi/bab-1/membaca", icon: FileText, status: 'active' },
-  { title: "C. Menulis", href: "/student/materi/bab-1/menulis", icon: Pencil, status: 'locked' },
-  { title: "D. Mempresentasikan", href: "/student/materi/bab-1/mempresentasikan", icon: Presentation, status: 'locked' },
-  { title: "E. Asesmen", href: "/student/materi/bab-1/asesmen", icon: CheckCircle, status: 'locked' },
-  { title: "Jurnal Membaca", href: "/student/materi/bab-1/jurnal-membaca", icon: BookOpen, status: 'locked' },
-  { title: "Refleksi", href: "/student/materi/bab-1/refleksi", icon: PenSquare, status: 'locked' },
-];
-
 type ChapterContent = {
   introduction: string;
   learningObjective: string;
@@ -49,6 +39,17 @@ async function getChapterContent(id: string): Promise<ChapterContent | null> {
 }
 
 function ChapterDetails({ chapterId, content, loading }: { chapterId: string, content: ChapterContent | null, loading: boolean }) {
+    
+    const sections = [
+      { title: "A. Menyimak", slug: "menyimak", icon: BookOpen, status: 'completed' },
+      { title: "B. Membaca", slug: "membaca", icon: FileText, status: 'active' },
+      { title: "C. Menulis", slug: "menulis", icon: Pencil, status: 'locked' },
+      { title: "D. Mempresentasikan", slug: "mempresentasikan", icon: Presentation, status: 'locked' },
+      { title: "E. Asesmen", slug: "asesmen", icon: CheckCircle, status: 'locked' },
+      { title: "Jurnal Membaca", slug: "jurnal-membaca", icon: BookOpen, status: 'locked' },
+      { title: "Refleksi", slug: "refleksi", icon: PenSquare, status: 'locked' },
+    ];
+
     return (
         <div className="max-w-4xl mx-auto space-y-8">
              <Card>
@@ -114,11 +115,12 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {initialSections.map((section, index) => {
+                        {sections.map((section, index) => {
                             const isLocked = section.status === 'locked';
                             const isActive = section.status === 'active';
                             const isCompleted = section.status === 'completed';
                             const Icon = section.icon;
+                            const href = `/student/materi/bab-${chapterId}/${section.slug}`;
 
                             const cardContent = (
                                <Card className={cn(
@@ -152,7 +154,7 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
                             }
                             
                             return (
-                                <Link href={section.href} key={index} className="flex">
+                                <Link href={href} key={index} className="flex">
                                     {cardContent}
                                 </Link>
                             );
@@ -203,5 +205,3 @@ export default function BabSiswaPage() {
     </AuthenticatedLayout>
   );
 }
-
-    
