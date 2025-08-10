@@ -41,10 +41,14 @@ export function BottomNavBar({ navItems }: { navItems: NavItem[] }) {
             )
           }
 
+          if (!item.href) {
+            return null;
+          }
+
           return (
             <Link
               key={item.href}
-              href={item.href!}
+              href={item.href}
               className="flex flex-col items-center justify-center gap-1 text-muted-foreground h-full"
             >
               <item.icon
