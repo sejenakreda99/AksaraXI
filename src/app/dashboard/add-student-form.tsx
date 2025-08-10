@@ -81,13 +81,7 @@ export function AddGroupForm() {
       <CardContent>
         <Form {...form}>
           <form
-            action={form.handleSubmit((data) => {
-              const formData = new FormData();
-              Object.entries(data).forEach(([key, value]) => {
-                formData.append(key, value);
-              });
-              formAction(formData);
-            })}
+            action={formAction}
             className="space-y-4"
           >
             <FormField
