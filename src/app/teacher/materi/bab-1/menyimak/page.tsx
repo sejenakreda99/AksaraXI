@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -242,6 +243,22 @@ export default function MenyimakPage() {
                                         <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.comparisonVideoUrl)} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
                                     </div>}
                                     <p className='text-sm'>Siswa diminta membandingkan kedua video dan menentukan mana yang deskripsinya lebih baik.</p>
+                                    <Separator />
+                                    <div className="prose prose-sm max-w-none">
+                                        <p>kepentingan tertentu. Misalnya, orang menggambarkan objek wisata dengan tujuan agar yang membaca atau menyimak merasa tertarik sehingga mau berkunjung ke tempat itu. Oleh karena itu, orang tersebut akan menggambarkannya semenarik mungkin.</p>
+                                        <p>Perhatikan dialog berikut, apakah orang yang menggambarkan Candi Borobudur ini sudah berusaha menggambarkannya sebaik dan semenarik mungkin?</p>
+                                        <blockquote className="border-l-4 pl-4 italic">
+                                            <p><strong>Amir:</strong> Waktu liburan tahun ajaran baru kemarin, kelas kami berwisata ke Candi Borobudur.</p>
+                                            <p><strong>Usman:</strong> Wah, enak benar. Saya belum pernah ke sana. Seperti apa Candi Borobudur itu?</p>
+                                            <p><strong>Amir:</strong> Ya, pokoknya Borobudur itu suatu candi.</p>
+                                            <p><strong>Usman:</strong> Gambarannya seperti apa?</p>
+                                            <p><strong>Amir:</strong> Ya, candi itu besar, tinggi. Banyak orang berkunjung ke sana. Ada yang foto-foto, berundak-undak, ada patungnya, dan ada reliefnya. Untuk mencapai ke atas, perlu tenaga. Lelah soalnya. Coba kamu berkunjung ke sana. Pokoknya, sulit digambarkan dengan kata-kata. Langsung saja lihat ke sana.</p>
+                                            <p><strong>Usman:</strong> Oh, begitu.</p>
+                                        </blockquote>
+                                        <p>Apa yang kalian perhatikan dari dialog tersebut? Si Amir diminta menggambarkan objek Candi Borobudur. Namun, dia tidak begitu terampil menggambarkannya. Gagasan dan pandangan Amir terhadap objek wisata Candi Borobudur tidak begitu lengkap. Berbeda dengan yang kalian simak tentang Candi Borobudur di atas, lengkap dan sistematis. Selanjutnya, coba kalian perbaiki teks tersebut agar sesuai dengan kriteria teks deskripsi.</p>
+                                    </div>
+                                    <p className="font-semibold">Tugas Siswa:</p>
+                                    <p className="text-muted-foreground italic">(Siswa akan melihat kolom isian untuk menulis ulang dialog.)</p>
                                 </CardContent>
                             </Card>
                         </>
