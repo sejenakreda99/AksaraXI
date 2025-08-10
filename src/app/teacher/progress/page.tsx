@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
 type Group = {
   id: string;
@@ -41,6 +42,7 @@ export default function ProgressPage() {
   const [allSubmissions, setAllSubmissions] = useState<Submission[]>([]);
   const [classFilter, setClassFilter] = useState('semua-kelas');
   const [chapterFilter, setChapterFilter] = useState('1');
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
@@ -91,6 +93,10 @@ export default function ProgressPage() {
          return 0;
       });
   }, [allGroups, allSubmissions, classFilter, chapterFilter]);
+  
+  const handleRowClick = (groupId: string) => {
+    router.push(`/teacher/progress/${groupId}`);
+  };
 
   return (
     <AuthenticatedLayout>
@@ -106,7 +112,7 @@ export default function ProgressPage() {
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                   <div>
                     <CardTitle>Laporan Kemajuan Kelompok</CardTitle>
-                    <CardDescription>Data progres diambil dari pengumpulan tugas siswa.</CardDescription>
+                    <CardDescription>Pilih kelompok untuk melihat detail jawaban dan memberikan nilai.</CardDescription>
                   </div>
                   <div className="flex gap-2">
                     <Select defaultValue={chapterFilter} onValueChange={setChapterFilter}>
@@ -151,7 +157,7 @@ export default function ProgressPage() {
                       ))
                     ) : progressData.length > 0 ? (
                       progressData.map((group) => (
-                        <TableRow key={group.id}>
+                        <TableRow key={group.id} onClick={() => handleRowClick(group.id)} className="cursor-pointer hover:bg-muted/50">
                           <TableCell className="font-medium">{group.groupName} ({group.className})</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
