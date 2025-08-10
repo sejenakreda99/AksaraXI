@@ -215,7 +215,7 @@ export default function MenulisSiswaPage() {
                             <CardTitle>Latihan: Panduan Menulis</CardTitle>
                             <CardDescription>{content.latihanIntro}</CardDescription>
                         </CardHeader>
-                        <CardContent className="prose prose-sm max-w-none">
+                        <CardContent className="prose prose-sm max-w-none text-justify">
                            <ol className="list-decimal list-outside pl-5 space-y-2">
                                {content.latihanGuidelines.map((item, index) => <li key={index}>{item}</li>)}
                            </ol>
@@ -283,7 +283,7 @@ export default function MenulisSiswaPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                              {(content.kegiatan2Tips && content.kegiatan2Tips.length > 0 && content.kegiatan2Tips[0]) && (
-                                <div className="prose prose-sm max-w-none">
+                                <div className="prose prose-sm max-w-none text-justify">
                                     <h4 className="font-semibold">Tips Publikasi</h4>
                                     <ol className="list-decimal list-outside pl-5 space-y-2">
                                         {content.kegiatan2Tips.map((tip, index) => <li key={index}>{tip}</li>)}
@@ -351,7 +351,7 @@ export default function MenulisSiswaPage() {
                                         <ArrowRight className="ml-2 h-4 w-4"/>
                                     </Button>
                                 ) : (
-                                    <Button type="submit" disabled={isSubmitting}>
+                                    <Button type="submit" disabled={isSubmitting || loading}>
                                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                         {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Tugas'}
                                     </Button>
@@ -364,3 +364,5 @@ export default function MenulisSiswaPage() {
         </AuthenticatedLayout>
     );
 }
+
+    
