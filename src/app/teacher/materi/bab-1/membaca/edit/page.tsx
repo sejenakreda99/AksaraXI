@@ -16,12 +16,21 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type ReadingStatement = {
+  statement: string;
+  answer: 'benar' | 'salah';
+};
 
 type ReadingContent = {
   learningObjective: string;
-  text: string;
-  questions: string[];
+  mainText: string;
+  statements: ReadingStatement[];
+  feedbackText: string;
+  infoBoxText: string;
 };
+
 
 export default function EditMembacaPage() {
   const [content, setContent] = useState<ReadingContent | null>(null);
@@ -40,8 +49,10 @@ export default function EditMembacaPage() {
         } else {
           setContent({
             learningObjective: '',
-            text: '',
-            questions: ['']
+            mainText: '',
+            statements: [{ statement: '', answer: 'benar' }],
+            feedbackText: '',
+            infoBoxText: ''
           });
         }
       } catch (error) {
@@ -58,22 +69,22 @@ export default function EditMembacaPage() {
     fetchContent();
   }, [toast]);
 
-  const handleQuestionChange = (index: number, value: string) => {
+  const handleStatementChange = (index: number, field: 'statement' | 'answer', value: string) => {
     if (!content) return;
-    const newQuestions = [...content.questions];
-    newQuestions[index] = value;
-    setContent({ ...content, questions: newQuestions });
+    const newStatements = [...content.statements];
+    newStatements[index][field] = value as any;
+    setContent({ ...content, statements: newStatements });
   };
   
-  const addQuestion = () => {
+  const addStatement = () => {
     if (!content) return;
-    setContent({ ...content, questions: [...content.questions, ''] });
+    setContent({ ...content, statements: [...content.statements, { statement: '', answer: 'benar' }] });
   };
 
-  const removeQuestion = (index: number) => {
+  const removeStatement = (index: number) => {
     if (!content) return;
-    const newQuestions = content.questions.filter((_, i) => i !== index);
-    setContent({ ...content, questions: newQuestions });
+    const newStatements = content.statements.filter((_, i) => i !== index);
+    setContent({ ...content, statements: newStatements });
   };
   
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -82,7 +93,7 @@ export default function EditMembacaPage() {
 
     const finalContent = {
         ...content,
-        questions: content.questions.filter(q => q.trim() !== '')
+        statements: content.statements.filter(q => q.statement.trim() !== '')
     };
 
     startTransition(async () => {
@@ -136,39 +147,70 @@ export default function EditMembacaPage() {
                 </Link>
               </Button>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="space-y-6">
               <Card>
-                <CardHeader><CardTitle>Formulir Konten Membaca</CardTitle></CardHeader>
+                <CardHeader><CardTitle>Konten Umum</CardTitle></CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="learningObjective">Tujuan Pembelajaran</Label>
-                    <Textarea id="learningObjective" value={content.learningObjective} onChange={(e) => setContent({...content, learningObjective: e.target.value})} rows={3} />
+                    <Textarea id="learningObjective" value={content.learningObjective} onChange={(e) => setContent({...content, learningObjective: e.target.value})} rows={2} />
                   </div>
                    <div className="space-y-2">
-                    <Label htmlFor="text">Isi Teks Deskripsi</Label>
-                    <Textarea id="text" value={content.text} onChange={(e) => setContent({...content, text: e.target.value})} placeholder="Tulis atau salin tempel teks deskripsi di sini..." rows={15} />
+                    <Label htmlFor="mainText">Teks Utama (Keunikan Adat Istiadat Suku Abuy)</Label>
+                    <Textarea id="mainText" value={content.mainText} onChange={(e) => setContent({...content, mainText: e.target.value})} placeholder="Tulis atau salin tempel teks deskripsi di sini..." rows={20} />
                   </div>
-                  <Separator />
-                  <div className="space-y-4">
-                    <Label className="text-lg font-semibold">Daftar Pertanyaan Pemahaman</Label>
-                    {content.questions.map((question, index) => (
-                      <Card key={index} className="p-4 bg-slate-50">
-                        <div className="flex justify-between items-start">
-                           <Label>Pertanyaan #{index + 1}</Label>
-                           <Button type="button" variant="destructive" size="icon" onClick={() => removeQuestion(index)} className="w-8 h-8"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
-                        </div>
-                        <Textarea value={question} onChange={(e) => handleQuestionChange(index, e.target.value)} placeholder={`Isi pertanyaan...`} className="mt-2" rows={2}/>
-                      </Card>
-                    ))}
-                    <Button type="button" variant="outline" onClick={addQuestion}><PlusCircle className="mr-2 h-4 w-4" />Tambah Pertanyaan</Button>
-                  </div>
-                  <Separator />
-                  <Button type="submit" disabled={isPending}>
-                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    {isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
-                  </Button>
                 </CardContent>
               </Card>
+
+              <Card>
+                  <CardHeader><CardTitle>Tugas: Pernyataan Benar/Salah</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <Label className="text-base font-semibold">Daftar Pernyataan</Label>
+                    {content.statements.map((stmt, index) => (
+                      <Card key={index} className="p-4 bg-slate-50/50">
+                        <div className="flex justify-between items-start gap-4">
+                           <div className="flex-1 space-y-2">
+                               <Label htmlFor={`stmt-text-${index}`}>Pernyataan #{index + 1}</Label>
+                               <Textarea id={`stmt-text-${index}`} value={stmt.statement} onChange={(e) => handleStatementChange(index, 'statement', e.target.value)} placeholder={`Isi pernyataan...`} rows={2}/>
+                           </div>
+                           <div className="space-y-2">
+                                <Label htmlFor={`stmt-answer-${index}`}>Kunci Jawaban</Label>
+                                <Select value={stmt.answer} onValueChange={(value) => handleStatementChange(index, 'answer', value)}>
+                                    <SelectTrigger id={`stmt-answer-${index}`}>
+                                        <SelectValue/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="benar">Benar</SelectItem>
+                                        <SelectItem value="salah">Salah</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                           </div>
+                           <Button type="button" variant="ghost" size="icon" onClick={() => removeStatement(index)} className="mt-7 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
+                        </div>
+                      </Card>
+                    ))}
+                    <Button type="button" variant="outline" onClick={addStatement}><PlusCircle className="mr-2 h-4 w-4" />Tambah Pernyataan</Button>
+                  </CardContent>
+              </Card>
+
+              <Card>
+                  <CardHeader><CardTitle>Umpan Balik & Info Tambahan</CardTitle></CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="feedbackText">Teks Umpan Balik & Pembahasan</Label>
+                        <Textarea id="feedbackText" value={content.feedbackText} onChange={(e) => setContent({...content, feedbackText: e.target.value})} rows={10} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="infoBoxText">Teks untuk Kotak Info</Label>
+                        <Textarea id="infoBoxText" value={content.infoBoxText} onChange={(e) => setContent({...content, infoBoxText: e.target.value})} rows={4} />
+                    </div>
+                  </CardContent>
+              </Card>
+
+              <Button type="submit" disabled={isPending} className="w-full" size="lg">
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {isPending ? 'Menyimpan...' : 'Simpan Semua Perubahan Materi Membaca'}
+              </Button>
             </form>
           </div>
         </main>
