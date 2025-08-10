@@ -36,10 +36,10 @@ export default function MenyimakSiswaPage() {
     useEffect(() => {
         async function fetchContent() {
             try {
-                const docRef = doc(db, 'chapters', chapterId);
+                const docRef = doc(db, 'chapters', chapterId, 'content', 'menyimak');
                 const docSnap = await getDoc(docRef);
-                if (docSnap.exists() && docSnap.data().menyimak) {
-                    const fetchedContent = docSnap.data().menyimak as MenyimakContent;
+                if (docSnap.exists()) {
+                    const fetchedContent = docSnap.data() as MenyimakContent;
                     setContent(fetchedContent);
                     const initialAnswers: Record<string, { choice: '' | 'benar' | 'salah' , evidence: '' }> = {};
                     fetchedContent.statements.forEach(stmt => {
@@ -83,7 +83,7 @@ export default function MenyimakSiswaPage() {
             return '';
         }
         return '';
-    }
+    };
 
     return (
         <div className="flex flex-col h-full">
