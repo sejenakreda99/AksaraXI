@@ -99,7 +99,7 @@ export default function MenyimakSiswaPage() {
     const chapterId = params.id as string;
     
     const [content, setContent] = useState<MenyimakContentData | null>(null);
-    const [answers, setAnswers] = useState<MenyimakAnswers>({ kegiatan1: {}, kegiatan2: {}, latihan: {} });
+    const [answers, setAnswers] = useState<MenyimakAnswers | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [user] = useAuthState(auth);
@@ -112,7 +112,6 @@ export default function MenyimakSiswaPage() {
         async function fetchInitialData() {
             setLoading(true);
             try {
-                // Fetch content and existing submission concurrently
                 const contentRef = doc(db, 'chapters', chapterId);
                 const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menyimak`);
 
@@ -121,46 +120,40 @@ export default function MenyimakSiswaPage() {
                     getDoc(submissionRef)
                 ]);
 
-                // Set content
+                let fetchedContent: MenyimakContentData | null = null;
                 if (contentSnap.exists() && contentSnap.data().menyimak) {
-                    const fetchedContent = contentSnap.data().menyimak as MenyimakContentData;
+                    fetchedContent = contentSnap.data().menyimak as MenyimakContentData;
                     setContent(fetchedContent);
-                    
-                    // Initialize answers structure based on fetched content
-                    const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
+                }
+                
+                const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
+                if (fetchedContent) {
                     fetchedContent.statements.forEach((stmt) => {
                         initialAnswers.kegiatan1[stmt.no.toString()] = { choice: '', evidence: '' };
                     });
-                     fetchedContent.latihan.statements.forEach((stmt, index) => {
+                     fetchedContent.latihan.statements.forEach((_, index) => {
                         initialAnswers.latihan[(index + 1).toString()] = { choice: '', analysis: '' };
                     });
-                    
-                    // If a submission exists, populate the answers state
-                    if (submissionSnap.exists()) {
-                        const existingAnswers = submissionSnap.data().answers as MenyimakAnswers;
-                        // Deep merge existing answers into the initial structure
-                        if (existingAnswers.kegiatan1) {
-                            Object.keys(initialAnswers.kegiatan1).forEach(key => {
-                                if (existingAnswers.kegiatan1[key]) {
-                                    initialAnswers.kegiatan1[key] = existingAnswers.kegiatan1[key];
-                                }
-                            });
-                        }
-                        if (existingAnswers.kegiatan2) {
-                             initialAnswers.kegiatan2 = existingAnswers.kegiatan2;
-                        }
-                        if (existingAnswers.latihan) {
-                             Object.keys(initialAnswers.latihan).forEach(key => {
-                                if (existingAnswers.latihan[key]) {
-                                    initialAnswers.latihan[key] = existingAnswers.latihan[key];
-                                }
-                            });
-                        }
-                        setAnswers(initialAnswers);
-                    } else {
-                        setAnswers(initialAnswers);
+                }
+                
+                if (submissionSnap.exists()) {
+                    const existingAnswers = submissionSnap.data().answers as MenyimakAnswers;
+                    if (existingAnswers.kegiatan1) {
+                        Object.keys(initialAnswers.kegiatan1).forEach(key => {
+                            if (existingAnswers.kegiatan1[key]) initialAnswers.kegiatan1[key] = existingAnswers.kegiatan1[key];
+                        });
+                    }
+                    if (existingAnswers.kegiatan2) {
+                         initialAnswers.kegiatan2 = existingAnswers.kegiatan2;
+                    }
+                    if (existingAnswers.latihan) {
+                         Object.keys(initialAnswers.latihan).forEach(key => {
+                            if (existingAnswers.latihan[key]) initialAnswers.latihan[key] = existingAnswers.latihan[key];
+                        });
                     }
                 }
+                setAnswers(initialAnswers);
+
             } catch (error) {
                 console.error('Failed to fetch initial data:', error);
                 toast({
@@ -177,6 +170,7 @@ export default function MenyimakSiswaPage() {
 
     const handleAnswerChange = (kegiatan: keyof MenyimakAnswers, key: string, type: string, value: string) => {
         setAnswers(prev => {
+            if (!prev) return null;
             const currentKegiatanAnswers = prev[kegiatan] || {};
             
             if (kegiatan === 'kegiatan2') {
@@ -206,7 +200,7 @@ export default function MenyimakSiswaPage() {
     
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!user) return toast({ variant: "destructive", title: "Anda harus masuk." });
+        if (!user || !answers) return toast({ variant: "destructive", title: "Anda harus masuk." });
         setIsSubmitting(true);
         try {
             const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menyimak`);
@@ -235,11 +229,8 @@ export default function MenyimakSiswaPage() {
 
 
     const renderStepContent = () => {
-        if (loading) {
+        if (loading || !content || !answers) {
             return <Card><CardHeader><Skeleton className="h-8 w-3/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-6 w-full" /><Skeleton className="aspect-video w-full" /><Skeleton className="h-48 w-full" /></CardContent></Card>;
-        }
-        if (!content) {
-            return <Card><CardHeader><CardTitle>Konten Tidak Tersedia</CardTitle></CardHeader><CardContent><p>Materi untuk bagian ini belum disiapkan oleh guru.</p></CardContent></Card>;
         }
 
         if (currentStep >= steps.length) {
