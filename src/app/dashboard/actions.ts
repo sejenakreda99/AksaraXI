@@ -9,8 +9,8 @@ const CreateGroupSchema = z.object({
   password: z
     .string()
     .min(8, { message: 'Kata sandi minimal 8 karakter.' }),
-  className: z.string({ required_error: 'Kelas harus dipilih.' }),
-  groupName: z.string({ required_error: 'Nama kelompok harus dipilih.' }),
+  className: z.string().min(1, { message: 'Kelas harus dipilih.' }),
+  groupName: z.string().min(1, { message: 'Nama kelompok harus dipilih.' }),
 });
 
 let adminApp: App;
@@ -35,16 +35,17 @@ export async function createGroup(prevState: any, formData: FormData) {
   }
 
   const { email, password, className, groupName } = validatedFields.data;
-  const displayName = `${className}-${groupName}`;
+  // This displayName is used by the login form to redirect to the correct dashboard.
+  const displayName = "Siswa";
 
   try {
     await auth.createUser({
       email,
       password,
-      displayName: "Siswa", // Still 'Siswa' to match login logic
+      displayName: displayName, 
     });
     // Here you could also save the group info (className, groupName) to Firestore
-    // under the user's UID if you need to retrieve it later.
+    // under the user's UID if you need to retrieve it later. For example, to a 'groups' collection.
 
     return {
       type: 'success',

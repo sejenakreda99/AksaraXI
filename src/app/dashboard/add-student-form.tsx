@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { createGroup } from './actions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Controller, useForm } from 'react-hook-form';
+
 
 const initialState = {
   type: '',
@@ -29,6 +31,7 @@ function SubmitButton() {
 export function AddGroupForm() {
   const [state, formAction] = useActionState(createGroup, initialState);
   const { toast } = useToast();
+  const { control } = useForm();
 
   useEffect(() => {
     if (state?.type === 'success') {
@@ -58,35 +61,52 @@ export function AddGroupForm() {
         <form action={formAction} className="space-y-4">
            <div className="space-y-2">
             <Label htmlFor="className">Kelas</Label>
-            <Input type="hidden" name="className" id="classNameInput" />
-            <Select name="className">
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Kelas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="XI-2">XI-2</SelectItem>
-                <SelectItem value="XI-3">XI-3</SelectItem>
-              </SelectContent>
-            </Select>
+             <Controller
+                name="className"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                       <SelectTrigger>
+                          <SelectValue placeholder="Pilih Kelas" />
+                       </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="XI-2">XI-2</SelectItem>
+                      <SelectItem value="XI-3">XI-3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            <input type="hidden" name="className" id="classNameInput" />
+
             {typeof state.message !== 'string' && state.message?.className && (
               <p className="text-sm font-medium text-destructive">{state.message.className[0]}</p>
             )}
           </div>
            <div className="space-y-2">
             <Label htmlFor="groupName">Nama Kelompok</Label>
-            <Input type="hidden" name="groupName" id="groupNameInput" />
-            <Select name="groupName">
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Kelompok" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 6 }, (_, i) => i + 1).map((num) => (
-                  <SelectItem key={num} value={`Kelompok ${num}`}>
-                    Kelompok {num}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+             <Controller
+                  name="groupName"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                       <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih Kelompok" />
+                          </SelectTrigger>
+                       </FormControl>
+                      <SelectContent>
+                        {Array.from({ length: 6 }, (_, i) => i + 1).map((num) => (
+                          <SelectItem key={num} value={`Kelompok ${num}`}>
+                            Kelompok {num}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+            <input type="hidden" name="groupName" id="groupNameInput" />
             {typeof state.message !== 'string' && state.message?.groupName && (
               <p className="text-sm font-medium text-destructive">{state.message.groupName[0]}</p>
             )}
