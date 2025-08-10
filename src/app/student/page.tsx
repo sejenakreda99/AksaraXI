@@ -14,43 +14,23 @@ import {
 } from '@/components/ui/card';
 import AuthenticatedLayout from '../(authenticated)/layout';
 
-const chapterSections = [
+const chapters = [
   {
-    title: 'Menyimak',
+    title: "Bab 1: Membicarakan Teks Deskripsi",
+    description: "Guru Mapel: Kuswara Senjaya, S.Pd.",
+    href: "/student/materi/1",
     icon: BookOpen,
-    href: '/student/chapter/1/menyimak',
+    disabled: false
   },
-  {
-    title: 'Membaca',
-    icon: FileText,
-    href: '/student/chapter/1/membaca',
-  },
-  {
-    title: 'Menulis',
-    icon: Pencil,
-    href: '/student/chapter/1/menulis',
-  },
-  {
-    title: 'Mempresentasikan',
-    icon: Presentation,
-    href: '/student/chapter/1/mempresentasikan',
-  },
-  {
-    title: 'Asesmen',
-    icon: CheckCircle,
-    href: '/student/chapter/1/asesmen',
-  },
-  {
-    title: 'Jurnal',
-    icon: Book,
-    href: '/student/chapter/1/jurnal',
-  },
-  {
-    title: 'Refleksi',
-    icon: PenSquare,
-    href: '/student/chapter/1/refleksi',
-  },
+   {
+    title: "Bab 2",
+    description: "Segera Hadir",
+    href: "#",
+    icon: BookOpen,
+    disabled: true
+  }
 ];
+
 
 export default function StudentDashboard() {
   return (
@@ -65,25 +45,26 @@ export default function StudentDashboard() {
         <main className="flex-1 p-4 md:p-6">
            <div className="text-center mb-6">
               <h2 className="text-lg font-semibold">
-                Bab 1: Membicarakan Teks Deskripsi
+                Selamat Datang!
               </h2>
               <p className="text-sm text-muted-foreground">
-                Guru Mapel: Kuswara Senjaya, S.Pd.
+                Silakan pilih bab yang ingin Anda pelajari.
               </p>
            </div>
-          <div className="grid grid-cols-2 gap-4">
-            {chapterSections.map((section) => (
-              <Link href={section.href} key={section.title} className="flex">
-                <Card className="w-full aspect-square flex flex-col items-center justify-center p-4 hover:bg-slate-100 transition-colors rounded-xl shadow-md">
-                  <section.icon className="w-12 h-12 text-primary mb-2" />
-                  <p className="font-semibold text-center text-sm">{section.title}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {chapters.map((chapter) => (
+              <Link href={chapter.href} key={chapter.title} className={`flex ${chapter.disabled ? "pointer-events-none" : ""}`}>
+                <Card className={`w-full p-4 rounded-xl shadow-md flex items-center gap-4 ${chapter.disabled ? "bg-slate-100/50 opacity-50" : "hover:bg-slate-100 transition-colors"}`}>
+                   <div className="bg-primary/10 p-3 rounded-lg">
+                    <chapter.icon className="w-8 h-8 text-primary" />
+                   </div>
+                   <div>
+                    <p className="font-semibold text-base">{chapter.title}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{chapter.description}</p>
+                   </div>
                 </Card>
               </Link>
             ))}
-             <Card className="w-full aspect-square flex flex-col items-center justify-center p-4 bg-slate-100/50 rounded-xl shadow-md opacity-50">
-               <BookOpen className="w-12 h-12 text-primary mb-2" />
-               <p className="font-semibold text-center text-sm">Bab 2 (Segera)</p>
-            </Card>
           </div>
         </main>
       </div>
