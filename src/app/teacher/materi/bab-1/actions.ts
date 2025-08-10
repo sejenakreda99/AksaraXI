@@ -1,24 +1,30 @@
 'use server';
 
-import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { initializeApp, getApps, App, cert, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-  : undefined;
+function getAdminApp(): App {
+  if (getApps().length > 0) {
+    return getApps()[0];
+  }
 
-let adminApp: App;
-if (!getApps().length) {
-  adminApp = initializeApp({
-    credential: serviceAccount ? require('firebase-admin').credential.cert(serviceAccount) : undefined,
+  let serviceAccount: ServiceAccount | undefined;
+  try {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    }
+  } catch (e) {
+    console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', e);
+  }
+
+  return initializeApp({
+    credential: serviceAccount ? cert(serviceAccount) : undefined,
   });
-} else {
-  adminApp = getApps()[0];
 }
 
-const db = getFirestore(adminApp);
+const db = getFirestore(getAdminApp());
 const chapterCollection = db.collection('chapters');
 
 const defaultContent = {
