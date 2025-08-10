@@ -421,7 +421,7 @@ export default function MembacaSiswaPage() {
                                 <ArrowRight className="ml-2 h-4 w-4"/>
                               </Button>
                          ): (
-                             <Button type="submit" disabled={isSubmitting}>
+                             <Button type="submit" disabled={isSubmitting || loading}>
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                 {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Jawaban'}
                             </Button>
@@ -434,5 +434,3 @@ export default function MembacaSiswaPage() {
     </AuthenticatedLayout>
   );
 }
-
-    
