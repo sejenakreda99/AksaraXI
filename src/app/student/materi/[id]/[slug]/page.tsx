@@ -28,12 +28,20 @@ type Statement = {
   evidencePoints: number;
 };
 
+type LatihanStatement = {
+    statement: string;
+}
+
 type MenyimakContentData = {
   learningObjective: string;
   youtubeUrl: string;
   statements: Statement[];
   activity2Questions: string[];
   comparisonVideoUrl: string;
+  latihan: {
+      youtubeUrl: string;
+      statements: LatihanStatement[];
+  }
 };
 
 // --- Component for Menyimak Content ---
@@ -110,6 +118,7 @@ function MenyimakContent() {
 
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return '';
+    if (url.includes('embed')) return url;
     try {
       const videoUrl = new URL(url);
       let videoId = videoUrl.searchParams.get('v');
@@ -286,14 +295,6 @@ function MenyimakContent() {
     }
 
      if (activity === '3') {
-      const latihanStatements = [
-        { no: 1, statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
-        { no: 2, statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },
-        { no: 3, statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut." },
-        { no: 4, statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap." },
-        { no: 5, statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya." }
-      ];
-
       return (
         <Card>
             <CardHeader>
@@ -304,7 +305,7 @@ function MenyimakContent() {
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                    <iframe className="w-full h-full" src="https://www.youtube.com/embed/nVLkAFx519M" title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                    <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.latihan.youtubeUrl)} title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
                 </div>
                 <Card>
                     <CardHeader>
@@ -320,27 +321,27 @@ function MenyimakContent() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {latihanStatements.map((item) => (
-                                    <TableRow key={item.no}>
-                                        <TableCell>{item.no}</TableCell>
+                                {content.latihan.statements.map((item, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{index + 1}</TableCell>
                                         <TableCell>
                                             <p>{item.statement}</p>
                                             <Label className="mt-4 block font-medium">Jika tidak, seharusnya....</Label>
                                             <Textarea
                                                 className="mt-2"
                                                 placeholder="Tuliskan analisis Anda..."
-                                                onChange={e => handleLatihanAnswerChange(item.no.toString(), 'analysis', e.target.value)}
-                                                value={latihanAnswers[item.no.toString()]?.analysis || ''}
+                                                onChange={e => handleLatihanAnswerChange(String(index + 1), 'analysis', e.target.value)}
+                                                value={latihanAnswers[String(index + 1)]?.analysis || ''}
                                             />
                                         </TableCell>
                                         <TableCell>
                                             <RadioGroup
                                                 className="flex flex-col space-y-2 items-center justify-center"
-                                                onValueChange={(value) => handleLatihanAnswerChange(item.no.toString(), 'choice', value)}
-                                                value={latihanAnswers[item.no.toString()]?.choice || ''}
+                                                onValueChange={(value) => handleLatihanAnswerChange(String(index + 1), 'choice', value)}
+                                                value={latihanAnswers[String(index + 1)]?.choice || ''}
                                             >
-                                                <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`l-${item.no}-benar`} /><Label htmlFor={`l-${item.no}-benar`}>Benar</Label></div>
-                                                <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`l-${item.no}-salah`} /><Label htmlFor={`l-${item.no}-salah`}>Salah</Label></div>
+                                                <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`l-${index}-benar`} /><Label htmlFor={`l-${index}-benar`}>Benar</Label></div>
+                                                <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`l-${index}-salah`} /><Label htmlFor={`l-${index}-salah`}>Salah</Label></div>
                                             </RadioGroup>
                                         </TableCell>
                                     </TableRow>

@@ -22,12 +22,20 @@ type Statement = {
   evidencePoints: number;
 };
 
+type LatihanStatement = {
+    statement: string;
+}
+
 type MenyimakContent = {
   learningObjective: string;
   youtubeUrl: string;
   statements: Statement[];
   activity2Questions: string[];
   comparisonVideoUrl: string;
+  latihan: {
+    youtubeUrl: string;
+    statements: LatihanStatement[];
+  }
 };
 
 const defaultContent: MenyimakContent = {
@@ -46,7 +54,17 @@ const defaultContent: MenyimakContent = {
       "Mengapa narator mendeskripsikan Candi Borobudur itu mulai dari tingkat bawah sampai ke tingkat paling atas candi?",
       "Apakah narator berhasil menggambarkan secara rinci objek sehingga pembaca seakan-akan melihat, mendengar, atau merasakan objek yang dideskripsikan? Tunjukkan buktinya."
   ],
-  comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4"
+  comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4",
+  latihan: {
+    youtubeUrl: "https://www.youtube.com/embed/nVLkAFx519M",
+    statements: [
+        { statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
+        { statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },
+        { statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut." },
+        { statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap." },
+        { statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya." }
+    ]
+  }
 };
 
 export default function MenyimakPage() {
@@ -69,7 +87,8 @@ export default function MenyimakPage() {
             const contentToUpdate = { ...defaultContent, ...currentContent };
             if (
                 !currentContent.activity2Questions ||
-                !currentContent.comparisonVideoUrl
+                !currentContent.comparisonVideoUrl ||
+                !currentContent.latihan
             ) {
                 await setDoc(docRef, { menyimak: contentToUpdate }, { merge: true });
             }
@@ -98,25 +117,16 @@ export default function MenyimakPage() {
       }
       const pathSegments = videoUrl.pathname.split('/');
       const shortId = pathSegments[pathSegments.length - 1];
-      if (shortId) {
-        return `https://www.youtube.com/embed/${shortId}`;
+      if (shortId && !shortId.includes('.be')) {
+         return `https://www.youtube.com/embed/${shortId.split('?')[0]}`;
       }
     } catch (error) {
       console.error('Invalid YouTube URL', error);
-      return '';
+      return url;
     }
-    return '';
+    return url;
   };
   
-    const latihanStatements = [
-        { no: 1, statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
-        { no: 2, statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },
-        { no: 3, statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut." },
-        { no: 4, statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap." },
-        { no: 5, statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya." }
-      ];
-
-
   return (
     <AuthenticatedLayout>
       <div className="flex flex-col h-full">
@@ -280,10 +290,10 @@ export default function MenyimakPage() {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                      <div className="prose prose-sm max-w-none text-foreground">
-                                        <p>Simaklah tayangan deskripsi pada laman YouTube Info Sumut dengan kata kunci pencarian pesona Danau Toba yang bisa dipindai pada kode QR di samping. Setelah kalian menyimak tayangan tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.2. Lalu, berikan analisis terhadap gagasan dan pandangan yang disampaikan narator dalam tayangan tersebut.</p>
+                                        <p>Simaklah tayangan deskripsi pada laman YouTube Info Sumut dengan kata kunci pencarian pesona Danau Toba. Setelah kalian menyimak tayangan tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.2. Lalu, berikan analisis terhadap gagasan dan pandangan yang disampaikan narator dalam tayangan tersebut.</p>
                                     </div>
                                      <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                                        <iframe className="w-full h-full" src="https://www.youtube.com/embed/nVLkAFx519M" title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                                        <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.latihan.youtubeUrl)} title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
                                     </div>
                                     <Table>
                                         <TableHeader>
@@ -295,9 +305,9 @@ export default function MenyimakPage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {latihanStatements.map((item) => (
-                                                <TableRow key={item.no}>
-                                                    <TableCell>{item.no}</TableCell>
+                                            {content.latihan.statements.map((item, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>{index + 1}</TableCell>
                                                     <TableCell>
                                                         <p>{item.statement}</p>
                                                         <p className="text-muted-foreground italic mt-2">Jika tidak, seharusnya .... (Siswa mengisi bagian ini)</p>

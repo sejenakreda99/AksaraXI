@@ -26,12 +26,20 @@ type Statement = {
   evidencePoints: number;
 };
 
+type LatihanStatement = {
+    statement: string;
+}
+
 type MenyimakContent = {
   learningObjective: string;
   youtubeUrl: string;
   statements: Statement[];
   activity2Questions: string[];
   comparisonVideoUrl: string;
+  latihan: {
+    youtubeUrl: string;
+    statements: LatihanStatement[];
+  }
 };
 
 const defaultContent: MenyimakContent = {
@@ -46,7 +54,17 @@ const defaultContent: MenyimakContent = {
       "Mengapa narator mendeskripsikan Candi Borobudur itu mulai dari tingkat bawah sampai ke tingkat paling atas candi?",
       "Apakah narator berhasil menggambarkan secara rinci objek sehingga pembaca seakan-akan melihat, mendengar, atau merasakan objek yang dideskripsikan? Tunjukkan buktinya."
   ],
-  comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4"
+  comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4",
+  latihan: {
+    youtubeUrl: "https://www.youtube.com/embed/nVLkAFx519M",
+    statements: [
+        { statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
+        { statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },
+        { statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut." },
+        { statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap." },
+        { statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya." }
+    ]
+  }
 };
 
 
@@ -71,7 +89,8 @@ export default function EditMenyimakPage() {
             const contentToSet = { ...defaultContent, ...currentContent };
              if (
                 !currentContent.activity2Questions ||
-                !currentContent.comparisonVideoUrl
+                !currentContent.comparisonVideoUrl ||
+                !currentContent.latihan
             ) {
                 await setDoc(docRef, { menyimak: contentToSet }, { merge: true });
             }
@@ -132,6 +151,25 @@ export default function EditMenyimakPage() {
     const renumberedStatements = newStatements.map((stmt, index) => ({ ...stmt, no: index + 1 }));
     setContent({ ...content, statements: renumberedStatements });
   };
+
+  const handleLatihanStatementChange = (index: number, value: string) => {
+    if (!content) return;
+    const newStatements = [...content.latihan.statements];
+    newStatements[index] = { statement: value };
+    setContent({ ...content, latihan: { ...content.latihan, statements: newStatements } });
+  };
+
+  const addLatihanStatement = () => {
+    if (!content) return;
+    const newStatements = [...content.latihan.statements, { statement: '' }];
+    setContent({ ...content, latihan: { ...content.latihan, statements: newStatements } });
+  };
+
+  const removeLatihanStatement = (index: number) => {
+    if (!content) return;
+    const newStatements = content.latihan.statements.filter((_, i) => i !== index);
+    setContent({ ...content, latihan: { ...content.latihan, statements: newStatements } });
+  };
   
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -139,7 +177,11 @@ export default function EditMenyimakPage() {
 
     const finalContent = {
         ...content,
-        statements: content.statements.filter(s => s.statement.trim() !== '')
+        statements: content.statements.filter(s => s.statement.trim() !== ''),
+        latihan: {
+            ...content.latihan,
+            statements: content.latihan.statements.filter(s => s.statement.trim() !== '')
+        }
     };
 
     startTransition(async () => {
@@ -199,7 +241,7 @@ export default function EditMenyimakPage() {
                 </Link>
               </Button>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Kegiatan 1: Video & Pernyataan</CardTitle>
@@ -299,7 +341,7 @@ export default function EditMenyimakPage() {
                 </CardContent>
               </Card>
 
-              <Card className="mt-6">
+              <Card>
                  <CardHeader>
                   <CardTitle>Kegiatan 2: Analisis & Perbandingan</CardTitle>
                 </CardHeader>
@@ -324,6 +366,37 @@ export default function EditMenyimakPage() {
                             placeholder="https://www.youtube.com/embed/..."
                         />
                     </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Latihan</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                   <div className="space-y-2">
+                    <Label htmlFor="latihanYoutubeUrl">Tautan Video YouTube (Latihan)</Label>
+                    <Input
+                      id="latihanYoutubeUrl"
+                      value={content.latihan.youtubeUrl}
+                      onChange={(e) => setContent({...content, latihan: {...content.latihan, youtubeUrl: e.target.value}})}
+                      placeholder="https://www.youtube.com/embed/..."
+                    />
+                  </div>
+                  <Separator />
+                   <div className="space-y-4">
+                    <Label className="text-lg font-semibold">Daftar Pernyataan Latihan</Label>
+                    {content.latihan.statements.map((statement, index) => (
+                      <Card key={index} className="p-4 bg-slate-50">
+                        <div className="flex justify-between items-start">
+                           <Label className="text-base">Pernyataan #{index + 1}</Label>
+                           <Button type="button" variant="destructive" size="icon" onClick={() => removeLatihanStatement(index)} className="w-8 h-8"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
+                        </div>
+                        <Textarea value={statement.statement} onChange={(e) => handleLatihanStatementChange(index, e.target.value)} placeholder={`Isi pernyataan...`} className="mt-2" rows={2}/>
+                      </Card>
+                    ))}
+                    <Button type="button" variant="outline" onClick={addLatihanStatement}><PlusCircle className="mr-2 h-4 w-4" />Tambah Pernyataan Latihan</Button>
+                  </div>
                 </CardContent>
               </Card>
               
