@@ -19,7 +19,7 @@ export function BottomNavBar({ navItems }: { navItems: NavItem[] }) {
 
   return (
     <footer className="fixed bottom-0 z-40 w-full border-t bg-background md:hidden">
-      <div className={`grid h-16 grid-cols-${navItems.length} items-center justify-center px-4`}>
+      <div className={`grid h-16 grid-flow-col items-center justify-center px-4`}>
         {navItems.map((item) => {
           const isActive = item.href ? pathname === item.href : false;
           
