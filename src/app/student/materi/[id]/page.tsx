@@ -43,7 +43,7 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
     const initialSections = [
       { title: "A. Menyimak", slug: "menyimak", icon: BookOpen, status: 'completed', href: `/student/materi/${chapterId}/menyimak` },
       { title: "B. Membaca", slug: "membaca", icon: FileText, status: 'active', href: `/student/materi/${chapterId}/membaca` },
-      { title: "C. Menulis", slug: "menulis", icon: Pencil, status: 'locked' },
+      { title: "C. Menulis", slug: "menulis", icon: Pencil, status: 'active', href: `/student/materi/${chapterId}/menulis` },
       { title: "D. Mempresentasikan", slug: "mempresentasikan", icon: Presentation, status: 'locked' },
       { title: "E. Asesmen", slug: "asesmen", icon: CheckCircle, status: 'locked' },
       { title: "Jurnal Membaca", slug: "jurnal-membaca", icon: BookOpen, status: 'locked' },
