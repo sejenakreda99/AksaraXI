@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, Edit } from "lucide-react";
 import Link from "next/link";
-import { getChapterContent } from './actions';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
@@ -35,8 +36,14 @@ export default function Bab1Page() {
   useEffect(() => {
     async function fetchContent() {
       try {
-        const data = await getChapterContent();
-        setContent(data);
+        const docRef = doc(db, 'chapters', '1');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            setContent(docSnap.data() as ChapterContent);
+        } else {
+            console.log("No such document!");
+            // Optionally, set default content if it doesn't exist
+        }
       } catch (error) {
         console.error("Failed to fetch chapter content:", error);
       } finally {
