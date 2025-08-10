@@ -1,9 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
-import { useEffect, useRef } from 'react';
-
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,7 +11,6 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { createGroup } from './actions';
 import {
   Select,
   SelectContent,
@@ -23,42 +19,88 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
-const initialState = {
-  type: '',
-  message: '',
-};
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Menambahkan...' : 'Tambah Kelompok'}
-    </Button>
-  );
-}
-
-export function AddGroupForm() {
-  const [state, formAction] = useActionState(createGroup, initialState);
+export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
+  const [isPending, setIsPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (!state) return;
-    if (state.type === 'success') {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsPending(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const className = formData.get('className') as string;
+    const groupName = formData.get('groupName') as string;
+
+    if (!email || !password || !className || !groupName) {
+        toast({
+            variant: 'destructive',
+            title: 'Gagal',
+            description: 'Semua kolom harus diisi.',
+        });
+        setIsPending(false);
+        return;
+    }
+     if (password.length < 8) {
+        toast({
+            variant: 'destructive',
+            title: 'Gagal',
+            description: 'Kata sandi minimal 8 karakter.',
+        });
+        setIsPending(false);
+        return;
+    }
+
+
+    try {
+      // Create a temporary auth instance to create the user
+      // This is a workaround to create a user without signing them in on the admin's device.
+      const { app: tempApp } = await import('@/lib/firebase');
+      const { getAuth: getTempAuth } = await import('firebase/auth');
+      const tempAuth = getTempAuth(tempApp);
+
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+      const user = userCredential.user;
+
+      // Set displayName for role distinction
+      await updateProfile(user, { displayName: "Siswa" });
+
+      // Save group info to Firestore
+      await setDoc(doc(db, 'groups', user.uid), {
+        className,
+        groupName,
+        email,
+      });
+
       toast({
         title: 'Berhasil',
-        description: state.message,
+        description: `Kelompok ${groupName} berhasil dibuat.`,
       });
       formRef.current?.reset();
-    } else if (state.type === 'error') {
-      toast({
+      onGroupAdded(); // Refresh the list
+    } catch (error: any) {
+      let message = 'Terjadi kesalahan yang tidak diketahui.';
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'Email ini sudah terdaftar. Silakan gunakan email lain.';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'Kata sandi terlalu lemah. Gunakan minimal 8 karakter.';
+      }
+      console.error('Error creating user:', error);
+       toast({
         variant: 'destructive',
         title: 'Gagal',
-        description: state.message,
+        description: message,
       });
+    } finally {
+        setIsPending(false);
     }
-  }, [state, toast]);
+  };
 
   return (
     <Card className="w-full max-w-md">
@@ -69,7 +111,7 @@ export function AddGroupForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} action={formAction} className="space-y-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="className">Kelas</Label>
             <Select name="className" required>
@@ -121,7 +163,9 @@ export function AddGroupForm() {
               required
             />
           </div>
-          <SubmitButton />
+          <Button type="submit" disabled={isPending} className="w-full">
+            {isPending ? 'Menambahkan...' : 'Tambah Kelompok'}
+          </Button>
         </form>
       </CardContent>
     </Card>
