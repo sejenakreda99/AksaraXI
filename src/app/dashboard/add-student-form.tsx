@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,9 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { createGroup } from './actions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Controller, useForm } from 'react-hook-form';
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 const initialState = {
   type: '',
@@ -40,7 +39,7 @@ export function AddGroupForm() {
         title: 'Berhasil',
         description: state.message as string,
       });
-      form.reset();
+      form.reset({ email: '', password: '', className: undefined, groupName: undefined });
     } else if (state?.type === 'error') {
        toast({
         variant: 'destructive',
@@ -62,7 +61,12 @@ export function AddGroupForm() {
       <CardContent>
         <Form {...form}>
           <form
-            action={formAction}
+            action={(formData) => {
+              const data = form.getValues();
+              formData.set('className', data.className || '');
+              formData.set('groupName', data.groupName || '');
+              formAction(formData);
+            }}
             className="space-y-4"
           >
             <FormField
@@ -70,8 +74,8 @@ export function AddGroupForm() {
               name="className"
               render={({ field }) => (
                 <FormItem>
-                  <Label>Kelas</Label>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>Kelas</FormLabel>
+                   <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih Kelas" />
@@ -93,8 +97,8 @@ export function AddGroupForm() {
               name="groupName"
               render={({ field }) => (
                 <FormItem>
-                  <Label>Nama Kelompok</Label>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>Nama Kelompok</FormLabel>
+                   <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih Kelompok" />
@@ -114,32 +118,44 @@ export function AddGroupForm() {
                 </FormItem>
               )}
             />
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Kelompok</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="contoh@email.com"
-                required
-              />
-              {typeof state.message !== 'string' && state.message?.email && (
-                <p className="text-sm font-medium text-destructive">{state.message.email[0]}</p>
+             <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                 <FormItem>
+                    <FormLabel>Email Kelompok</FormLabel>
+                    <FormControl>
+                        <Input
+                            {...field}
+                            type="email"
+                            placeholder="contoh@email.com"
+                        />
+                    </FormControl>
+                    {typeof state.message !== 'string' && state.message?.email && (
+                        <p className="text-sm font-medium text-destructive">{state.message.email[0]}</p>
+                    )}
+                 </FormItem>
               )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Kata Sandi</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="********"
-                required
-              />
-              {typeof state.message !== 'string' && state.message?.password && (
-                <p className="text-sm font-medium text-destructive">{state.message.password[0]}</p>
+            />
+             <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                 <FormItem>
+                    <FormLabel>Kata Sandi</FormLabel>
+                    <FormControl>
+                        <Input
+                            {...field}
+                            type="password"
+                            placeholder="********"
+                        />
+                    </FormControl>
+                    {typeof state.message !== 'string' && state.message?.password && (
+                        <p className="text-sm font-medium text-destructive">{state.message.password[0]}</p>
+                    )}
+                 </FormItem>
               )}
-            </div>
+            />
             <SubmitButton />
           </form>
         </Form>
