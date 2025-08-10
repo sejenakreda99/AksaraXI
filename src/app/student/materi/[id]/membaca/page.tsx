@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -229,7 +230,7 @@ export default function MembacaSiswaPage() {
                         <CardTitle>Tujuan Pembelajaran</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <CardDescription className="text-base">{content.learningObjective}</CardDescription>
+                        <p className="text-base text-justify">{content.learningObjective}</p>
                     </CardContent>
                 </Card>
             )
@@ -239,7 +240,7 @@ export default function MembacaSiswaPage() {
                     <CardHeader>
                         <CardTitle>Kegiatan 1: Baca Teks Deskripsi</CardTitle>
                     </CardHeader>
-                    <CardContent className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground">
+                    <CardContent className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground text-justify">
                         <h3 className="font-bold text-center mb-4">Keunikan Adat Istiadat Suku Abuy di Kampung Takpala Alor</h3>
                         {content.kegiatan1MainText}
                     </CardContent>
@@ -250,13 +251,13 @@ export default function MembacaSiswaPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Kegiatan 1: Kerjakan Tugas</CardTitle>
-                        <CardDescription>Setelah kalian menyimak teks tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.3. Lalu, berikan bukti informasi yang mendukung analisis kalian.</CardDescription>
+                        <CardDescription className="text-justify">Setelah kalian menyimak teks tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.3. Lalu, berikan bukti informasi yang mendukung analisis kalian.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {content.kegiatan1Statements.map((stmt, index) => (
                              <div key={index} className="border p-4 rounded-lg bg-slate-50/50">
-                                <p className="font-semibold">Pernyataan #{index+1}</p>
-                                <p className="mt-1 text-sm">{stmt.statement}</p>
+                                <p className="font-semibold text-justify">Pernyataan #{index+1}</p>
+                                <p className="mt-1 text-sm text-justify">{stmt.statement}</p>
                                 <div className="mt-4 space-y-4">
                                     <div>
                                     <Label className="font-medium">Tentukan jawaban Anda:</Label>
@@ -282,11 +283,11 @@ export default function MembacaSiswaPage() {
                         <CardTitle>Kegiatan 1: Umpan Balik & Pembahasan</CardTitle>
                     </CardHeader>
                     <CardContent>
-                         <div className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground">{content.kegiatan1FeedbackText}</div>
+                         <div className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground text-justify">{content.kegiatan1FeedbackText}</div>
                          <Separator className="my-6" />
                           <Card className="bg-primary/10 border-primary">
                               <CardHeader><CardTitle className="text-primary text-base">Info</CardTitle></CardHeader>
-                              <CardContent className="text-primary/90 text-sm whitespace-pre-wrap">
+                              <CardContent className="text-primary/90 text-sm whitespace-pre-wrap text-justify">
                                   {content.kegiatan1InfoBoxText}
                               </CardContent>
                           </Card>
@@ -299,7 +300,7 @@ export default function MembacaSiswaPage() {
                     <CardHeader>
                         <CardTitle>Kegiatan 2 & Latihan</CardTitle>
                     </CardHeader>
-                    <CardContent className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground space-y-4">
+                    <CardContent className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground space-y-4 text-justify">
                         <div className="p-4 bg-slate-50 rounded-lg border">
                             <h4 className="font-bold not-prose">Kegiatan 2: Mengevaluasi gagasan dan pandangan</h4>
                             <p>{content.kegiatan2Intro}</p>
@@ -321,7 +322,7 @@ export default function MembacaSiswaPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle>Latihan: Identifikasi Ciri Teks Deskripsi</CardTitle>
-                        <CardDescription>Untuk memudahkan kalian membuktikan teks tersebut termasuk teks deskripsi atau bukan, gunakanlah Tabel 1.4. Centanglah pernyataan benar atau salah. Lalu, berikan buktikan informasi yang mendukung analisis kalian.</CardDescription>
+                        <CardDescription className="text-justify">Untuk memudahkan kalian membuktikan teks tersebut termasuk teks deskripsi atau bukan, gunakanlah Tabel 1.4. Centanglah pernyataan benar atau salah. Lalu, berikan buktikan informasi yang mendukung analisis kalian.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -335,7 +336,7 @@ export default function MembacaSiswaPage() {
                                 {content.latihanStatements.map((stmt, index) => (
                                     <TableRow key={index}>
                                         <TableCell>
-                                            <p className="font-semibold">{stmt.statement}</p>
+                                            <p className="font-semibold text-justify">{stmt.statement}</p>
                                              <Label htmlFor={`latihan-evidence-${index}`} className="font-medium mt-4 block">Bukti Informasi:</Label>
                                              <Textarea id={`latihan-evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('latihan', index, 'evidence', e.target.value)} value={answers.latihan[index]?.evidence} />
                                         </TableCell>
@@ -359,10 +360,10 @@ export default function MembacaSiswaPage() {
                         <CardTitle>Latihan: Simpulan</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Label htmlFor="simpulan">Berdasarkan hasil analisis ciri-ciri teks deskripsi, maka teks berjudul “Terminal Baru Bandara Sam Ratulangi Manado, Perpaduan Konsep Tradisional dan Modern” ...</Label>
+                        <Label htmlFor="simpulan" className="text-justify">Berdasarkan hasil analisis ciri-ciri teks deskripsi, maka teks berjudul “Terminal Baru Bandara Sam Ratulangi Manado, Perpaduan Konsep Tradisional dan Modern” ...</Label>
                         <Textarea id="simpulan" className="mt-2" placeholder="termasuk/tidak termasuk teks deskripsi karena..." rows={6} value={answers.simpulan} onChange={(e) => handleSimpulanChange(e.target.value)} />
                         <Separator className="my-6" />
-                        <p className="text-sm text-muted-foreground">Sampaikan secara lisan hasil analisis kalian di depan kelas. Buka kesempatan tanya jawab sehingga teman kalian yang menyimak memberikan tanggapan. Kalian yang mendapatkan giliran menyampaikan hasil analisis, kemudian menjawab tanggapan tersebut.</p>
+                        <p className="text-sm text-muted-foreground text-justify">Sampaikan secara lisan hasil analisis kalian di depan kelas. Buka kesempatan tanya jawab sehingga teman kalian yang menyimak memberikan tanggapan. Kalian yang mendapatkan giliran menyampaikan hasil analisis, kemudian menjawab tanggapan tersebut.</p>
                     </CardContent>
                 </Card>
              )
@@ -375,7 +376,7 @@ export default function MembacaSiswaPage() {
   return (
     <AuthenticatedLayout>
       <div className="flex flex-col h-full">
-        <header className="bg-card border-b p-4 md:p-6">
+        <header className="bg-card border-b p-4 sm:p-6">
           <div className="max-w-4xl mx-auto">
             <Button asChild variant="outline" size="sm" className="mb-4">
               <Link href={`/student/materi/${chapterId}`}>
@@ -390,7 +391,7 @@ export default function MembacaSiswaPage() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-4 sm:p-6 md:p-8">
             <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
                  
                  {/* Progress Indicator */}
@@ -433,3 +434,5 @@ export default function MembacaSiswaPage() {
     </AuthenticatedLayout>
   );
 }
+
+    
