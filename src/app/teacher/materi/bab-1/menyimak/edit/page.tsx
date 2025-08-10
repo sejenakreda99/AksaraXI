@@ -15,11 +15,16 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
 type Statement = {
   no: number;
   statement: string;
-}
+  answer: 'benar' | 'salah';
+  points: number;
+  evidencePoints: number;
+};
 
 type MenyimakContent = {
   learningObjective: string;
@@ -42,11 +47,10 @@ export default function EditMenyimakPage() {
         if (docSnap.exists() && docSnap.data().menyimak) {
           setContent(docSnap.data().menyimak);
         } else {
-          // Initialize with some default structure if it doesn't exist
           setContent({
             learningObjective: '',
             youtubeUrl: '',
-            statements: [{ no: 1, statement: '' }]
+            statements: [{ no: 1, statement: '', answer: 'benar', points: 10, evidencePoints: 10 }]
           });
         }
       } catch (error) {
@@ -63,17 +67,37 @@ export default function EditMenyimakPage() {
     fetchContent();
   }, [toast]);
 
-  const handleStatementChange = (index: number, value: string) => {
+  const handleStatementChange = (index: number, field: keyof Statement, value: string | number) => {
     if (!content) return;
     const newStatements = [...content.statements];
-    newStatements[index].statement = value;
+    const statementToUpdate = { ...newStatements[index] };
+  
+    if (field === 'statement') {
+      statementToUpdate.statement = value as string;
+    } else if (field === 'answer') {
+      statementToUpdate.answer = value as 'benar' | 'salah';
+    } else if (field === 'points' || field === 'evidencePoints') {
+      const numValue = Number(value);
+      if (!isNaN(numValue)) {
+        statementToUpdate[field] = numValue;
+      }
+    }
+    
+    newStatements[index] = statementToUpdate;
     setContent({ ...content, statements: newStatements });
   };
+  
 
   const addStatement = () => {
     if (!content) return;
-    const newStatements = [...content.statements, { no: content.statements.length + 1, statement: '' }];
-    // Re-number the 'no' property to ensure it's sequential
+    const newStatement: Statement = {
+      no: content.statements.length + 1,
+      statement: '',
+      answer: 'benar',
+      points: 10,
+      evidencePoints: 10
+    };
+    const newStatements = [...content.statements, newStatement];
     const renumberedStatements = newStatements.map((stmt, index) => ({ ...stmt, no: index + 1 }));
     setContent({ ...content, statements: renumberedStatements });
   };
@@ -81,7 +105,6 @@ export default function EditMenyimakPage() {
   const removeStatement = (index: number) => {
     if (!content) return;
     const newStatements = content.statements.filter((_, i) => i !== index);
-     // Re-number the 'no' property after removal
     const renumberedStatements = newStatements.map((stmt, index) => ({ ...stmt, no: index + 1 }));
     setContent({ ...content, statements: renumberedStatements });
   };
@@ -90,7 +113,6 @@ export default function EditMenyimakPage() {
     event.preventDefault();
     if (!content) return;
 
-    // Filter out any empty statements before saving
     const finalStatements = content.statements.filter(s => s.statement.trim() !== '');
 
     startTransition(async () => {
@@ -128,27 +150,8 @@ export default function EditMenyimakPage() {
             <div className="max-w-4xl mx-auto">
               <Skeleton className="h-10 w-40 mb-4" />
               <Card>
-                <CardHeader>
-                  <Skeleton className="h-6 w-1/2" />
-                  <Skeleton className="h-4 w-3/4" />
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-24 w-full" />
-                  </div>
-                   <div className="space-y-2">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-10 w-full mb-2" />
-                    <Skeleton className="h-10 w-full mb-2" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                  <Skeleton className="h-10 w-48" />
-                </CardContent>
+                <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
+                <CardContent className="space-y-6"><Skeleton className="h-96 w-full" /></CardContent>
               </Card>
             </div>
           </main>
@@ -161,8 +164,8 @@ export default function EditMenyimakPage() {
     <AuthenticatedLayout>
       <div className="flex flex-col h-full">
         <TeacherHeader
-          title="Edit Konten Menyimak"
-          description="Ubah konten untuk bagian Menyimak Teks Deskripsi."
+          title="Edit Konten & Penilaian Menyimak"
+          description="Ubah konten, kunci jawaban, dan skor untuk kegiatan menyimak."
         />
         <main className="flex-1 p-4 md:p-8">
           <div className="max-w-4xl mx-auto">
@@ -170,7 +173,7 @@ export default function EditMenyimakPage() {
               <Button asChild variant="outline">
                 <Link href="/teacher/materi/bab-1/menyimak">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Kembali
+                  Kembali ke Pratinjau
                 </Link>
               </Button>
             </div>
@@ -178,9 +181,6 @@ export default function EditMenyimakPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Formulir Konten Menyimak</CardTitle>
-                  <CardDescription>
-                    Perbarui teks dan tautan di bawah ini.
-                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
@@ -203,28 +203,67 @@ export default function EditMenyimakPage() {
                       placeholder="https://www.youtube.com/watch?v=..."
                     />
                   </div>
+                  
+                  <Separator />
+
                   <div className="space-y-4">
-                    <Label>Daftar Pernyataan</Label>
+                    <Label className="text-lg font-semibold">Daftar Pernyataan & Penilaian</Label>
                     {content.statements.map((statement, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                         <span className="text-sm font-medium text-muted-foreground">{index + 1}.</span>
-                        <Input
-                          type="text"
+                      <Card key={index} className="p-4 bg-slate-50">
+                        <div className="flex justify-between items-start">
+                           <Label className="text-base">Pernyataan #{index + 1}</Label>
+                           <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => removeStatement(index)}
+                              className="w-8 h-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Hapus Pernyataan</span>
+                            </Button>
+                        </div>
+                        <Textarea
                           value={statement.statement}
-                          onChange={(e) => handleStatementChange(index, e.target.value)}
-                          placeholder={`Pernyataan #${index + 1}`}
-                          className="flex-grow"
+                          onChange={(e) => handleStatementChange(index, 'statement', e.target.value)}
+                          placeholder={`Isi pernyataan...`}
+                          className="mt-2"
+                          rows={3}
                         />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => removeStatement(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                           <span className="sr-only">Hapus</span>
-                        </Button>
-                      </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div className='space-y-2'>
+                                <Label>Kunci Jawaban</Label>
+                                <Select 
+                                 value={statement.answer}
+                                 onValueChange={(value) => handleStatementChange(index, 'answer', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih jawaban"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="benar">Benar</SelectItem>
+                                        <SelectItem value="salah">Salah</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                             <div className='space-y-2'>
+                                <Label>Poin Jawaban</Label>
+                                <Input 
+                                  type="number"
+                                  value={statement.points}
+                                  onChange={(e) => handleStatementChange(index, 'points', e.target.value)}
+                                />
+                            </div>
+                             <div className='space-y-2'>
+                                <Label>Poin Bukti</Label>
+                                <Input 
+                                  type="number"
+                                  value={statement.evidencePoints}
+                                  onChange={(e) => handleStatementChange(index, 'evidencePoints', e.target.value)}
+                                />
+                            </div>
+                        </div>
+                      </Card>
                     ))}
                     <Button
                       type="button"
@@ -235,6 +274,9 @@ export default function EditMenyimakPage() {
                       Tambah Pernyataan
                     </Button>
                   </div>
+                  
+                  <Separator />
+
                   <Button type="submit" disabled={isPending}>
                     {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                     {isPending ? 'Menyimpan...' : 'Simpan Perubahan'}

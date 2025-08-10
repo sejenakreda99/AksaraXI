@@ -6,7 +6,7 @@ import { TeacherHeader } from "@/components/layout/teacher-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Edit, Youtube, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit, Youtube, Check, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -15,6 +15,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 type Statement = {
   no: number;
   statement: string;
+  answer: 'benar' | 'salah';
+  points: number;
+  evidencePoints: number;
 };
 
 type MenyimakContent = {
@@ -27,11 +30,11 @@ const defaultContent: MenyimakContent = {
   learningObjective: "Mengevaluasi gagasan dan pandangan berdasarkan kaidah logika berpikir dari menyimak teks deskripsi.",
   youtubeUrl: "https://youtu.be/waYM6QorBxw?si=NWLa7VRmk9QOYDxF",
   statements: [
-    { no: 1, statement: "Teks tersebut secara umum mendeskripsikan Candi Borobudur. Candi Borobudur yang dideskripsikan tersebut digambarkan sebagai candi Budha yang paling besar dan mewah yang ada di Indonesia." },
-    { no: 2, statement: "Tingkat pertama paling bawah dari Candi Borobudur disebut dengan Kamadatu. Pada bagian akhir ini, terdapat relief yang berjumlah 160 buah." },
-    { no: 3, statement: "Tingkat kedua Candi Borobudur disebut Rupadatu. Di sini, terdapat 1300 relief. Pada tingkat kedua ini pula terdapat patung Budha berukuran kecil. Jumlah keseluruhan patung Budha sebanyak 432 patung." },
-    { no: 4, statement: "Tingkat paling atas dari Candi Borobudur adalah Arupadatu. Pada tingkat ini, sama sekali tidak ada hiasan relief pada dindingnya. Bentuk dari lantai Arupadatu, yaitu lingkaran. Di sini, ada 72 stupa kecil." },
-    { no: 5, statement: "Teks tersebut menggambarkan Candi Borobudur secara berurutan, dari tingkat bawah sampai ke bagian paling atas." }
+    { no: 1, statement: "Teks tersebut secara umum mendeskripsikan Candi Borobudur. Candi Borobudur yang dideskripsikan tersebut digambarkan sebagai candi Budha yang paling besar dan mewah yang ada di Indonesia.", answer: 'benar', points: 10, evidencePoints: 10 },
+    { no: 2, statement: "Tingkat pertama paling bawah dari Candi Borobudur disebut dengan Kamadatu. Pada bagian akhir ini, terdapat relief yang berjumlah 160 buah.", answer: 'benar', points: 10, evidencePoints: 10 },
+    { no: 3, statement: "Tingkat kedua Candi Borobudur disebut Rupadatu. Di sini, terdapat 1300 relief. Pada tingkat kedua ini pula terdapat patung Budha berukuran kecil. Jumlah keseluruhan patung Budha sebanyak 432 patung.", answer: 'benar', points: 10, evidencePoints: 10 },
+    { no: 4, statement: "Tingkat paling atas dari Candi Borobudur adalah Arupadatu. Pada tingkat ini, sama sekali tidak ada hiasan relief pada dindingnya. Bentuk dari lantai Arupadatu, yaitu lingkaran. Di sini, ada 72 stupa kecil.", answer: 'benar', points: 10, evidencePoints: 10 },
+    { no: 5, statement: "Teks tersebut menggambarkan Candi Borobudur secara berurutan, dari tingkat bawah sampai ke bagian paling atas.", answer: 'benar', points: 10, evidencePoints: 10 }
   ]
 };
 
@@ -44,26 +47,11 @@ export default function MenyimakPage() {
       try {
         const docRef = doc(db, 'chapters', '1');
         const docSnap = await getDoc(docRef);
-
         const data = docSnap.data();
 
         if (docSnap.exists() && data && data.menyimak) {
-          // Ensure statements is an array of objects
-          if (Array.isArray(data.menyimak.statements) && data.menyimak.statements.every((s: any) => typeof s === 'object' && s !== null)) {
             setContent(data.menyimak);
-          } else {
-             // Data is malformed, fix it
-            const statementsArray = Array.isArray(data.menyimak.statements) ? data.menyimak.statements : [];
-            const correctedStatements = statementsArray.map((st, index) => ({
-                no: index + 1,
-                statement: typeof st === 'string' ? st : 'Pernyataan tidak valid'
-            }));
-             const correctedContent = { ...defaultContent, ...data.menyimak, statements: correctedStatements };
-             setContent(correctedContent);
-             await setDoc(docRef, { menyimak: correctedContent }, { merge: true });
-          }
         } else {
-          // If the field doesn't exist, create it with default content
           setContent(defaultContent);
           await setDoc(docRef, { menyimak: defaultContent }, { merge: true });
         }
@@ -75,6 +63,8 @@ export default function MenyimakPage() {
     }
     fetchContent();
   }, []);
+
+  const totalPoints = content?.statements.reduce((acc, s) => acc + s.points + s.evidencePoints, 0) || 0;
 
   return (
     <AuthenticatedLayout>
@@ -95,14 +85,14 @@ export default function MenyimakPage() {
                      <Button asChild variant="outline" size="sm">
                         <Link href="/teacher/materi/bab-1/menyimak/edit">
                             <Edit className="mr-2 h-4 w-4" />
-                            Edit
+                            Edit Konten & Penilaian
                         </Link>
                     </Button>
                 </div>
                 <Card>
                     <CardHeader>
                         <CardTitle>Kegiatan 1: Menganalisis Teks Deskripsi yang Disimak</CardTitle>
-                        {loading ? <Skeleton className="h-4 w-3/4" /> : (
+                        {loading ? <Skeleton className="h-4 w-3/4 mt-1" /> : (
                             <CardDescription>
                                 <span className="font-bold">Tujuan Pembelajaran:</span> {content?.learningObjective}
                             </CardDescription>
@@ -129,22 +119,23 @@ export default function MenyimakPage() {
                                     </Link>
                                 </Button>
                                  <p className="mt-4">
-                                    Setelah siswa menyimak teks tersebut, mereka harus mencentang pernyataan benar atau salah dalam tabel di bawah dan memberikan bukti informasi yang mendukung analisis mereka.
+                                    Setelah siswa menyimak teks tersebut, mereka harus menjawab pertanyaan di bawah dan memberikan bukti informasi yang mendukung analisis mereka.
                                 </p>
                             </div>
                             
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Tabel 1.1 Pernyataan Benar atau Salah</CardTitle>
+                                    <CardTitle>Tabel 1.1 Penilaian Pernyataan</CardTitle>
+                                    <CardDescription>Total Skor Maksimal: {totalPoints}</CardDescription>
                                 </CardHeader>
                                  <CardContent>
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead className="w-[50px]">No.</TableHead>
-                                                <TableHead>Pernyataan</TableHead>
-                                                <TableHead className="w-[100px] text-center">Benar</TableHead>
-                                                <TableHead className="w-[100px] text-center">Salah</TableHead>
+                                                <TableHead>Pernyataan & Bukti Informasi</TableHead>
+                                                <TableHead className="w-[120px] text-center">Kunci Jawaban</TableHead>
+                                                <TableHead className="w-[120px] text-center">Skor Maksimal</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -154,13 +145,16 @@ export default function MenyimakPage() {
                                                 <TableCell>
                                                     <p>{item.statement}</p>
                                                     <p className="font-semibold mt-2">Bukti Informasi:</p>
-                                                    <p className="text-muted-foreground italic">(Siswa mengisi bagian ini)</p>
+                                                    <p className="text-muted-foreground italic">(Siswa mengisi bagian ini - dinilai manual oleh guru)</p>
                                                 </TableCell>
-                                                <TableCell className="text-center">
-                                                    <div className="w-5 h-5 border rounded-sm mx-auto"></div>
+                                                <TableCell className="text-center font-medium capitalize">
+                                                    {item.answer === 'benar' ? 
+                                                      <span className='flex items-center justify-center text-green-600'><Check className='w-4 h-4 mr-1'/> Benar</span> : 
+                                                      <span className='flex items-center justify-center text-red-600'><X className='w-4 h-4 mr-1'/> Salah</span>}
                                                 </TableCell>
                                                  <TableCell className="text-center">
-                                                     <div className="w-5 h-5 border rounded-sm mx-auto"></div>
+                                                    <p>Jawaban: {item.points}</p>
+                                                    <p>Bukti: {item.evidencePoints}</p>
                                                 </TableCell>
                                             </TableRow>
                                             ))}
