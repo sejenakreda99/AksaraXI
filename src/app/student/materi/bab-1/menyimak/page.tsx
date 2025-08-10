@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -42,7 +41,7 @@ export default function MenyimakSiswaPage() {
                 if (docSnap.exists() && docSnap.data().menyimak) {
                     const fetchedContent = docSnap.data().menyimak as MenyimakContent;
                     setContent(fetchedContent);
-                    const initialAnswers: Record<string, { choice: '', evidence: '' }> = {};
+                    const initialAnswers: Record<string, { choice: '' | 'benar' | 'salah' , evidence: '' }> = {};
                     fetchedContent.statements.forEach(stmt => {
                         initialAnswers[stmt.no.toString()] = { choice: '', evidence: '' };
                     });
@@ -68,7 +67,7 @@ export default function MenyimakSiswaPage() {
         if (!url) return '';
         try {
             const videoUrl = new URL(url);
-            const videoId = videoUrl.searchParams.get('v');
+            let videoId = videoUrl.searchParams.get('v');
             if (videoId) {
                 return `https://www.youtube.com/embed/${videoId}`;
             }
@@ -199,5 +198,3 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
-
-    
