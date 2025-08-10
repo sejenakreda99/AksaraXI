@@ -42,7 +42,6 @@ export default function Bab1Page() {
             setContent(docSnap.data() as ChapterContent);
         } else {
             console.log("No such document!");
-            // Optionally, set default content if it doesn't exist
         }
       } catch (error) {
         console.error("Failed to fetch chapter content:", error);
@@ -97,10 +96,10 @@ export default function Bab1Page() {
                              <div className="mt-4">
                                 <h3 className="font-semibold">Kata Kunci:</h3>
                                 {content?.keywords && content.keywords.length > 0 ? (
-                                     <ul className="list-disc pl-5">
-                                        {content.keywords.map((keyword, i) => <li key={i}>{keyword}</li>)}
-                                    </ul>
-                                ) : <p>Belum ada kata kunci.</p>}
+                                     <div className="flex flex-wrap gap-2 mt-2">
+                                        {content.keywords.map((keyword, i) => <span key={i} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded-full">{keyword}</span>)}
+                                    </div>
+                                ) : <p className="text-muted-foreground">Belum ada kata kunci.</p>}
                             </div>
                         </>
                     )}
@@ -115,19 +114,19 @@ export default function Bab1Page() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                   <div className="text-sm text-muted-foreground">
-                      <p>Mata Pelajaran: Bahasa Indonesia Tingkat Lanjut</p>
-                      <p>Kelas: XI</p>
-                      <p>Guru Mapel: Kuswara Senjaya, S.Pd.</p>
-                   </div>
-                   <Separator className="my-4" />
+                <div className="text-sm text-muted-foreground mb-4">
+                    <p>Mata Pelajaran: Bahasa Indonesia Tingkat Lanjut</p>
+                    <p>Kelas: XI</p>
+                    <p>Guru Mapel: Kuswara Senjaya, S.Pd.</p>
+                </div>
+                <Separator className="mb-4" />
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {sections.map((section, index) => (
-                    <Link href={section.href} key={index} className="block">
-                       <div className="flex items-center p-3 rounded-md hover:bg-slate-50 transition-colors">
-                          <section.icon className="h-5 w-5 mr-3 text-primary" />
-                          <span className="font-medium">{section.title}</span>
-                       </div>
+                    <Link href={section.href} key={index} className="flex">
+                       <Card className="w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md hover:bg-slate-100 transition-colors text-center">
+                           <section.icon className="w-10 h-10 text-primary mb-2" />
+                           <p className="font-semibold text-sm">{section.title}</p>
+                       </Card>
                     </Link>
                   ))}
                 </div>

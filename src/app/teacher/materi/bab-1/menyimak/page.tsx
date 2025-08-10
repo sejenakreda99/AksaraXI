@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 
 type Statement = {
   no: number;
@@ -66,7 +67,6 @@ export default function MenyimakPage() {
 
   const totalPoints = content?.statements.reduce((acc, s) => acc + (s.points || 0) + (s.evidencePoints || 0), 0) || 0;
 
-
   return (
     <AuthenticatedLayout>
       <div className="flex flex-col h-full">
@@ -90,84 +90,122 @@ export default function MenyimakPage() {
                         </Link>
                     </Button>
                 </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Kegiatan 1: Menganalisis Teks Deskripsi yang Disimak</CardTitle>
-                        {loading ? <Skeleton className="h-4 w-3/4 mt-1" /> : (
-                            <CardDescription>
-                                <span className="font-bold">Tujuan Pembelajaran:</span> {content?.learningObjective}
-                            </CardDescription>
-                        )}
-                    </CardHeader>
-                    <CardContent>
-                        {loading ? (
-                          <div className="space-y-6">
-                            <Skeleton className="h-5 w-full" />
-                            <Skeleton className="h-10 w-48" />
-                            <Skeleton className="h-5 w-full mt-4" />
-                            <Skeleton className="h-96 w-full" />
-                          </div>
-                        ) : (
-                          <>
-                            <div className="prose max-w-none mb-6">
-                                <p>
-                                    Pada kegiatan ini, siswa akan menyimak teks deskripsi dengan kata kunci pencarian "deskripsi Candi Borobudur" pada laman YouTube.
-                                </p>
-                                <Button asChild>
-                                    <Link href={content?.youtubeUrl || '#'} target="_blank">
-                                        <Youtube className="mr-2 h-4 w-4" />
-                                        Buka Video di YouTube
-                                    </Link>
-                                </Button>
-                                 <p className="mt-4">
-                                    Setelah siswa menyimak teks tersebut, mereka harus menjawab pertanyaan di bawah dan memberikan bukti informasi yang mendukung analisis mereka.
-                                </p>
-                            </div>
-                            
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Pratinjau Materi Menyimak</CardTitle>
+                            {loading ? <Skeleton className="h-4 w-3/4 mt-1" /> : (
+                                <CardDescription>
+                                    <span className="font-bold">Tujuan Pembelajaran:</span> {content?.learningObjective}
+                                </CardDescription>
+                            )}
+                        </CardHeader>
+                    </Card>
+
+                    {loading ? (
+                        <Card>
+                            <CardContent><Skeleton className="h-96 w-full" /></CardContent>
+                        </Card>
+                    ) : content && (
+                        <>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Tabel 1.1 Penilaian Pernyataan</CardTitle>
-                                    <CardDescription>Total Skor Maksimal: {totalPoints}</CardDescription>
+                                    <CardTitle>Kegiatan 1: Menganalisis Teks Deskripsi</CardTitle>
                                 </CardHeader>
-                                 <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-[50px]">No.</TableHead>
-                                                <TableHead>Pernyataan & Bukti Informasi</TableHead>
-                                                <TableHead className="w-[120px] text-center">Kunci Jawaban</TableHead>
-                                                <TableHead className="w-[120px] text-center">Skor Maksimal</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {content?.statements.map((item) => (
-                                            <TableRow key={item.no}>
-                                                <TableCell>{item.no}</TableCell>
-                                                <TableCell>
-                                                    <p>{item.statement}</p>
-                                                    <p className="font-semibold mt-2">Bukti Informasi:</p>
-                                                    <p className="text-muted-foreground italic">(Siswa mengisi bagian ini - dinilai manual oleh guru)</p>
-                                                </TableCell>
-                                                <TableCell className="text-center font-medium capitalize">
-                                                    {item.answer === 'benar' ? 
-                                                      <span className='flex items-center justify-center text-green-600'><Check className='w-4 h-4 mr-1'/> Benar</span> : 
-                                                      <span className='flex items-center justify-center text-red-600'><X className='w-4 h-4 mr-1'/> Salah</span>}
-                                                </TableCell>
-                                                 <TableCell className="text-center">
-                                                    <p>Jawaban: {item.points || 0}</p>
-                                                    <p>Bukti: {item.evidencePoints || 0}</p>
-                                                </TableCell>
-                                            </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                <CardContent>
+                                    <div className="prose max-w-none mb-6">
+                                        <p>
+                                            Pada kegiatan ini, siswa akan menyimak teks deskripsi dari video YouTube berikut.
+                                        </p>
+                                        <Button asChild>
+                                            <Link href={content?.youtubeUrl || '#'} target="_blank">
+                                                <Youtube className="mr-2 h-4 w-4" />
+                                                Buka Video di YouTube
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Tabel 1.1 Penilaian Pernyataan</CardTitle>
+                                            <CardDescription>Total Skor Maksimal: {totalPoints}</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead className="w-[50px]">No.</TableHead>
+                                                        <TableHead>Pernyataan & Bukti Informasi</TableHead>
+                                                        <TableHead className="w-[120px] text-center">Kunci Jawaban</TableHead>
+                                                        <TableHead className="w-[120px] text-center">Skor Maksimal</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {content?.statements.map((item) => (
+                                                    <TableRow key={item.no}>
+                                                        <TableCell>{item.no}</TableCell>
+                                                        <TableCell>
+                                                            <p>{item.statement}</p>
+                                                            <p className="font-semibold mt-2">Bukti Informasi:</p>
+                                                            <p className="text-muted-foreground italic">(Siswa mengisi bagian ini - dinilai manual oleh guru)</p>
+                                                        </TableCell>
+                                                        <TableCell className="text-center font-medium capitalize">
+                                                            {item.answer === 'benar' ? 
+                                                            <span className='flex items-center justify-center text-green-600'><Check className='w-4 h-4 mr-1'/> Benar</span> : 
+                                                            <span className='flex items-center justify-center text-red-600'><X className='w-4 h-4 mr-1'/> Salah</span>}
+                                                        </TableCell>
+                                                        <TableCell className="text-center">
+                                                            <p>Jawaban: {item.points || 0}</p>
+                                                            <p>Bukti: {item.evidencePoints || 0}</p>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </CardContent>
+                                    </Card>
                                 </CardContent>
                             </Card>
-                          </>
-                        )}
 
-                    </CardContent>
-                </Card>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Umpan Balik & Teks Transkrip</CardTitle>
+                                    <CardDescription>
+                                        Teks ini ditampilkan kepada siswa setelah mereka mencoba menjawab.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="prose prose-sm max-w-none bg-slate-50/50 p-4 rounded-md">
+                                    <h4 className="font-bold">Candi Borobudur</h4>
+                                    <p>Candi Borobudur adalah candi Budha yang paling besar dan mewah yang ada di Indonesia...</p>
+                                    <p>(Teks lengkap ditampilkan kepada siswa)</p>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Kegiatan 2: Mengevaluasi Gagasan</CardTitle>
+                                    <CardDescription>
+                                        Siswa diminta menjawab pertanyaan analisis dan perbandingan video.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <p className="font-semibold">Daftar Pertanyaan untuk Siswa:</p>
+                                    <ol className="list-decimal list-inside text-sm space-y-1">
+                                        <li>Seandainya kalian belum pernah secara langsung berkunjung ke Candi Borobudur, dapatkah kalian seolah-olah mengindra (melihat, mendengar, merasakan) Candi Borobudur setelah menyimak teks tersebut?</li>
+                                        <li>Apa yang menarik dari penggambaran objek Candi Borobudur setelah menyimak teks tersebut?</li>
+                                        <li>Mengapa narator mendeskripsikan Candi Borobudur itu mulai dari tingkat bawah sampai ke tingkat paling atas candi?</li>
+                                        <li>Apakah narator berhasil menggambarkan secara rinci objek sehingga pembaca seakan-akan melihat, mendengar, atau merasakan objek yang dideskripsikan? Tunjukkan buktinya.</li>
+                                    </ol>
+                                    <Separator />
+                                    <p className="font-semibold">Video Perbandingan:</p>
+                                     <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                        <iframe className="w-full h-full" src="https://www.youtube.com/embed/u1yo-uJDsU4" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                                    </div>
+                                    <p className='text-sm'>Siswa diminta membandingkan kedua video dan menentukan mana yang deskripsinya lebih baik.</p>
+                                </CardContent>
+                            </Card>
+                        </>
+                    )}
+                </div>
             </div>
         </main>
       </div>
