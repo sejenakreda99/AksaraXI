@@ -31,23 +31,39 @@ export default function RefleksiSiswaPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchContent() {
-            if (!chapterId) return;
+        if (!user || !chapterId) return;
+
+        async function fetchInitialData() {
             setLoading(true);
             try {
-                const docRef = doc(db, 'chapters', chapterId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists() && docSnap.data().refleksi) {
-                    setContent(docSnap.data().refleksi);
+                const contentRef = doc(db, 'chapters', chapterId);
+                const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_refleksi`);
+
+                const [contentSnap, submissionSnap] = await Promise.all([
+                    getDoc(contentRef),
+                    getDoc(submissionRef)
+                ]);
+
+                if (contentSnap.exists() && contentSnap.data().refleksi) {
+                    setContent(contentSnap.data().refleksi);
                 }
+
+                if (submissionSnap.exists()) {
+                    setAnswers(submissionSnap.data().answers || {});
+                }
+
             } catch (error) {
-                console.error("Failed to fetch content:", error);
+                console.error("Failed to fetch data:", error);
+                 toast({
+                    variant: 'destructive',
+                    title: "Gagal memuat data",
+                });
             } finally {
                 setLoading(false);
             }
         }
-        fetchContent();
-    }, [chapterId]);
+        fetchInitialData();
+    }, [chapterId, user, toast]);
 
 
     const handleAnswerChange = (index: number, value: string) => {
@@ -149,3 +165,5 @@ export default function RefleksiSiswaPage() {
         </AuthenticatedLayout>
     );
 }
+
+    

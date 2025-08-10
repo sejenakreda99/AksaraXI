@@ -88,40 +88,68 @@ export default function MembacaSiswaPage() {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
-    async function fetchContent() {
-      if (!chapterId) return;
-      setLoading(true);
-      try {
-        const docRef = doc(db, 'chapters', chapterId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists() && docSnap.data().membaca) {
-          const fetchedContent = docSnap.data().membaca as ReadingContent;
-          setContent(fetchedContent);
-          // Initialize answers state
-          const initialAnswers: ReadingAnswers = {kegiatan1: {}, latihan: {}, simpulan: ''};
-          fetchedContent.kegiatan1Statements.forEach((_, index) => {
-              initialAnswers.kegiatan1[index] = { choice: '', evidence: '' };
-          });
-           fetchedContent.latihanStatements.forEach((_, index) => {
-              initialAnswers.latihan[index] = { choice: '', evidence: '' };
-          });
-          setAnswers(initialAnswers);
-        } else {
-          console.error("Content for 'membaca' not found!");
+    if (!user || !chapterId) return;
+
+    async function fetchInitialData() {
+        setLoading(true);
+        try {
+            const contentRef = doc(db, 'chapters', chapterId);
+            const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_membaca`);
+
+            const [contentSnap, submissionSnap] = await Promise.all([
+                getDoc(contentRef),
+                getDoc(submissionRef)
+            ]);
+
+            let initialAnswers: ReadingAnswers = { kegiatan1: {}, latihan: {}, simpulan: '' };
+
+            if (contentSnap.exists() && contentSnap.data().membaca) {
+                const fetchedContent = contentSnap.data().membaca as ReadingContent;
+                setContent(fetchedContent);
+                fetchedContent.kegiatan1Statements.forEach((_, index) => {
+                    initialAnswers.kegiatan1[index] = { choice: '', evidence: '' };
+                });
+                fetchedContent.latihanStatements.forEach((_, index) => {
+                    initialAnswers.latihan[index] = { choice: '', evidence: '' };
+                });
+            }
+
+            if (submissionSnap.exists()) {
+                const existingAnswers = submissionSnap.data().answers as ReadingAnswers;
+                // Merge existing answers, making sure not to override with undefined
+                if (existingAnswers.kegiatan1) {
+                    Object.keys(initialAnswers.kegiatan1).forEach(key => {
+                        if (existingAnswers.kegiatan1[parseInt(key)]) {
+                            initialAnswers.kegiatan1[parseInt(key)] = existingAnswers.kegiatan1[parseInt(key)];
+                        }
+                    });
+                }
+                 if (existingAnswers.latihan) {
+                    Object.keys(initialAnswers.latihan).forEach(key => {
+                        if (existingAnswers.latihan[parseInt(key)]) {
+                            initialAnswers.latihan[parseInt(key)] = existingAnswers.latihan[parseInt(key)];
+                        }
+                    });
+                }
+                if(existingAnswers.simpulan) {
+                    initialAnswers.simpulan = existingAnswers.simpulan;
+                }
+            }
+             setAnswers(initialAnswers);
+
+        } catch (error) {
+            console.error("Failed to fetch initial data:", error);
+            toast({
+                variant: "destructive",
+                title: "Gagal Memuat Data",
+                description: "Tidak dapat memuat konten atau progres Anda."
+            });
+        } finally {
+            setLoading(false);
         }
-      } catch (error) {
-        console.error("Failed to fetch content:", error);
-        toast({
-          variant: "destructive",
-          title: "Gagal Memuat Konten",
-          description: "Materi untuk bagian ini belum tersedia."
-        });
-      } finally {
-        setLoading(false);
-      }
     }
-    fetchContent();
-  }, [chapterId, toast]);
+    fetchInitialData();
+  }, [chapterId, user, toast]);
   
   const handleAnswerChange = (kegiatan: 'kegiatan1' | 'latihan', index: number, type: 'choice' | 'evidence', value: string) => {
     setAnswers(prev => ({
@@ -261,14 +289,14 @@ export default function MembacaSiswaPage() {
                                 <div className="mt-4 space-y-4">
                                     <div>
                                     <Label className="font-medium">Tentukan jawaban Anda:</Label>
-                                    <RadioGroup className="flex gap-4 mt-2" onValueChange={(value) => handleAnswerChange('kegiatan1', index, 'choice', value)} value={answers.kegiatan1[index]?.choice}>
+                                    <RadioGroup className="flex gap-4 mt-2" onValueChange={(value) => handleAnswerChange('kegiatan1', index, 'choice', value)} value={answers.kegiatan1[index]?.choice || ''}>
                                         <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`r-${index}-benar`} /><Label htmlFor={`r-${index}-benar`}>Benar</Label></div>
                                         <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`r-${index}-salah`} /><Label htmlFor={`r-${index}-salah`}>Salah</Label></div>
                                     </RadioGroup>
                                     </div>
                                     <div>
                                     <Label htmlFor={`evidence-${index}`} className="font-medium">Tuliskan bukti informasinya:</Label>
-                                    <Textarea id={`evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('kegiatan1', index, 'evidence', e.target.value)} value={answers.kegiatan1[index]?.evidence} />
+                                    <Textarea id={`evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('kegiatan1', index, 'evidence', e.target.value)} value={answers.kegiatan1[index]?.evidence || ''} />
                                     </div>
                                 </div>
                             </div>
@@ -338,10 +366,10 @@ export default function MembacaSiswaPage() {
                                         <TableCell>
                                             <p className="font-semibold text-justify">{stmt.statement}</p>
                                              <Label htmlFor={`latihan-evidence-${index}`} className="font-medium mt-4 block">Bukti Informasi:</Label>
-                                             <Textarea id={`latihan-evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('latihan', index, 'evidence', e.target.value)} value={answers.latihan[index]?.evidence} />
+                                             <Textarea id={`latihan-evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('latihan', index, 'evidence', e.target.value)} value={answers.latihan[index]?.evidence || ''} />
                                         </TableCell>
                                         <TableCell>
-                                            <RadioGroup className="flex flex-col gap-4 mt-2 items-center" onValueChange={(value) => handleAnswerChange('latihan', index, 'choice', value)} value={answers.latihan[index]?.choice}>
+                                            <RadioGroup className="flex flex-col gap-4 mt-2 items-center" onValueChange={(value) => handleAnswerChange('latihan', index, 'choice', value)} value={answers.latihan[index]?.choice || ''}>
                                                 <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`l-r-${index}-benar`} /><Label htmlFor={`l-r-${index}-benar`}>Benar</Label></div>
                                                 <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`l-r-${index}-salah`} /><Label htmlFor={`l-r-${index}-salah`}>Salah</Label></div>
                                             </RadioGroup>
@@ -434,3 +462,5 @@ export default function MembacaSiswaPage() {
     </AuthenticatedLayout>
   );
 }
+
+    

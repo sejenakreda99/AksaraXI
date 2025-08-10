@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
@@ -11,7 +11,7 @@ import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
@@ -23,7 +23,33 @@ export default function JurnalMembacaSiswaPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [journalText, setJournalText] = useState('');
     const [user] = useAuthState(auth);
+    const [loading, setLoading] = useState(true);
     
+     useEffect(() => {
+        if (!user || !chapterId) return;
+
+        async function fetchJournal() {
+            setLoading(true);
+            const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_jurnal-membaca`);
+            try {
+                const docSnap = await getDoc(submissionRef);
+                if (docSnap.exists()) {
+                    setJournalText(docSnap.data().answers?.journal || '');
+                }
+            } catch (error) {
+                console.error("Error fetching journal:", error);
+                toast({
+                    variant: 'destructive',
+                    title: "Gagal memuat data",
+                    description: "Tidak dapat mengambil data jurnal sebelumnya.",
+                });
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchJournal();
+    }, [user, chapterId, toast]);
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!user) {
@@ -116,12 +142,13 @@ export default function JurnalMembacaSiswaPage() {
                                         value={journalText}
                                         onChange={(e) => setJournalText(e.target.value)}
                                         required
+                                        disabled={loading}
                                     />
                                 </div>
                              </CardContent>
                         </Card>
 
-                        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || loading}>
                             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             {isSubmitting ? "Menyimpan..." : "Simpan Jurnal Membaca"}
                         </Button>
@@ -131,3 +158,5 @@ export default function JurnalMembacaSiswaPage() {
         </AuthenticatedLayout>
     );
 }
+
+    

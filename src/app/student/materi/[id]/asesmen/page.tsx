@@ -59,23 +59,36 @@ export default function AsesmenSiswaPage() {
     const [answers, setAnswers] = useState<Record<string, string>>({});
     
     useEffect(() => {
-        async function fetchContent() {
-            if (!chapterId) return;
+        if (!user || !chapterId) return;
+
+        async function fetchInitialData() {
             setLoading(true);
             try {
-                const docRef = doc(db, 'chapters', chapterId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists() && docSnap.data().asesmen) {
-                    setContent(docSnap.data().asesmen);
+                const contentRef = doc(db, 'chapters', chapterId);
+                const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_asesmen`);
+
+                const [contentSnap, submissionSnap] = await Promise.all([
+                    getDoc(contentRef),
+                    getDoc(submissionRef)
+                ]);
+
+                if (contentSnap.exists() && contentSnap.data().asesmen) {
+                    setContent(contentSnap.data().asesmen);
                 }
+                
+                if (submissionSnap.exists()) {
+                    setAnswers(submissionSnap.data().answers || {});
+                }
+
             } catch (error) {
-                console.error("Failed to fetch asesmen content:", error);
+                console.error("Failed to fetch initial data:", error);
+                 toast({ variant: 'destructive', title: 'Gagal Memuat Data' });
             } finally {
                 setLoading(false);
             }
         }
-        fetchContent();
-    }, [chapterId]);
+        fetchInitialData();
+    }, [chapterId, user, toast]);
 
     const handleAnswerChange = (questionKey: string, value: string) => {
         setAnswers(prev => ({...prev, [questionKey]: value}));
@@ -155,7 +168,7 @@ export default function AsesmenSiswaPage() {
                                     {content.part1Questions.map((q, i) => (
                                         <div key={i} className="space-y-2">
                                             <Label htmlFor={`q1-${i}`} className="text-justify">{i + 1}. {q}</Label>
-                                            <Textarea id={`q1-${i}`} name={`q1-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required onChange={(e) => handleAnswerChange(`q1-${i}`, e.target.value)} />
+                                            <Textarea id={`q1-${i}`} name={`q1-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required value={answers[`q1-${i}`] || ''} onChange={(e) => handleAnswerChange(`q1-${i}`, e.target.value)} />
                                         </div>
                                     ))}
                                     </div>
@@ -179,7 +192,7 @@ export default function AsesmenSiswaPage() {
                                     {content.part2Questions.map((q, i) => (
                                         <div key={i} className="space-y-2">
                                             <Label htmlFor={`q2-${i}`} className="text-justify">{i + 7}. {q}</Label>
-                                            <Textarea id={`q2-${i}`} name={`q2-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required onChange={(e) => handleAnswerChange(`q2-${i}`, e.target.value)} />
+                                            <Textarea id={`q2-${i}`} name={`q2-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required value={answers[`q2-${i}`] || ''} onChange={(e) => handleAnswerChange(`q2-${i}`, e.target.value)} />
                                         </div>
                                     ))}
                                     </div>
@@ -200,3 +213,5 @@ export default function AsesmenSiswaPage() {
         </AuthenticatedLayout>
     );
 }
+
+    

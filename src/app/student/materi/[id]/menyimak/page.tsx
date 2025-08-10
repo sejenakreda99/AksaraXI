@@ -107,16 +107,26 @@ export default function MenyimakSiswaPage() {
     const [currentStep, setCurrentStep] = useState(0);
 
     useEffect(() => {
-        async function fetchContent() {
-            if (!chapterId) return;
+        if (!user || !chapterId) return;
+
+        async function fetchInitialData() {
             setLoading(true);
             try {
-                const docRef = doc(db, 'chapters', chapterId);
-                const docSnap = await getDoc(docRef);
+                // Fetch content and existing submission concurrently
+                const contentRef = doc(db, 'chapters', chapterId);
+                const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menyimak`);
 
-                if (docSnap.exists() && docSnap.data().menyimak) {
-                    const fetchedContent = docSnap.data().menyimak as MenyimakContentData;
+                const [contentSnap, submissionSnap] = await Promise.all([
+                    getDoc(contentRef),
+                    getDoc(submissionRef)
+                ]);
+
+                // Set content
+                if (contentSnap.exists() && contentSnap.data().menyimak) {
+                    const fetchedContent = contentSnap.data().menyimak as MenyimakContentData;
                     setContent(fetchedContent);
+                    
+                    // Initialize answers structure based on fetched content
                     const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
                     fetchedContent.statements.forEach((stmt) => {
                         initialAnswers.kegiatan1[stmt.no.toString()] = { choice: '', evidence: '' };
@@ -124,21 +134,46 @@ export default function MenyimakSiswaPage() {
                      fetchedContent.latihan.statements.forEach((stmt, index) => {
                         initialAnswers.latihan[(index + 1).toString()] = { choice: '', analysis: '' };
                     });
-                    setAnswers(initialAnswers);
+                    
+                    // If a submission exists, populate the answers state
+                    if (submissionSnap.exists()) {
+                        const existingAnswers = submissionSnap.data().answers as MenyimakAnswers;
+                        // Deep merge existing answers into the initial structure
+                        if (existingAnswers.kegiatan1) {
+                            Object.keys(initialAnswers.kegiatan1).forEach(key => {
+                                if (existingAnswers.kegiatan1[key]) {
+                                    initialAnswers.kegiatan1[key] = existingAnswers.kegiatan1[key];
+                                }
+                            });
+                        }
+                        if (existingAnswers.kegiatan2) {
+                             initialAnswers.kegiatan2 = existingAnswers.kegiatan2;
+                        }
+                        if (existingAnswers.latihan) {
+                             Object.keys(initialAnswers.latihan).forEach(key => {
+                                if (existingAnswers.latihan[key]) {
+                                    initialAnswers.latihan[key] = existingAnswers.latihan[key];
+                                }
+                            });
+                        }
+                        setAnswers(initialAnswers);
+                    } else {
+                        setAnswers(initialAnswers);
+                    }
                 }
             } catch (error) {
-                console.error('Failed to fetch content:', error);
+                console.error('Failed to fetch initial data:', error);
                 toast({
                     variant: 'destructive',
                     title: 'Gagal Memuat',
-                    description: 'Tidak dapat memuat konten materi.',
+                    description: 'Tidak dapat memuat konten atau data sebelumnya.',
                 });
             } finally {
                 setLoading(false);
             }
         }
-        fetchContent();
-    }, [chapterId, toast]);
+        fetchInitialData();
+    }, [chapterId, user, toast]);
 
     const handleAnswerChange = (kegiatan: keyof MenyimakAnswers, key: string, type: string, value: string) => {
         setAnswers(prev => {
@@ -259,14 +294,14 @@ export default function MenyimakSiswaPage() {
                                 <div className="mt-4 space-y-4">
                                     <div>
                                     <Label className="font-medium">Tentukan jawaban Anda:</Label>
-                                    <RadioGroup className="flex gap-4 mt-2" onValueChange={(value) => handleAnswerChange('kegiatan1', stmt.no.toString(), 'choice', value)} value={answers.kegiatan1[stmt.no.toString()]?.choice}>
+                                    <RadioGroup className="flex gap-4 mt-2" onValueChange={(value) => handleAnswerChange('kegiatan1', stmt.no.toString(), 'choice', value)} value={answers.kegiatan1[stmt.no.toString()]?.choice || ''}>
                                         <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`r-${stmt.no}-benar`} /><Label htmlFor={`r-${stmt.no}-benar`}>Benar</Label></div>
                                         <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`r-${stmt.no}-salah`} /><Label htmlFor={`r-${stmt.no}-salah`}>Salah</Label></div>
                                     </RadioGroup>
                                     </div>
                                     <div>
                                     <Label htmlFor={`evidence-${stmt.no}`} className="font-medium">Tuliskan bukti informasinya:</Label>
-                                    <Textarea id={`evidence-${stmt.no}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari video di sini..." rows={4} onChange={(e) => handleAnswerChange('kegiatan1', stmt.no.toString(), 'evidence', e.target.value)} value={answers.kegiatan1[stmt.no.toString()]?.evidence} />
+                                    <Textarea id={`evidence-${stmt.no}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari video di sini..." rows={4} onChange={(e) => handleAnswerChange('kegiatan1', stmt.no.toString(), 'evidence', e.target.value)} value={answers.kegiatan1[stmt.no.toString()]?.evidence || ''} />
                                     </div>
                                 </div>
                                 </div>
@@ -462,3 +497,5 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
+
+    

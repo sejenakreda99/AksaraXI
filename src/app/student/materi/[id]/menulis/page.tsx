@@ -93,25 +93,36 @@ export default function MenulisSiswaPage() {
     const [currentStep, setCurrentStep] = useState(0);
 
     useEffect(() => {
-        async function fetchContent() {
-            if (!chapterId) return;
+        if (!user || !chapterId) return;
+
+        async function fetchInitialData() {
             setLoading(true);
             try {
-                const docRef = doc(db, 'chapters', chapterId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists() && docSnap.data().menulis) {
-                    setContent(docSnap.data().menulis as MenulisContent);
-                } else {
-                    console.error("Content for 'menulis' not found!");
+                const contentRef = doc(db, 'chapters', chapterId);
+                const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menulis`);
+
+                const [contentSnap, submissionSnap] = await Promise.all([
+                    getDoc(contentRef),
+                    getDoc(submissionRef)
+                ]);
+
+                if (contentSnap.exists() && contentSnap.data().menulis) {
+                    setContent(contentSnap.data().menulis as MenulisContent);
                 }
+
+                if (submissionSnap.exists()) {
+                    setAnswers(submissionSnap.data().answers as MenulisAnswers);
+                }
+
             } catch (error) {
-                console.error("Failed to fetch content:", error);
+                console.error("Failed to fetch initial data:", error);
+                toast({ variant: "destructive", title: "Gagal memuat data" });
             } finally {
                 setLoading(false);
             }
         }
-        fetchContent();
-    }, [chapterId]);
+        fetchInitialData();
+    }, [chapterId, user, toast]);
     
     const handleChecklistChange = (index: number, checked: boolean) => {
         setAnswers(prev => ({
