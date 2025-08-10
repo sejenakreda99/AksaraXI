@@ -28,9 +28,11 @@ export async function createGroup(prevState: any, formData: FormData) {
   );
 
   if (!validatedFields.success) {
+    // Extracting all errors into a single string for better display.
+    const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).map(e => e.join(', ')).join('; ');
     return {
       type: 'error',
-      message: validatedFields.error.flatten().fieldErrors,
+      message: errorMessages || "Terjadi kesalahan pada validasi. Silakan periksa kembali isian Anda.",
     };
   }
 

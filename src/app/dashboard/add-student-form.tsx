@@ -38,7 +38,11 @@ function SubmitButton() {
 }
 
 export function AddGroupForm() {
-  const [state, formAction] = useActionState(createGroup, initialState);
+  // Note: We are not using the 'state' from useActionState directly for toasts
+  // because react-hook-form will manage the submission state.
+  // We keep it to handle the server response.
+  const [serverState, formAction] = useActionState(createGroup, initialState);
+  
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,16 +54,19 @@ export function AddGroupForm() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
+  // This useEffect handles the response from the server action
   useEffect(() => {
-    if (state?.type === 'success') {
+    if (serverState?.type === 'success') {
       toast({
         title: 'Berhasil',
-        description: state.message as string,
+        description: serverState.message as string,
       });
       form.reset();
-    } else if (state?.type === 'error') {
-       const errorMessage = typeof state.message === 'string' 
-        ? state.message 
+    } else if (serverState?.type === 'error') {
+       const errorMessage = typeof serverState.message === 'string' 
+        ? serverState.message 
         : "Terjadi kesalahan pada validasi. Silakan periksa kembali isian Anda.";
        toast({
         variant: 'destructive',
@@ -67,7 +74,16 @@ export function AddGroupForm() {
         description: errorMessage,
       });
     }
-  }, [state, toast, form]);
+  }, [serverState, toast, form]);
+
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    // Manually create FormData to pass to the server action
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    formAction(formData);
+  };
 
 
   return (
@@ -81,7 +97,7 @@ export function AddGroupForm() {
       <CardContent>
         <Form {...form}>
           <form
-            action={formAction}
+            onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4"
           >
             <FormField
@@ -163,7 +179,9 @@ export function AddGroupForm() {
                  </FormItem>
               )}
             />
-            <SubmitButton />
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? 'Menambahkan...' : 'Tambah Kelompok'}
+            </Button>
           </form>
         </Form>
       </CardContent>
