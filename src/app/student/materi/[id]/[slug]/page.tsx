@@ -30,6 +30,9 @@ type Statement = {
 
 type LatihanStatement = {
     statement: string;
+    answer: 'benar' | 'salah';
+    points: number;
+    analysisPoints: number;
 }
 
 type MenyimakContentData = {
@@ -125,6 +128,14 @@ function MenyimakContent() {
       if (videoId) {
         return `https://www.youtube.com/embed/${videoId}`;
       }
+      // Handle youtu.be shortlinks
+      if (videoUrl.hostname === 'youtu.be') {
+          const shortId = videoUrl.pathname.slice(1);
+          if (shortId) {
+              return `https://www.youtube.com/embed/${shortId.split('?')[0]}`;
+          }
+      }
+
       const pathSegments = videoUrl.pathname.split('/');
       const shortId = pathSegments[pathSegments.length - 1];
       if (shortId && !shortId.includes('.be')) {
@@ -304,9 +315,13 @@ function MenyimakContent() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                    <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.latihan.youtubeUrl)} title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
-                </div>
+                {content.latihan.youtubeUrl ? (
+                    <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                        <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.latihan.youtubeUrl)} title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                    </div>
+                ): (
+                    <p className="text-muted-foreground">Video latihan belum ditambahkan oleh guru.</p>
+                )}
                 <Card>
                     <CardHeader>
                         <CardTitle>Tabel 1.2 Pernyataan Penilaian</CardTitle>

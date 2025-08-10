@@ -28,6 +28,9 @@ type Statement = {
 
 type LatihanStatement = {
     statement: string;
+    answer: 'benar' | 'salah';
+    points: number;
+    analysisPoints: number;
 }
 
 type MenyimakContent = {
@@ -56,13 +59,13 @@ const defaultContent: MenyimakContent = {
   ],
   comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4",
   latihan: {
-    youtubeUrl: "https://www.youtube.com/embed/Za2zEoGcfmU",
+    youtubeUrl: "https://youtu.be/Za2zEoGcfmU?si=HjibIVUqCghK530m",
     statements: [
-        { statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
-        { statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },
-        { statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut." },
-        { statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap." },
-        { statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya." }
+        { statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba.", answer: 'benar', points: 10, analysisPoints: 10 },
+        { statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut.", answer: 'benar', points: 10, analysisPoints: 10 },
+        { statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut.", answer: 'benar', points: 10, analysisPoints: 10 },
+        { statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap.", answer: 'benar', points: 10, analysisPoints: 10 },
+        { statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya.", answer: 'benar', points: 10, analysisPoints: 10 }
     ]
   }
 };
@@ -82,20 +85,21 @@ export default function EditMenyimakPage() {
         const docSnap = await getDoc(docRef);
         let currentContent = docSnap.exists() ? docSnap.data().menyimak : null;
 
+        // Ensure backward compatibility and merge with defaults
+        const contentToSet = {
+            ...defaultContent,
+            ...currentContent,
+            latihan: {
+                ...defaultContent.latihan,
+                ...(currentContent?.latihan || {}),
+            },
+        };
+
         if (!currentContent) {
-            await setDoc(docRef, { menyimak: defaultContent }, { merge: true });
-            setContent(defaultContent);
-        } else {
-            const contentToSet = { ...defaultContent, ...currentContent };
-             if (
-                !currentContent.activity2Questions ||
-                !currentContent.comparisonVideoUrl ||
-                !currentContent.latihan
-            ) {
-                await setDoc(docRef, { menyimak: contentToSet }, { merge: true });
-            }
-            setContent(contentToSet);
+            await setDoc(docRef, { menyimak: contentToSet }, { merge: true });
         }
+        setContent(contentToSet);
+
       } catch (error) {
         console.error("Failed to fetch content:", error);
         toast({
@@ -152,16 +156,35 @@ export default function EditMenyimakPage() {
     setContent({ ...content, statements: renumberedStatements });
   };
 
-  const handleLatihanStatementChange = (index: number, value: string) => {
+  const handleLatihanStatementChange = (index: number, field: keyof LatihanStatement, value: string | number) => {
     if (!content) return;
     const newStatements = [...content.latihan.statements];
-    newStatements[index] = { statement: value };
+    const statementToUpdate = { ...newStatements[index] };
+
+    if (field === 'statement') {
+        statementToUpdate.statement = value as string;
+    } else if (field === 'answer') {
+        statementToUpdate.answer = value as 'benar' | 'salah';
+    } else if (field === 'points' || field === 'analysisPoints') {
+        const numValue = Number(value);
+        if (!isNaN(numValue)) {
+            statementToUpdate[field] = numValue;
+        }
+    }
+    
+    newStatements[index] = statementToUpdate;
     setContent({ ...content, latihan: { ...content.latihan, statements: newStatements } });
   };
 
   const addLatihanStatement = () => {
     if (!content) return;
-    const newStatements = [...content.latihan.statements, { statement: '' }];
+    const newStatement: LatihanStatement = {
+        statement: '',
+        answer: 'benar',
+        points: 10,
+        analysisPoints: 10,
+    };
+    const newStatements = [...content.latihan.statements, newStatement];
     setContent({ ...content, latihan: { ...content.latihan, statements: newStatements } });
   };
 
@@ -384,7 +407,7 @@ export default function EditMenyimakPage() {
                     />
                   </div>
                   <Separator />
-                   <div className="space-y-4">
+                  <div className="space-y-4">
                     <Label className="text-lg font-semibold">Daftar Pernyataan Latihan</Label>
                     {content.latihan.statements.map((statement, index) => (
                       <Card key={index} className="p-4 bg-slate-50">
@@ -392,7 +415,40 @@ export default function EditMenyimakPage() {
                            <Label className="text-base">Pernyataan #{index + 1}</Label>
                            <Button type="button" variant="destructive" size="icon" onClick={() => removeLatihanStatement(index)} className="w-8 h-8"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
                         </div>
-                        <Textarea value={statement.statement} onChange={(e) => handleLatihanStatementChange(index, e.target.value)} placeholder={`Isi pernyataan...`} className="mt-2" rows={3}/>
+                        <Textarea value={statement.statement} onChange={(e) => handleLatihanStatementChange(index, 'statement', e.target.value)} placeholder={`Isi pernyataan...`} className="mt-2" rows={3}/>
+                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div className='space-y-2'>
+                                <Label>Kunci Jawaban</Label>
+                                <Select 
+                                 value={statement.answer}
+                                 onValueChange={(value) => handleLatihanStatementChange(index, 'answer', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih jawaban"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="benar">Benar</SelectItem>
+                                        <SelectItem value="salah">Salah</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                             <div className='space-y-2'>
+                                <Label>Poin Jawaban</Label>
+                                <Input 
+                                  type="number"
+                                  value={statement.points}
+                                  onChange={(e) => handleLatihanStatementChange(index, 'points', e.target.value)}
+                                />
+                            </div>
+                             <div className='space-y-2'>
+                                <Label>Poin Analisis</Label>
+                                <Input 
+                                  type="number"
+                                  value={statement.analysisPoints}
+                                  onChange={(e) => handleLatihanStatementChange(index, 'analysisPoints', e.target.value)}
+                                />
+                            </div>
+                        </div>
                       </Card>
                     ))}
                     <Button type="button" variant="outline" onClick={addLatihanStatement}><PlusCircle className="mr-2 h-4 w-4" />Tambah Pernyataan Latihan</Button>
