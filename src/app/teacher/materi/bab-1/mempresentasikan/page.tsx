@@ -18,17 +18,6 @@ type PresentasiContent = {
     assessmentCriteria: string[];
 }
 
-const defaultContent: PresentasiContent = {
-    assessmentCriteria: [
-        "Kriteria memerinci objek",
-        "Kejelasan ekspresi",
-        "Teks deskripsi dimulai dengan gambaran umum",
-        "Teks memuat deskripsi bagian",
-        "Teks mengandung kesan-kesan yang menyenangkan",
-        "Teks sudah memperhatikan kaidah kebahasaan deskripsi"
-    ]
-};
-
 export default function MempresentasikanPage() {
     const [content, setContent] = useState<PresentasiContent | null>(null);
     const [loading, setLoading] = useState(true);
@@ -42,11 +31,11 @@ export default function MempresentasikanPage() {
                 if (docSnap.exists() && docSnap.data().mempresentasikan) {
                     setContent(docSnap.data().mempresentasikan);
                 } else {
-                    setContent(defaultContent);
+                    setContent({ assessmentCriteria: [] });
                 }
             } catch (error) {
                 console.error("Failed to fetch content:", error);
-                setContent(defaultContent);
+                setContent({ assessmentCriteria: [] });
             } finally {
                 setLoading(false);
             }
@@ -135,19 +124,27 @@ export default function MempresentasikanPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {content?.assessmentCriteria.map((item, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{index + 1}.</TableCell>
-                                            <TableCell className="font-medium">{item}</TableCell>
-                                            <TableCell className="text-center">
-                                                <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground">
-                                                  <span>Baik</span>
-                                                  <span>Sedang</span>
-                                                  <span>Cukup</span>
-                                                </div>
+                                    {content?.assessmentCriteria && content.assessmentCriteria.length > 0 ? (
+                                        content.assessmentCriteria.map((item, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>{index + 1}.</TableCell>
+                                                <TableCell className="font-medium">{item}</TableCell>
+                                                <TableCell className="text-center">
+                                                    <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground">
+                                                      <span>Baik</span>
+                                                      <span>Sedang</span>
+                                                      <span>Cukup</span>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="h-24 text-center">
+                                                Belum ada kriteria penilaian yang ditambahkan.
                                             </TableCell>
                                         </TableRow>
-                                    ))}
+                                    )}
                                 </TableBody>
                             </Table>
                            )}

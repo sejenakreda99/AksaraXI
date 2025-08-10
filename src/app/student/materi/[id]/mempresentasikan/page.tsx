@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
@@ -14,9 +14,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 type AssessmentAnswers = {
@@ -26,22 +27,39 @@ type AssessmentAnswers = {
     scores: Record<number, 'baik' | 'sedang' | 'cukup' | ''>;
 }
 
+type PresentasiContent = {
+    assessmentCriteria: string[];
+}
+
 export default function MempresentasikanSiswaPage() {
     const params = useParams();
     const chapterId = params.id as string;
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [user] = useAuthState(auth);
-    const formRef = React.useRef<HTMLFormElement>(null);
+    const formRef = useRef<HTMLFormElement>(null);
+    const [content, setContent] = useState<PresentasiContent | null>(null);
+    const [loading, setLoading] = useState(true);
     
-    const assessmentCriteria = [
-        "Kriteria memerinci objek",
-        "Kejelasan ekspresi",
-        "Teks deskripsi dimulai dengan gambaran umum",
-        "Teks memuat deskripsi bagian",
-        "Teks mengandung kesan-kesan yang menyenangkan",
-        "Teks sudah memperhatikan kaidah kebahasaan deskripsi"
-    ];
+    useEffect(() => {
+        async function fetchContent() {
+            if (!chapterId) return;
+            setLoading(true);
+            try {
+                const docRef = doc(db, 'chapters', chapterId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().mempresentasikan) {
+                    setContent(docSnap.data().mempresentasikan);
+                }
+            } catch (error) {
+                console.error("Failed to fetch mempresentasikan content:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchContent();
+    }, [chapterId]);
+
 
     const [answers, setAnswers] = useState<AssessmentAnswers>({
         speakerName: '',
@@ -130,7 +148,7 @@ export default function MempresentasikanSiswaPage() {
                                 <CardTitle>Tujuan Pembelajaran</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-lg">Menyajikan gagasan dalam teks deskripsi.</p>
+                                <p className="text-base">Menyajikan gagasan dalam teks deskripsi.</p>
                             </CardContent>
                         </Card>
 
@@ -172,6 +190,7 @@ export default function MempresentasikanSiswaPage() {
                                 </div>
                                 <Separator />
                                 <div className="overflow-x-auto">
+                                {loading ? <Skeleton className="h-48 w-full" /> : !content ? <p>Kriteria penilaian belum tersedia.</p> : (
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -181,7 +200,7 @@ export default function MempresentasikanSiswaPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {assessmentCriteria.map((item, index) => (
+                                        {content.assessmentCriteria.map((item, index) => (
                                             <TableRow key={index}>
                                                 <TableCell>{index + 1}.</TableCell>
                                                 <TableCell className="font-medium text-justify">{item}</TableCell>
@@ -210,11 +229,12 @@ export default function MempresentasikanSiswaPage() {
                                         ))}
                                     </TableBody>
                                 </Table>
+                                )}
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || loading}>
                             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             {isSubmitting ? "Menyimpan..." : "Simpan Penilaian"}
                         </Button>
