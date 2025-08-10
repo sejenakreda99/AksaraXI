@@ -57,16 +57,26 @@ export default function MenyimakPage() {
       try {
         const docRef = doc(db, 'chapters', '1');
         const docSnap = await getDoc(docRef);
-        const data = docSnap.data();
+        let currentContent = docSnap.exists() ? docSnap.data().menyimak : null;
 
-        if (docSnap.exists() && data && data.menyimak) {
-            setContent(data.menyimak);
+        if (!currentContent) {
+            // If menyimak doesn't exist at all, set it with default content
+            await setDoc(docRef, { menyimak: defaultContent }, { merge: true });
+            setContent(defaultContent);
         } else {
-          setContent(defaultContent);
-          await setDoc(docRef, { menyimak: defaultContent }, { merge: true });
+            // If menyimak exists, check for individual missing fields for forward compatibility
+            const contentToUpdate = { ...defaultContent, ...currentContent };
+            if (
+                !currentContent.activity2Questions ||
+                !currentContent.comparisonVideoUrl
+            ) {
+                await setDoc(docRef, { menyimak: contentToUpdate }, { merge: true });
+            }
+            setContent(contentToUpdate);
         }
       } catch (error) {
         console.error("Failed to fetch or create content:", error);
+         setContent(defaultContent); // Fallback to default on error
       } finally {
         setLoading(false);
       }

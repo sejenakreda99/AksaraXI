@@ -34,6 +34,22 @@ type MenyimakContent = {
   comparisonVideoUrl: string;
 };
 
+const defaultContent: MenyimakContent = {
+  learningObjective: "Mengevaluasi gagasan dan pandangan berdasarkan kaidah logika berpikir dari menyimak teks deskripsi.",
+  youtubeUrl: "https://youtu.be/waYM6QorBxw?si=NWLa7VRmk9QOYDxF",
+  statements: [
+    { no: 1, statement: "Teks tersebut secara umum mendeskripsikan Candi Borobudur...", answer: 'benar', points: 10, evidencePoints: 10 },
+  ],
+  activity2Questions: [
+      "Seandainya kalian belum pernah secara langsung berkunjung ke Candi Borobudur, dapatkah kalian seolah-olah mengindra (melihat, mendengar, merasakan) Candi Borobudur setelah menyimak teks tersebut?",
+      "Apa yang menarik dari penggambaran objek Candi Borobudur setelah menyimak teks tersebut?",
+      "Mengapa narator mendeskripsikan Candi Borobudur itu mulai dari tingkat bawah sampai ke tingkat paling atas candi?",
+      "Apakah narator berhasil menggambarkan secara rinci objek sehingga pembaca seakan-akan melihat, mendengar, atau merasakan objek yang dideskripsikan? Tunjukkan buktinya."
+  ],
+  comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4"
+};
+
+
 export default function EditMenyimakPage() {
   const [content, setContent] = useState<MenyimakContent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,23 +62,20 @@ export default function EditMenyimakPage() {
       try {
         const docRef = doc(db, 'chapters', '1');
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists() && docSnap.data().menyimak) {
-          const data = docSnap.data().menyimak;
-           setContent({
-            learningObjective: data.learningObjective || '',
-            youtubeUrl: data.youtubeUrl || '',
-            statements: data.statements || [{ no: 1, statement: '', answer: 'benar', points: 10, evidencePoints: 10 }],
-            activity2Questions: data.activity2Questions || [],
-            comparisonVideoUrl: data.comparisonVideoUrl || '',
-          });
+        let currentContent = docSnap.exists() ? docSnap.data().menyimak : null;
+
+        if (!currentContent) {
+            await setDoc(docRef, { menyimak: defaultContent }, { merge: true });
+            setContent(defaultContent);
         } else {
-          setContent({
-            learningObjective: '',
-            youtubeUrl: '',
-            statements: [{ no: 1, statement: '', answer: 'benar', points: 10, evidencePoints: 10 }],
-            activity2Questions: [],
-            comparisonVideoUrl: '',
-          });
+            const contentToSet = { ...defaultContent, ...currentContent };
+             if (
+                !currentContent.activity2Questions ||
+                !currentContent.comparisonVideoUrl
+            ) {
+                await setDoc(docRef, { menyimak: contentToSet }, { merge: true });
+            }
+            setContent(contentToSet);
         }
       } catch (error) {
         console.error("Failed to fetch content:", error);
@@ -71,6 +84,7 @@ export default function EditMenyimakPage() {
           title: "Gagal Memuat Konten",
           description: "Tidak dapat mengambil data dari server."
         });
+        setContent(defaultContent);
       } finally {
         setLoading(false);
       }
