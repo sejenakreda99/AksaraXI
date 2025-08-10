@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import AuthenticatedLayout from "@/app/(authenticated)/layout";
 import { TeacherHeader } from "@/components/layout/teacher-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,17 +10,51 @@ import Link from "next/link";
 import { ArrowLeft, Edit } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const assessmentCriteria = [
-    "Kriteria memerinci objek",
-    "Kejelasan ekspresi",
-    "Teks deskripsi dimulai dengan gambaran umum",
-    "Teks memuat deskripsi bagian",
-    "Teks mengandung kesan-kesan yang menyenangkan",
-    "Teks sudah memperhatikan kaidah kebahasaan deskripsi"
-];
+type PresentasiContent = {
+    assessmentCriteria: string[];
+}
+
+const defaultContent: PresentasiContent = {
+    assessmentCriteria: [
+        "Kriteria memerinci objek",
+        "Kejelasan ekspresi",
+        "Teks deskripsi dimulai dengan gambaran umum",
+        "Teks memuat deskripsi bagian",
+        "Teks mengandung kesan-kesan yang menyenangkan",
+        "Teks sudah memperhatikan kaidah kebahasaan deskripsi"
+    ]
+};
 
 export default function MempresentasikanPage() {
+    const [content, setContent] = useState<PresentasiContent | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchContent() {
+            setLoading(true);
+            try {
+                const docRef = doc(db, 'chapters', '1');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().mempresentasikan) {
+                    setContent(docSnap.data().mempresentasikan);
+                } else {
+                    setContent(defaultContent);
+                }
+            } catch (error) {
+                console.error("Failed to fetch content:", error);
+                setContent(defaultContent);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchContent();
+    }, []);
+
+
   return (
     <AuthenticatedLayout>
       <div className="flex flex-col h-full">
@@ -36,10 +71,10 @@ export default function MempresentasikanPage() {
                   Kembali ke Struktur Bab
                 </Link>
               </Button>
-               <Button asChild variant="outline" size="sm" disabled>
-                  <Link href="#">
+               <Button asChild variant="outline" size="sm">
+                  <Link href="/teacher/materi/bab-1/mempresentasikan/edit">
                     <Edit className="mr-2 h-4 w-4" />
-                    Edit Kriteria (Segera)
+                    Edit Kriteria
                   </Link>
               </Button>
             </div>
@@ -90,7 +125,8 @@ export default function MempresentasikanPage() {
                                <p><strong>Kelas:</strong> (Input oleh siswa)</p>
                                <p><strong>Judul Teks:</strong> (Input oleh siswa)</p>
                             </div>
-                            <Table>
+                           {loading ? <Skeleton className="h-40 w-full" /> : (
+                             <Table>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="w-[50px]">No.</TableHead>
@@ -99,7 +135,7 @@ export default function MempresentasikanPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {assessmentCriteria.map((item, index) => (
+                                    {content?.assessmentCriteria.map((item, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{index + 1}.</TableCell>
                                             <TableCell className="font-medium">{item}</TableCell>
@@ -114,6 +150,7 @@ export default function MempresentasikanPage() {
                                     ))}
                                 </TableBody>
                             </Table>
+                           )}
                         </CardContent>
                     </Card>
                 </CardContent>
