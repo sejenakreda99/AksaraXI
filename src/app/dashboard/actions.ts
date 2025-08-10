@@ -17,17 +17,9 @@ const CreateGroupSchema = z.object({
 // Initialize Firebase Admin SDK
 let adminApp: App;
 if (!getApps().length) {
-  // Check if service account JSON is provided in environment variables
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    adminApp = initializeApp({
-      credential: cert(serviceAccount),
-    });
-  } else {
-     // Fallback for local development if you have GOOGLE_APPLICATION_CREDENTIALS set up
-     // or if the code is running in a GCP environment.
+    // This will use the GOOGLE_APPLICATION_CREDENTIALS environment variable
+    // for authentication, which is the standard way in Firebase/Google Cloud environments.
     adminApp = initializeApp();
-  }
 } else {
   adminApp = getApps()[0];
 }
@@ -75,12 +67,25 @@ export async function createGroup(prevState: any, formData: FormData) {
     if (error.code === 'auth/email-already-exists') {
       message = 'Email ini sudah terdaftar. Silakan gunakan email lain.';
     } else if (error.code === 'auth/invalid-password') {
-        message = 'Kata sandi tidak valid. Harus minimal 6 karakter.';
+        message = 'Kata sandi tidak valid. Harus minimal 8 karakter.';
     }
     console.error('Error creating user:', error);
     return {
       type: 'error',
       message,
     };
+  }
+}
+
+export async function getGroups() {
+  try {
+    const snapshot = await db.collection('groups').get();
+    if (snapshot.empty) {
+      return [];
+    }
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+    return [];
   }
 }

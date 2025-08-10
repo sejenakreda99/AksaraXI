@@ -17,8 +17,18 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { TeacherHeader } from "@/components/layout/teacher-header";
+import { getGroups } from "@/app/dashboard/actions";
 
-export default function TeacherStudentsPage() {
+type Group = {
+  id: string;
+  className: string;
+  groupName: string;
+  email: string;
+}
+
+export default async function TeacherStudentsPage() {
+  const groups: Group[] = await getGroups();
+
   return (
     <AuthenticatedLayout>
       <div className="flex flex-col h-full">
@@ -27,7 +37,7 @@ export default function TeacherStudentsPage() {
           description="Tambah kelompok baru dan lihat daftar kelompok yang terdaftar."
         />
         <main className="flex-1 p-4 md:p-8">
-          <div className="grid grid-cols-1 gap-8 w-full max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mx-auto">
             <div className="w-full">
               <AddGroupForm />
             </div>
@@ -39,7 +49,7 @@ export default function TeacherStudentsPage() {
                 </CardHeader>
                 <CardContent>
                   <Table>
-                    <TableCaption>Daftar kelompok akan muncul di sini.</TableCaption>
+                    <TableCaption>Daftar kelompok akan muncul di sini jika ada.</TableCaption>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nama Kelompok</TableHead>
@@ -48,11 +58,21 @@ export default function TeacherStudentsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground">
-                            Belum ada kelompok yang ditambahkan.
-                          </TableCell>
-                        </TableRow>
+                      {groups.length > 0 ? (
+                        groups.map((group) => (
+                          <TableRow key={group.id}>
+                            <TableCell>{group.groupName}</TableCell>
+                            <TableCell>{group.email}</TableCell>
+                            <TableCell>{group.className}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                            <TableCell colSpan={3} className="text-center text-muted-foreground">
+                              Belum ada kelompok yang ditambahkan.
+                            </TableCell>
+                          </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>
