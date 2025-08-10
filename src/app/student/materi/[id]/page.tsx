@@ -41,8 +41,8 @@ async function getChapterContent(id: string): Promise<ChapterContent | null> {
 function ChapterDetails({ chapterId, content, loading }: { chapterId: string, content: ChapterContent | null, loading: boolean }) {
     
     const initialSections = [
-      { title: "A. Menyimak", slug: "menyimak", icon: BookOpen, status: 'completed' },
-      { title: "B. Membaca", slug: "membaca", icon: FileText, status: 'active' },
+      { title: "A. Menyimak", slug: "menyimak", icon: BookOpen, status: 'completed', href: `/student/materi/${chapterId}/menyimak` },
+      { title: "B. Membaca", slug: "membaca", icon: FileText, status: 'active', href: `/student/materi/bab-1/membaca` },
       { title: "C. Menulis", slug: "menulis", icon: Pencil, status: 'locked' },
       { title: "D. Mempresentasikan", slug: "mempresentasikan", icon: Presentation, status: 'locked' },
       { title: "E. Asesmen", slug: "asesmen", icon: CheckCircle, status: 'locked' },
@@ -52,7 +52,7 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
     
     const sections = initialSections.map(section => ({
         ...section,
-        href: `/student/materi/${chapterId}/${section.slug}`
+        href: section.href || '#'
     }));
 
     return (
@@ -173,117 +173,7 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
 export default function BabSiswaPage() {
     const params = useParams();
     const router = useRouter();
-    const slug = params.slug as string;
     const chapterId = params.id as string;
-
-    // This is the new hub page logic.
-    // If a slug is present, it means we are on a hub page.
-    if (slug) {
-         const activityCards = {
-            menyimak: [
-                {
-                    title: "Kegiatan 1: Menganalisis Teks Deskripsi",
-                    kegiatan: "1", 
-                    icon: Youtube,
-                    description: "Menganalisis video dan menilai kebenaran pernyataan.",
-                    disabled: false,
-                },
-                {
-                    title: "Kegiatan 2: Mengevaluasi Gagasan",
-                    kegiatan: "2",
-                    icon: ClipboardCheck,
-                    description: "Menjawab pertanyaan analisis dan membandingkan video.",
-                    disabled: false, 
-                },
-                {
-                    title: "Latihan",
-                    kegiatan: "3",
-                    icon: ClipboardList,
-                    description: "Menganalisis video baru dan menilai gagasan narator.",
-                    disabled: false,
-                }
-            ],
-            membaca: [ 
-                {
-                    title: "Kegiatan 1: Menganalisis Teks",
-                    kegiatan: "1",
-                    icon: FileText,
-                    description: "Baca dan pahami teks deskripsi, lalu kerjakan tugasnya.",
-                    disabled: false
-                }
-            ]
-        };
-
-        const currentActivities = activityCards[slug as keyof typeof activityCards] || [];
-
-        return (
-            <AuthenticatedLayout>
-                <div className="flex flex-col h-full">
-                    <header className="bg-card border-b p-4 md:p-6">
-                        <div className="max-w-4xl mx-auto">
-                            <Button asChild variant="outline" size="sm" className="mb-4">
-                                <Link href={`/student/materi/${chapterId}`}>
-                                    <ArrowLeft className="mr-2 h-4 w-4" />
-                                    Kembali ke Peta Petualangan
-                                </Link>
-                            </Button>
-                            <h1 className="text-2xl font-bold text-foreground capitalize">{slug}</h1>
-                             <p className="text-muted-foreground mt-1">
-                                Bab {chapterId}: Membicarakan Teks Deskripsi
-                            </p>
-                        </div>
-                    </header>
-                    <main className="flex-1 p-4 md:p-8">
-                        <div className="max-w-4xl mx-auto">
-                             {currentActivities.length > 0 ? (
-                                 <Card>
-                                    <CardHeader>
-                                        <CardTitle>Pilih Kegiatan</CardTitle>
-                                        <CardDescription>Pilih kegiatan yang ingin Anda mulai dari tahap &quot;{slug}&quot; ini.</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {currentActivities.map((act) => {
-                                             const cardContent = (
-                                                <Card className={cn(
-                                                    "w-full p-6 flex flex-col items-center justify-center text-center hover:bg-slate-100 transition-colors hover:shadow-lg rounded-xl",
-                                                    act.disabled && "bg-slate-50 opacity-60 cursor-not-allowed"
-                                                )}>
-                                                   <act.icon className="w-12 h-12 text-primary mb-3" />
-                                                   <h3 className="font-semibold text-lg">{act.title}</h3>
-                                                   <p className="text-sm text-muted-foreground mt-1">{act.description}</p>
-                                                </Card>
-                                             );
-
-                                             if(act.disabled) {
-                                                 return <div key={act.title} className="flex">{cardContent}</div>
-                                             }
-                                             
-                                             const href = `/student/materi/${chapterId}/${slug}?kegiatan=${act.kegiatan}`;
-
-                                             return (
-                                                <Link href={href} key={act.title} className="flex">
-                                                    {cardContent}
-                                                </Link>
-                                             )
-                                        })}
-                                    </CardContent>
-                                </Card>
-                             ) : (
-                                 <Card>
-                                    <CardHeader>
-                                        <CardTitle>Segera Hadir</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p>Konten untuk bagian &quot;{slug}&quot; belum tersedia. Silakan periksa kembali nanti.</p>
-                                    </CardContent>
-                                 </Card>
-                             )}
-                        </div>
-                    </main>
-                </div>
-            </AuthenticatedLayout>
-        );
-    }
 
   // This is the main Chapter page content (Peta Petualangan)
   const [content, setContent] = useState<ChapterContent | null>(null);
