@@ -56,7 +56,7 @@ const defaultContent: MenyimakContent = {
   ],
   comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4",
   latihan: {
-    youtubeUrl: "https://www.youtube.com/embed/nVLkAFx519M",
+    youtubeUrl: "https://www.youtube.com/embed/Za2zEoGcfmU",
     statements: [
         { statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
         { statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },

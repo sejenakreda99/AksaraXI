@@ -56,7 +56,7 @@ const defaultContent: MenyimakContent = {
   ],
   comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4",
   latihan: {
-    youtubeUrl: "https://www.youtube.com/embed/nVLkAFx519M",
+    youtubeUrl: "https://www.youtube.com/embed/Za2zEoGcfmU",
     statements: [
         { statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
         { statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },
@@ -392,7 +392,7 @@ export default function EditMenyimakPage() {
                            <Label className="text-base">Pernyataan #{index + 1}</Label>
                            <Button type="button" variant="destructive" size="icon" onClick={() => removeLatihanStatement(index)} className="w-8 h-8"><Trash2 className="h-4 w-4" /><span className="sr-only">Hapus</span></Button>
                         </div>
-                        <Textarea value={statement.statement} onChange={(e) => handleLatihanStatementChange(index, e.target.value)} placeholder={`Isi pernyataan...`} className="mt-2" rows={2}/>
+                        <Textarea value={statement.statement} onChange={(e) => handleLatihanStatementChange(index, e.target.value)} placeholder={`Isi pernyataan...`} className="mt-2" rows={3}/>
                       </Card>
                     ))}
                     <Button type="button" variant="outline" onClick={addLatihanStatement}><PlusCircle className="mr-2 h-4 w-4" />Tambah Pernyataan Latihan</Button>
