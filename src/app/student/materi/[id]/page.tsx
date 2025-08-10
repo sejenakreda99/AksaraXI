@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -5,21 +6,22 @@ import { useParams } from 'next/navigation';
 import AuthenticatedLayout from "@/app/(authenticated)/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, ArrowLeft } from "lucide-react";
+import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, ArrowLeft, Lock } from "lucide-react";
 import Link from "next/link";
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-const sections = [
-  { title: "A. Menyimak", href: "/student/materi/bab-1/menyimak", icon: BookOpen },
-  { title: "B. Membaca", href: "/student/materi/bab-1/membaca", icon: FileText },
-  { title: "C. Menulis", href: "/student/materi/bab-1/menulis", icon: Pencil },
-  { title: "D. Mempresentasikan", href: "/student/materi/bab-1/mempresentasikan", icon: Presentation },
-  { title: "E. Asesmen", href: "/student/materi/bab-1/asesmen", icon: CheckCircle },
-  { title: "Jurnal Membaca", href: "/student/materi/bab-1/jurnal-membaca", icon: BookOpen },
-  { title: "Refleksi", href: "/student/materi/bab-1/refleksi", icon: PenSquare },
+const initialSections = [
+  { title: "A. Menyimak", href: "/student/materi/1/menyimak", icon: BookOpen, status: 'completed' },
+  { title: "B. Membaca", href: "/student/materi/1/membaca", icon: FileText, status: 'active' },
+  { title: "C. Menulis", href: "/student/materi/1/menulis", icon: Pencil, status: 'locked' },
+  { title: "D. Mempresentasikan", href: "/student/materi/1/mempresentasikan", icon: Presentation, status: 'locked' },
+  { title: "E. Asesmen", href: "/student/materi/1/asesmen", icon: CheckCircle, status: 'locked' },
+  { title: "Jurnal Membaca", href: "/student/materi/1/jurnal-membaca", icon: BookOpen, status: 'locked' },
+  { title: "Refleksi", href: "/student/materi/1/refleksi", icon: PenSquare, status: 'locked' },
 ];
 
 type ChapterContent = {
@@ -46,11 +48,10 @@ async function getChapterContent(id: string): Promise<ChapterContent | null> {
     }
 }
 
-
 function ChapterDetails({ chapterId, content, loading }: { chapterId: string, content: ChapterContent | null, loading: boolean }) {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
-            <Card>
+             <Card>
                 <CardHeader>
                     <CardTitle>Pengantar & Tujuan Pembelajaran</CardTitle>
                 </CardHeader>
@@ -91,7 +92,7 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
                     <HelpCircle className="w-6 h-6 text-primary" />
                     <CardTitle>Pertanyaan Pemantik</CardTitle>
                   </div>
-                <CardDescription>Pikirkan pertanyaan ini sebelum Anda memulai bab.</CardDescription>
+                <CardDescription>Pikirkan pertanyaan ini sebelum Anda memulai petualangan belajar.</CardDescription>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -103,31 +104,65 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
                 )}
               </CardContent>
             </Card>
-            
+
             <Card>
-              <CardHeader>
-                <CardTitle>Mulai Belajar</CardTitle>
-                <CardDescription>
-                  Berikut adalah kerangka materi untuk Bab {chapterId}. Klik setiap bagian untuk memulai kegiatan.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {sections.map((section, index) => (
-                    <Link href={section.href} key={index} className="flex">
-                       <Card className="w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md hover:bg-slate-100 transition-colors">
-                           <section.icon className="w-10 h-10 text-primary mb-2" />
-                           <p className="font-semibold text-center text-sm">{section.title}</p>
-                       </Card>
-                    </Link>
-                  ))}
-                </div>
-              </CardContent>
+                <CardHeader>
+                    <CardTitle>Peta Petualangan Belajar</CardTitle>
+                    <CardDescription>
+                        Ikuti setiap tahap untuk menyelesaikan bab ini. Tahap berikutnya akan terbuka setelah Anda menyelesaikan tahap sebelumnya.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {initialSections.map((section, index) => {
+                            const isLocked = section.status === 'locked';
+                            const isActive = section.status === 'active';
+                            const isCompleted = section.status === 'completed';
+                            const Icon = section.icon;
+
+                            const cardContent = (
+                               <Card className={cn(
+                                    "w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md text-center transition-all duration-300",
+                                    isLocked && "bg-slate-100/50 opacity-50 cursor-not-allowed",
+                                    isActive && "ring-2 ring-primary ring-offset-2",
+                                    isCompleted && "bg-green-50 border-green-200",
+                                    !isLocked && "hover:bg-slate-100"
+                                )}>
+                                   <div className="relative">
+                                       {isLocked && <Lock className="absolute -top-1 -right-1 w-4 h-4 text-slate-500 bg-white rounded-full p-0.5" />}
+                                       <Icon className={cn(
+                                            "w-10 h-10 mb-2",
+                                            isLocked && "text-slate-400",
+                                            isActive && "text-primary",
+                                            isCompleted && "text-green-500"
+                                        )} />
+                                   </div>
+                                   <p className={cn(
+                                        "font-semibold text-sm",
+                                        isLocked && "text-slate-500",
+                                        isActive && "text-primary",
+                                        isCompleted && "text-green-600"
+                                    )}>{section.title}</p>
+                                    {isCompleted && <p className="text-xs font-bold text-green-500 mt-1">Selesai!</p>}
+                               </Card>
+                            );
+
+                            if (isLocked) {
+                                return <div key={index} className="flex">{cardContent}</div>;
+                            }
+                            
+                            return (
+                                <Link href={section.href} key={index} className="flex">
+                                    {cardContent}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </CardContent>
             </Card>
-          </div>
+        </div>
     )
 }
-
 
 export default function BabSiswaPage() {
   const [content, setContent] = useState<ChapterContent | null>(null);
