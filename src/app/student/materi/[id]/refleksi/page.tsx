@@ -11,12 +11,18 @@ import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+
 
 export default function RefleksiSiswaPage() {
     const params = useParams();
     const chapterId = params.id as string;
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [answers, setAnswers] = useState<Record<number, string>>({});
+    const [user] = useAuthState(auth);
 
     const reflectionQuestions = [
         "Setelah mempelajari menyimak, membaca, menulis, dan mempresentasikan teks deskripsi, kesimpulan apa yang dapat kalian ambil?",
@@ -27,21 +33,49 @@ export default function RefleksiSiswaPage() {
         "Apakah kalian tertarik menerapkan pengetahuan yang telah diperoleh?",
         "Apakah kalian tertarik mengembangkan keterampilan kalian dalam memproduksi teks deskripsi sesuai kebutuhan berbahasa? Bagaimana caranya?",
     ];
+
+    const handleAnswerChange = (index: number, value: string) => {
+        setAnswers(prev => ({...prev, [index]: value}));
+    }
     
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!user) {
+            toast({ variant: 'destructive', title: 'Gagal', description: 'Anda harus masuk untuk mengirimkan jawaban.' });
+            return;
+        }
+
+        const answeredQuestions = Object.values(answers).filter(Boolean).length;
+        if (answeredQuestions === 0) {
+            toast({ variant: 'destructive', title: 'Gagal', description: 'Harap isi setidaknya satu pertanyaan refleksi.' });
+            return;
+        }
+        
         setIsSubmitting(true);
-        // TODO: Implement Firebase submission logic
-        console.log("Submitting reflection...");
+        try {
+             const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_refleksi`);
+             await setDoc(submissionRef, {
+                studentId: user.uid,
+                chapterId: chapterId,
+                activity: 'refleksi',
+                answers: answers,
+                lastSubmitted: serverTimestamp()
+            }, { merge: true });
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        toast({
-            title: "Refleksi Disimpan",
-            description: "Jawaban refleksi Anda telah berhasil disimpan.",
-        });
-
-        setIsSubmitting(false);
+            toast({
+                title: "Refleksi Disimpan",
+                description: "Jawaban refleksi Anda telah berhasil disimpan.",
+            });
+        } catch (error) {
+             console.error("Error submitting reflection:", error);
+            toast({
+                variant: 'destructive',
+                title: "Gagal Menyimpan",
+                description: "Terjadi kesalahan saat menyimpan refleksi Anda.",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return (
@@ -71,7 +105,13 @@ export default function RefleksiSiswaPage() {
                                 {reflectionQuestions.map((q, i) => (
                                     <div key={i} className="space-y-2">
                                         <Label htmlFor={`refleksi-${i}`}>{i + 1}. {q}</Label>
-                                        <Textarea id={`refleksi-${i}`} placeholder="Tuliskan jawaban Anda..." rows={3} />
+                                        <Textarea 
+                                            id={`refleksi-${i}`} 
+                                            placeholder="Tuliskan jawaban Anda..." 
+                                            rows={3} 
+                                            value={answers[i] || ''}
+                                            onChange={(e) => handleAnswerChange(i, e.target.value)}
+                                        />
                                     </div>
                                 ))}
                             </CardContent>
