@@ -226,7 +226,11 @@ function MenyimakContent() {
         return (
             <div className="space-y-6">
                 <Card>
-                  <CardHeader><CardTitle>Kegiatan 2: Mengevaluasi Gagasan</CardTitle><CardDescription>Simaklah kembali teks deskripsi “Candi Borobudur” melalui tautan video pada Kegiatan 1. Setelah itu, jawablah pertanyaan berikut!</CardDescription></CardHeader>
+                  <CardHeader><CardTitle>Kegiatan 2: Mengevaluasi Gagasan</CardTitle>
+                  <CardDescription>
+                    Simaklah kembali teks deskripsi “Candi Borobudur” melalui tautan video pada Kegiatan 1. Untuk memudahkan kalian dalam menyimak teks tersebut secara berulang-ulang, unduh dan simpanlah video tersebut dalam gawai kalian. Setelah kalian menyimak kembali teks tersebut, jawablah pertanyaan berikut!
+                  </CardDescription>
+                  </CardHeader>
                   <CardContent className="space-y-6">
                       <div className="space-y-4">
                           {(content.activity2Questions || []).map((q, i) => (
@@ -244,7 +248,7 @@ function MenyimakContent() {
                       </div>
                       <Separator/>
                       <div className="prose prose-sm max-w-none text-foreground">
-                        <p>kepentingan tertentu. Misalnya, orang menggambarkan objek wisata dengan tujuan agar yang membaca atau menyimak merasa tertarik sehingga mau berkunjung ke tempat itu. Oleh karena itu, orang tersebut akan menggambarkannya semenarik mungkin.</p>
+                        <p>Suatu teks deskripsi dibuat atau ditulis agar orang lain yang menyimak atau membaca teks itu dapat mengindra objek yang digambarkannya. Pemilihan objek itu karena penulis memiliki kepentingan tertentu. Misalnya, orang menggambarkan objek wisata dengan tujuan agar yang membaca atau menyimak merasa tertarik sehingga mau berkunjung ke tempat itu. Oleh karena itu, orang tersebut akan menggambarkannya semenarik mungkin.</p>
                         <p>Perhatikan dialog berikut, apakah orang yang menggambarkan Candi Borobudur ini sudah berusaha menggambarkannya sebaik dan semenarik mungkin?</p>
                         <blockquote className="border-l-4 pl-4 italic">
                             <p><strong>Amir:</strong> Waktu liburan tahun ajaran baru kemarin, kelas kami berwisata ke Candi Borobudur.</p>

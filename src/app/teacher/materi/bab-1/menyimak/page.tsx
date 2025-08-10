@@ -229,7 +229,7 @@ export default function MenyimakPage() {
                                 <CardHeader>
                                     <CardTitle>Kegiatan 2: Mengevaluasi Gagasan</CardTitle>
                                     <CardDescription>
-                                        Siswa diminta menjawab pertanyaan analisis dan perbandingan video.
+                                        Simaklah kembali teks deskripsi “Candi Borobudur” melalui tautan video pada Kegiatan 1. Untuk memudahkan kalian dalam menyimak teks tersebut secara berulang-ulang, unduh dan simpanlah video tersebut dalam gawai kalian. Setelah kalian menyimak kembali teks tersebut, jawablah pertanyaan berikut!
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -242,10 +242,10 @@ export default function MenyimakPage() {
                                      {content.comparisonVideoUrl && <div className="aspect-video w-full rounded-lg overflow-hidden border">
                                         <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.comparisonVideoUrl)} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
                                     </div>}
-                                    <p className='text-sm'>Siswa diminta membandingkan kedua video dan menentukan mana yang deskripsinya lebih baik.</p>
+                                     <p className="text-sm text-foreground">Selanjutnya, simaklah tayangan dalam laman YouTube Property Inside dengan kata kunci pencarian bagaimana cara Gunadharma membangun Candi Borobudur atau bisa dipindai pada kode QR di samping. Lalu, bandingkan dengan teks deskripsi yang pertama kalian simak pada Kegiatan 1. Mana di antara kedua teks tersebut yang lebih baik deskripsinya?</p>
                                     <Separator />
-                                    <div className="prose prose-sm max-w-none">
-                                        <p>kepentingan tertentu. Misalnya, orang menggambarkan objek wisata dengan tujuan agar yang membaca atau menyimak merasa tertarik sehingga mau berkunjung ke tempat itu. Oleh karena itu, orang tersebut akan menggambarkannya semenarik mungkin.</p>
+                                     <div className="prose prose-sm max-w-none text-foreground">
+                                        <p>Suatu teks deskripsi dibuat atau ditulis agar orang lain yang menyimak atau membaca teks itu dapat mengindra objek yang digambarkannya. Pemilihan objek itu karena penulis memiliki kepentingan tertentu. Misalnya, orang menggambarkan objek wisata dengan tujuan agar yang membaca atau menyimak merasa tertarik sehingga mau berkunjung ke tempat itu. Oleh karena itu, orang tersebut akan menggambarkannya semenarik mungkin.</p>
                                         <p>Perhatikan dialog berikut, apakah orang yang menggambarkan Candi Borobudur ini sudah berusaha menggambarkannya sebaik dan semenarik mungkin?</p>
                                         <blockquote className="border-l-4 pl-4 italic">
                                             <p><strong>Amir:</strong> Waktu liburan tahun ajaran baru kemarin, kelas kami berwisata ke Candi Borobudur.</p>
