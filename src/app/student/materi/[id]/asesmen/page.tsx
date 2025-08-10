@@ -12,6 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 function getYoutubeEmbedUrl(url: string) {
     if (!url) return '';
@@ -40,6 +43,7 @@ export default function AsesmenSiswaPage() {
     const chapterId = params.id as string;
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [user] = useAuthState(auth);
     
     // In a real app, this would be fetched from Firestore
     const assessmentQuestions1 = [
@@ -66,19 +70,43 @@ export default function AsesmenSiswaPage() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!user) {
+            toast({ variant: 'destructive', title: 'Gagal', description: 'Anda harus masuk untuk mengirimkan jawaban.' });
+            return;
+        }
         setIsSubmitting(true);
-        // TODO: Implement Firebase submission logic
-        console.log("Submitting assessment...");
-
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        toast({
-            title: "Asesmen Disimpan",
-            description: "Jawaban asesmen Anda telah berhasil disimpan dan akan segera dinilai oleh guru.",
+        
+        const formData = new FormData(e.currentTarget);
+        const answers: { [key: string]: string } = {};
+        formData.forEach((value, key) => {
+            answers[key] = value as string;
         });
 
-        setIsSubmitting(false);
+        try {
+            const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_asesmen`);
+            await setDoc(submissionRef, {
+                studentId: user.uid,
+                chapterId: chapterId,
+                activity: 'asesmen',
+                answers: answers,
+                lastSubmitted: serverTimestamp()
+            }, { merge: true });
+
+            toast({
+                title: "Asesmen Terkirim",
+                description: "Jawaban asesmen Anda telah berhasil disimpan dan akan segera dinilai oleh guru.",
+            });
+
+        } catch (error) {
+            console.error("Error submitting assessment: ", error);
+            toast({
+                variant: 'destructive',
+                title: "Gagal Mengirim",
+                description: "Terjadi kesalahan saat mengirim jawaban Anda.",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return (
@@ -118,7 +146,7 @@ export default function AsesmenSiswaPage() {
                                 {assessmentQuestions1.map((q, i) => (
                                     <div key={i} className="space-y-2">
                                         <Label htmlFor={`q1-${i}`} className="text-justify">{i + 1}. {q}</Label>
-                                        <Textarea id={`q1-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} />
+                                        <Textarea id={`q1-${i}`} name={`q1-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required />
                                     </div>
                                 ))}
                                 </div>
@@ -143,7 +171,7 @@ export default function AsesmenSiswaPage() {
                                 {assessmentQuestions2.map((q, i) => (
                                     <div key={i} className="space-y-2">
                                         <Label htmlFor={`q2-${i}`} className="text-justify">{i + 7}. {q}</Label>
-                                        <Textarea id={`q2-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} />
+                                        <Textarea id={`q2-${i}`} name={`q2-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required />
                                     </div>
                                 ))}
                                 </div>
