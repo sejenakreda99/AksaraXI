@@ -45,8 +45,23 @@ export default function MenyimakPage() {
         const docRef = doc(db, 'chapters', '1');
         const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists() && docSnap.data().menyimak) {
-          setContent(docSnap.data().menyimak);
+        const data = docSnap.data();
+
+        if (docSnap.exists() && data && data.menyimak) {
+          // Ensure statements is an array of objects
+          if (Array.isArray(data.menyimak.statements) && data.menyimak.statements.every((s: any) => typeof s === 'object' && s !== null)) {
+            setContent(data.menyimak);
+          } else {
+             // Data is malformed, fix it
+            const statementsArray = Array.isArray(data.menyimak.statements) ? data.menyimak.statements : [];
+            const correctedStatements = statementsArray.map((st, index) => ({
+                no: index + 1,
+                statement: typeof st === 'string' ? st : 'Pernyataan tidak valid'
+            }));
+             const correctedContent = { ...defaultContent, ...data.menyimak, statements: correctedStatements };
+             setContent(correctedContent);
+             await setDoc(docRef, { menyimak: correctedContent }, { merge: true });
+          }
         } else {
           // If the field doesn't exist, create it with default content
           setContent(defaultContent);
@@ -77,9 +92,11 @@ export default function MenyimakPage() {
                             Kembali ke Struktur Bab
                         </Link>
                     </Button>
-                     <Button variant="outline" size="sm" disabled>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit (Segera)
+                     <Button asChild variant="outline" size="sm">
+                        <Link href="/teacher/materi/bab-1/menyimak/edit">
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                        </Link>
                     </Button>
                 </div>
                 <Card>
