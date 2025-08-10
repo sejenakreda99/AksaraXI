@@ -6,8 +6,10 @@ import * as z from "zod";
 import Link from "next/link";
 import { Mail, Lock } from "lucide-react";
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword, getAuth } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+
 
 import { Button } from "@/components/ui/button";
 import {
@@ -54,12 +56,21 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+
       toast({
         title: "Masuk Berhasil",
         description: "Selamat datang kembali!",
       });
-      router.push("/dashboard");
+
+      // Check user role
+      if (user.displayName === 'Siswa') {
+         router.push("/student");
+      } else {
+         router.push("/dashboard");
+      }
+      
     } catch (error) {
       console.error("Login error:", error);
       toast({
