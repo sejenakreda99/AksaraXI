@@ -4,11 +4,13 @@ import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { z } from 'zod';
 
-const CreateUserSchema = z.object({
+const CreateGroupSchema = z.object({
   email: z.string().email({ message: 'Alamat email tidak valid.' }),
   password: z
     .string()
     .min(8, { message: 'Kata sandi minimal 8 karakter.' }),
+  className: z.string({ required_error: 'Kelas harus dipilih.' }),
+  groupName: z.string({ required_error: 'Nama kelompok harus dipilih.' }),
 });
 
 let adminApp: App;
@@ -20,8 +22,8 @@ if (!getApps().length) {
 
 const auth = getAuth(adminApp);
 
-export async function createStudent(prevState: any, formData: FormData) {
-  const validatedFields = CreateUserSchema.safeParse(
+export async function createGroup(prevState: any, formData: FormData) {
+  const validatedFields = CreateGroupSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
 
@@ -32,17 +34,21 @@ export async function createStudent(prevState: any, formData: FormData) {
     };
   }
 
-  const { email, password } = validatedFields.data;
+  const { email, password, className, groupName } = validatedFields.data;
+  const displayName = `${className}-${groupName}`;
 
   try {
     await auth.createUser({
       email,
       password,
-      displayName: 'Siswa', // Default display name
+      displayName: "Siswa", // Still 'Siswa' to match login logic
     });
+    // Here you could also save the group info (className, groupName) to Firestore
+    // under the user's UID if you need to retrieve it later.
+
     return {
       type: 'success',
-      message: `Siswa dengan email ${email} berhasil dibuat.`,
+      message: `Kelompok ${groupName} di kelas ${className} dengan email ${email} berhasil dibuat.`,
     };
   } catch (error: any) {
     let message = 'Terjadi kesalahan yang tidak diketahui.';

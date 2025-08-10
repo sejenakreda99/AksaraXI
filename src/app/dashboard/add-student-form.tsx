@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { createStudent } from './actions';
+import { createGroup } from './actions';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const initialState = {
   type: '',
@@ -20,13 +21,13 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Menambahkan...' : 'Tambah Siswa'}
+      {pending ? 'Menambahkan...' : 'Tambah Kelompok'}
     </Button>
   );
 }
 
-export function AddStudentForm() {
-  const [state, formAction] = useActionState(createStudent, initialState);
+export function AddGroupForm() {
+  const [state, formAction] = useActionState(createGroup, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,15 +49,50 @@ export function AddStudentForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Tambah Siswa Baru</CardTitle>
+        <CardTitle>Tambah Kelompok Baru</CardTitle>
         <CardDescription>
-          Buat akun untuk siswa agar mereka dapat masuk ke platform.
+          Buat akun untuk kelompok agar mereka dapat masuk ke platform.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-4">
+           <div className="space-y-2">
+            <Label htmlFor="className">Kelas</Label>
+            <Input type="hidden" name="className" id="classNameInput" />
+            <Select name="className">
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih Kelas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="XI-2">XI-2</SelectItem>
+                <SelectItem value="XI-3">XI-3</SelectItem>
+              </SelectContent>
+            </Select>
+            {typeof state.message !== 'string' && state.message?.className && (
+              <p className="text-sm font-medium text-destructive">{state.message.className[0]}</p>
+            )}
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="groupName">Nama Kelompok</Label>
+            <Input type="hidden" name="groupName" id="groupNameInput" />
+            <Select name="groupName">
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih Kelompok" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 6 }, (_, i) => i + 1).map((num) => (
+                  <SelectItem key={num} value={`Kelompok ${num}`}>
+                    Kelompok {num}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {typeof state.message !== 'string' && state.message?.groupName && (
+              <p className="text-sm font-medium text-destructive">{state.message.groupName[0]}</p>
+            )}
+          </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email Siswa</Label>
+            <Label htmlFor="email">Email Kelompok</Label>
             <Input
               id="email"
               name="email"
