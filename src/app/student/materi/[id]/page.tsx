@@ -15,13 +15,13 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const initialSections = [
-  { title: "A. Menyimak", href: "/student/materi/1/menyimak", icon: BookOpen, status: 'completed' },
-  { title: "B. Membaca", href: "/student/materi/1/membaca", icon: FileText, status: 'active' },
-  { title: "C. Menulis", href: "/student/materi/1/menulis", icon: Pencil, status: 'locked' },
-  { title: "D. Mempresentasikan", href: "/student/materi/1/mempresentasikan", icon: Presentation, status: 'locked' },
-  { title: "E. Asesmen", href: "/student/materi/1/asesmen", icon: CheckCircle, status: 'locked' },
-  { title: "Jurnal Membaca", href: "/student/materi/1/jurnal-membaca", icon: BookOpen, status: 'locked' },
-  { title: "Refleksi", href: "/student/materi/1/refleksi", icon: PenSquare, status: 'locked' },
+  { title: "A. Menyimak", href: "/student/materi/bab-1/menyimak", icon: BookOpen, status: 'completed' },
+  { title: "B. Membaca", href: "/student/materi/bab-1/membaca", icon: FileText, status: 'active' },
+  { title: "C. Menulis", href: "/student/materi/bab-1/menulis", icon: Pencil, status: 'locked' },
+  { title: "D. Mempresentasikan", href: "/student/materi/bab-1/mempresentasikan", icon: Presentation, status: 'locked' },
+  { title: "E. Asesmen", href: "/student/materi/bab-1/asesmen", icon: CheckCircle, status: 'locked' },
+  { title: "Jurnal Membaca", href: "/student/materi/bab-1/jurnal-membaca", icon: BookOpen, status: 'locked' },
+  { title: "Refleksi", href: "/student/materi/bab-1/refleksi", icon: PenSquare, status: 'locked' },
 ];
 
 type ChapterContent = {
@@ -203,3 +203,5 @@ export default function BabSiswaPage() {
     </AuthenticatedLayout>
   );
 }
+
+    
