@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
@@ -13,8 +13,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
+type RefleksiContent = {
+    reflectionQuestions: string[];
+}
 
 export default function RefleksiSiswaPage() {
     const params = useParams();
@@ -23,16 +27,28 @@ export default function RefleksiSiswaPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [answers, setAnswers] = useState<Record<number, string>>({});
     const [user] = useAuthState(auth);
+    const [content, setContent] = useState<RefleksiContent | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const reflectionQuestions = [
-        "Setelah mempelajari menyimak, membaca, menulis, dan mempresentasikan teks deskripsi, kesimpulan apa yang dapat kalian ambil?",
-        "Pengetahuan apa saja yang kalian peroleh?",
-        "Keterampilan berbahasa apa saja yang kalian kuasai?",
-        "Bagaimana sikap kalian setelah selesai mengikuti pembelajaran teks deskripsi?",
-        "Apakah kalian merasa senang karena wawasan kalian bertambah?",
-        "Apakah kalian tertarik menerapkan pengetahuan yang telah diperoleh?",
-        "Apakah kalian tertarik mengembangkan keterampilan kalian dalam memproduksi teks deskripsi sesuai kebutuhan berbahasa? Bagaimana caranya?",
-    ];
+    useEffect(() => {
+        async function fetchContent() {
+            if (!chapterId) return;
+            setLoading(true);
+            try {
+                const docRef = doc(db, 'chapters', chapterId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().refleksi) {
+                    setContent(docSnap.data().refleksi);
+                }
+            } catch (error) {
+                console.error("Failed to fetch content:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchContent();
+    }, [chapterId]);
+
 
     const handleAnswerChange = (index: number, value: string) => {
         setAnswers(prev => ({...prev, [index]: value}));
@@ -102,7 +118,13 @@ export default function RefleksiSiswaPage() {
                                 <CardDescription className="text-justify">Jawablah pertanyaan-pertanyaan berikut berdasarkan pengalaman belajar Anda di bab ini.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {reflectionQuestions.map((q, i) => (
+                               {loading || !content ? (
+                                    <div className="space-y-4">
+                                        <Skeleton className="h-24 w-full" />
+                                        <Skeleton className="h-24 w-full" />
+                                    </div>
+                                ) : (
+                                content.reflectionQuestions.map((q, i) => (
                                     <div key={i} className="space-y-2">
                                         <Label htmlFor={`refleksi-${i}`}>{i + 1}. {q}</Label>
                                         <Textarea 
@@ -113,11 +135,11 @@ export default function RefleksiSiswaPage() {
                                             onChange={(e) => handleAnswerChange(i, e.target.value)}
                                         />
                                     </div>
-                                ))}
+                                )))}
                             </CardContent>
                         </Card>
 
-                        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || loading}>
                             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             {isSubmitting ? "Menyimpan..." : "Simpan Refleksi"}
                         </Button>

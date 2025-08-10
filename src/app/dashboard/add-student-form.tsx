@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useState } from 'react';
@@ -19,10 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
 import { Textarea } from '@/components/ui/textarea';
+import { createStudent, CreateStudentInput } from '@/ai/flows/create-student-flow';
 
 export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
   const [isPending, setIsPending] = useState(false);
@@ -63,35 +62,15 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
     }
 
     try {
-      // This is a workaround to create a user without signing them in on the admin's device.
-      // We're re-initializing a temporary app instance. 
-      // NOTE: This is not the recommended way for a real production app. 
-      // A backend function would be more secure and robust.
-      const { initializeApp: initializeTempApp, getApps: getTempApps } = await import('firebase/app');
-      const { getAuth: getTempAuth } = await import('firebase/auth');
-      
-      const tempAppName = 'temp-auth-instance';
-      const tempApp = getTempApps().find(app => app.name === tempAppName) || initializeTempApp(auth.app.options, tempAppName);
-      const tempAuth = getTempAuth(tempApp);
-
-
-      const userCredential = await createUserWithEmailAndPassword(
-        tempAuth,
+      const studentData: CreateStudentInput = {
         email,
-        password
-      );
-      const user = userCredential.user;
-
-      // Set displayName for role distinction
-      await updateProfile(user, { displayName: 'Siswa' });
-
-      // Save group info to Firestore
-      await setDoc(doc(db, 'groups', user.uid), {
+        password,
         className,
         groupName,
-        email,
         members,
-      });
+      };
+
+      const result = await createStudent(studentData);
 
       toast({
         title: 'Berhasil',
@@ -100,19 +79,12 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
       formRef.current?.reset();
       onGroupAdded(); // Refresh the list
     } catch (error: any) {
-      let message = 'Terjadi kesalahan yang tidak diketahui.';
-      if (error.code === 'auth/email-already-in-use') {
-        message = 'Email ini sudah terdaftar. Silakan gunakan email lain.';
-      } else if (error.code === 'auth/weak-password') {
-        message = 'Kata sandi terlalu lemah. Gunakan minimal 8 karakter.';
-      } else if (error.code === 'auth/invalid-credential') {
-          message = 'Terjadi kesalahan kredensial. Silakan coba lagi.'
-      }
-      console.error('Error creating user:', error);
+      console.error('Error creating user via flow:', error);
       toast({
         variant: 'destructive',
         title: 'Gagal Membuat Akun',
-        description: message,
+        // The error message from the flow is user-friendly
+        description: error.message || 'Terjadi kesalahan yang tidak diketahui.',
       });
     } finally {
       setIsPending(false);

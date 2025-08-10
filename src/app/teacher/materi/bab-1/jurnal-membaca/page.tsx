@@ -37,7 +37,7 @@ export default function JurnalMembacaPage() {
                 <CardHeader>
                     <CardTitle>Pratinjau Halaman Jurnal Membaca</CardTitle>
                     <CardDescription className="text-justify">
-                        Berikut adalah instruksi yang akan dilihat siswa untuk kegiatan literasi membaca.
+                        Berikut adalah instruksi yang akan dilihat siswa untuk kegiatan literasi membaca. Saat ini halaman ini bersifat statis.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="prose prose-sm max-w-none text-justify">
