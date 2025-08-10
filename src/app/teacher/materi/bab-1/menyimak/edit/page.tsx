@@ -7,7 +7,7 @@ import AuthenticatedLayout from '@/app/(authenticated)/layout';
 import { TeacherHeader } from '@/components/layout/teacher-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, PlusCircle, Trash2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,14 +16,19 @@ import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
+type Statement = {
+  no: number;
+  statement: string;
+}
+
 type MenyimakContent = {
   learningObjective: string;
   youtubeUrl: string;
-  statements: string[]; // Store as array of strings for easier editing in textarea
+  statements: Statement[];
 };
 
 export default function EditMenyimakPage() {
-  const [content, setContent] = useState<MenyimakContent>({ learningObjective: '', youtubeUrl: '', statements: [] });
+  const [content, setContent] = useState<MenyimakContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -35,13 +40,13 @@ export default function EditMenyimakPage() {
         const docRef = doc(db, 'chapters', '1');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists() && docSnap.data().menyimak) {
-          const fetchedData = docSnap.data().menyimak;
-          // Convert statement objects to a simple string array for the textarea
-          const statementStrings = (fetchedData.statements || []).map((s: any) => s.statement || '');
+          setContent(docSnap.data().menyimak);
+        } else {
+          // Initialize with some default structure if it doesn't exist
           setContent({
-            learningObjective: fetchedData.learningObjective || '',
-            youtubeUrl: fetchedData.youtubeUrl || '',
-            statements: statementStrings
+            learningObjective: '',
+            youtubeUrl: '',
+            statements: [{ no: 1, statement: '' }]
           });
         }
       } catch (error) {
@@ -58,33 +63,43 @@ export default function EditMenyimakPage() {
     fetchContent();
   }, [toast]);
 
-  const handleStatementsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContent({ ...content, statements: e.target.value.split('\n') });
+  const handleStatementChange = (index: number, value: string) => {
+    if (!content) return;
+    const newStatements = [...content.statements];
+    newStatements[index].statement = value;
+    setContent({ ...content, statements: newStatements });
   };
 
+  const addStatement = () => {
+    if (!content) return;
+    const newStatements = [...content.statements, { no: content.statements.length + 1, statement: '' }];
+    // Re-number the 'no' property to ensure it's sequential
+    const renumberedStatements = newStatements.map((stmt, index) => ({ ...stmt, no: index + 1 }));
+    setContent({ ...content, statements: renumberedStatements });
+  };
+
+  const removeStatement = (index: number) => {
+    if (!content) return;
+    const newStatements = content.statements.filter((_, i) => i !== index);
+     // Re-number the 'no' property after removal
+    const renumberedStatements = newStatements.map((stmt, index) => ({ ...stmt, no: index + 1 }));
+    setContent({ ...content, statements: renumberedStatements });
+  };
+  
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const learningObjective = formData.get('learningObjective') as string;
-    const youtubeUrl = formData.get('youtubeUrl') as string;
-    const statementsText = formData.get('statements') as string;
+    if (!content) return;
 
-    const statementsArray = statementsText.split('\n').map(s => s.trim()).filter(Boolean);
-
-    // Convert back to the object structure for Firestore
-    const statementsForDb = statementsArray.map((stmt, index) => ({
-      no: index + 1,
-      statement: stmt
-    }));
+    // Filter out any empty statements before saving
+    const finalStatements = content.statements.filter(s => s.statement.trim() !== '');
 
     startTransition(async () => {
       try {
         const docRef = doc(db, 'chapters', '1');
         await setDoc(docRef, { 
             menyimak: {
-                learningObjective,
-                youtubeUrl,
-                statements: statementsForDb
+                ...content,
+                statements: finalStatements
             } 
         }, { merge: true });
 
@@ -104,7 +119,7 @@ export default function EditMenyimakPage() {
     });
   };
   
-  if (loading) {
+  if (loading || !content) {
     return (
       <AuthenticatedLayout>
         <div className="flex flex-col h-full">
@@ -128,7 +143,9 @@ export default function EditMenyimakPage() {
                   </div>
                   <div className="space-y-2">
                     <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-10 w-full mb-2" />
+                    <Skeleton className="h-10 w-full mb-2" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
                   <Skeleton className="h-10 w-48" />
                 </CardContent>
@@ -171,7 +188,8 @@ export default function EditMenyimakPage() {
                     <Textarea
                       id="learningObjective"
                       name="learningObjective"
-                      defaultValue={content.learningObjective}
+                      value={content.learningObjective}
+                      onChange={(e) => setContent({...content, learningObjective: e.target.value})}
                       rows={4}
                     />
                   </div>
@@ -180,20 +198,42 @@ export default function EditMenyimakPage() {
                     <Input
                       id="youtubeUrl"
                       name="youtubeUrl"
-                      defaultValue={content.youtubeUrl}
+                      value={content.youtubeUrl}
+                      onChange={(e) => setContent({...content, youtubeUrl: e.target.value})}
                       placeholder="https://www.youtube.com/watch?v=..."
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="statements">Daftar Pernyataan</Label>
-                    <Textarea
-                      id="statements"
-                      name="statements"
-                      defaultValue={content.statements.join('\n')}
-                      rows={10}
-                      className="min-h-[200px]"
-                    />
-                    <p className="text-xs text-muted-foreground">Masukkan satu pernyataan per baris. Baris kosong akan diabaikan.</p>
+                  <div className="space-y-4">
+                    <Label>Daftar Pernyataan</Label>
+                    {content.statements.map((statement, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                         <span className="text-sm font-medium text-muted-foreground">{index + 1}.</span>
+                        <Input
+                          type="text"
+                          value={statement.statement}
+                          onChange={(e) => handleStatementChange(index, e.target.value)}
+                          placeholder={`Pernyataan #${index + 1}`}
+                          className="flex-grow"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => removeStatement(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                           <span className="sr-only">Hapus</span>
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addStatement}
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Tambah Pernyataan
+                    </Button>
                   </div>
                   <Button type="submit" disabled={isPending}>
                     {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
