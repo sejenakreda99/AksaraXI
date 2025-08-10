@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from "@/app/(authenticated)/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, ArrowLeft, Lock, Youtube, ClipboardCheck, ClipboardList } from "lucide-react";
+import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, ArrowLeft, Lock } from "lucide-react";
 import Link from "next/link";
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -14,20 +14,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type ChapterContent = {
+type ChapterData = {
   introduction: string;
   learningObjective: string;
   keywords: string[];
   sparkingQuestions: string[];
+  sectionStatus: Record<string, boolean>;
 }
 
-async function getChapterContent(id: string): Promise<ChapterContent | null> {
+async function getChapterData(id: string): Promise<ChapterData | null> {
     if (!id) return null;
     try {
         const docRef = doc(db, 'chapters', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            return docSnap.data() as ChapterContent;
+            return docSnap.data() as ChapterData;
         } else {
             console.log("No such document!");
             return null;
@@ -38,23 +39,19 @@ async function getChapterContent(id: string): Promise<ChapterContent | null> {
     }
 }
 
-function ChapterDetails({ chapterId, content, loading }: { chapterId: string, content: ChapterContent | null, loading: boolean }) {
-    
-    const initialSections = [
-      { title: "A. Menyimak", slug: "menyimak", icon: BookOpen, status: 'active', href: `/student/materi/${chapterId}/menyimak` },
-      { title: "B. Membaca", slug: "membaca", icon: FileText, status: 'active', href: `/student/materi/${chapterId}/membaca` },
-      { title: "C. Menulis", slug: "menulis", icon: Pencil, status: 'active', href: `/student/materi/${chapterId}/menulis` },
-      { title: "D. Mempresentasikan", slug: "mempresentasikan", icon: Presentation, status: 'active', href: `/student/materi/${chapterId}/mempresentasikan` },
-      { title: "E. Asesmen", slug: "asesmen", icon: CheckCircle, status: 'active', href: `/student/materi/${chapterId}/asesmen` },
-      { title: "Jurnal Membaca", slug: "jurnal-membaca", icon: BookOpen, status: 'active', href: `/student/materi/${chapterId}/jurnal-membaca` },
-      { title: "Refleksi", slug: "refleksi", icon: PenSquare, status: 'active', href: `/student/materi/${chapterId}/refleksi` },
-    ];
-    
-    const sections = initialSections.map(section => ({
-        ...section,
-        href: section.href || '#'
-    }));
+const sectionsConfig = [
+    { id: "menyimak", title: "A. Menyimak", icon: BookOpen, href: (id: string) => `/student/materi/${id}/menyimak` },
+    { id: "membaca", title: "B. Membaca", icon: FileText, href: (id: string) => `/student/materi/${id}/membaca` },
+    { id: "menulis", title: "C. Menulis", icon: Pencil, href: (id: string) => `/student/materi/${id}/menulis` },
+    { id: "mempresentasikan", title: "D. Mempresentasikan", icon: Presentation, href: (id: string) => `/student/materi/${id}/mempresentasikan` },
+    { id: "asesmen", title: "E. Asesmen", icon: CheckCircle, href: (id: string) => `/student/materi/${id}/asesmen` },
+    { id: "jurnal-membaca", title: "Jurnal Membaca", icon: BookOpen, href: (id: string) => `/student/materi/${id}/jurnal-membaca` },
+    { id: "refleksi", title: "Refleksi", icon: PenSquare, href: (id: string) => `/student/materi/${id}/refleksi` },
+];
 
+
+function ChapterDetails({ chapterId, data, loading }: { chapterId: string, data: ChapterData | null, loading: boolean }) {
+    
     return (
         <div className="max-w-4xl mx-auto space-y-8">
              <Card>
@@ -72,18 +69,18 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
                         </div>
                     ) : (
                         <>
-                            <p>
-                                <strong>Pengantar:</strong> {content?.introduction || "Konten belum tersedia."}
+                            <p className="text-justify">
+                                <strong>Pengantar:</strong> {data?.introduction || "Konten belum tersedia."}
                             </p>
                             <Separator/>
-                            <p>
-                                <strong>Tujuan Pembelajaran:</strong> {content?.learningObjective || "Konten belum tersedia."}
+                            <p className="text-justify">
+                                <strong>Tujuan Pembelajaran:</strong> {data?.learningObjective || "Konten belum tersedia."}
                             </p>
                              <div>
                                 <h3 className="font-semibold">Kata Kunci:</h3>
-                                {content?.keywords && content.keywords.length > 0 ? (
+                                {data?.keywords && data.keywords.length > 0 ? (
                                      <div className="flex flex-wrap gap-2 mt-2">
-                                        {content.keywords.map((keyword, i) => <span key={i} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded-full">{keyword}</span>)}
+                                        {data.keywords.map((keyword, i) => <span key={i} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded-full">{keyword}</span>)}
                                     </div>
                                 ) : <p className="text-muted-foreground">Belum ada kata kunci.</p>}
                             </div>
@@ -104,8 +101,8 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
                 {loading ? (
                     <Skeleton className="h-20 w-full" />
                 ) : (
-                    <ol className="list-decimal list-inside space-y-2 text-sm">
-                        {content?.sparkingQuestions?.map((q, i) => <li key={i}>{q}</li>) ?? <p className="text-muted-foreground">Belum ada pertanyaan pemantik.</p>}
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-justify">
+                        {data?.sparkingQuestions?.map((q, i) => <li key={i}>{q}</li>) ?? <p className="text-muted-foreground">Belum ada pertanyaan pemantik.</p>}
                     </ol>
                 )}
               </CardContent>
@@ -115,54 +112,55 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
                 <CardHeader>
                     <CardTitle>Peta Petualangan Belajar</CardTitle>
                     <CardDescription>
-                        Ikuti setiap tahap untuk menyelesaikan bab ini. Tahap berikutnya akan terbuka setelah Anda menyelesaikan tahap sebelumnya.
+                        Ikuti setiap tahap untuk menyelesaikan bab ini. Tahap yang belum aktif akan dibuka oleh guru.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {sections.map((section, index) => {
-                            const isLocked = section.status === 'locked';
-                            const isActive = section.status === 'active';
-                            const isCompleted = section.status === 'completed';
-                            const Icon = section.icon;
+                        {loading ? (
+                             Array.from({ length: 7 }).map((_, index) => (
+                                <Card key={index} className="w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md">
+                                    <Skeleton className="w-10 h-10 rounded-full mb-2" />
+                                    <Skeleton className="h-4 w-3/4" />
+                                </Card>
+                            ))
+                        ) : (
+                            sectionsConfig.map((section) => {
+                                const isLocked = !(data?.sectionStatus?.[section.id] ?? false);
+                                const Icon = section.icon;
 
-                            const cardContent = (
-                               <Card className={cn(
-                                    "w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md text-center transition-all duration-300",
-                                    isLocked && "bg-slate-100/50 opacity-50 cursor-not-allowed",
-                                    isActive && "ring-2 ring-primary ring-offset-2",
-                                    isCompleted && "bg-green-50 border-green-200",
-                                    !isLocked && "hover:bg-slate-100"
-                                )}>
-                                   <div className="relative">
-                                       {isLocked && <Lock className="absolute -top-1 -right-1 w-4 h-4 text-slate-500 bg-white rounded-full p-0.5" />}
-                                       <Icon className={cn(
-                                            "w-10 h-10 mb-2",
-                                            isLocked && "text-slate-400",
-                                            isActive && "text-primary",
-                                            isCompleted && "text-green-500"
-                                        )} />
-                                   </div>
-                                   <p className={cn(
-                                        "font-semibold text-sm",
-                                        isLocked && "text-slate-500",
-                                        isActive && "text-primary",
-                                        isCompleted && "text-green-600"
-                                    )}>{section.title}</p>
-                                    {isCompleted && <p className="text-xs font-bold text-green-500 mt-1">Selesai!</p>}
-                               </Card>
-                            );
+                                const cardContent = (
+                                <Card className={cn(
+                                        "w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md text-center transition-all duration-300",
+                                        isLocked && "bg-slate-100 opacity-60 cursor-not-allowed",
+                                        !isLocked && "hover:bg-slate-100 ring-2 ring-primary ring-offset-2"
+                                    )}>
+                                    <div className="relative">
+                                        {isLocked && <Lock className="absolute -top-2 -right-2 w-5 h-5 text-slate-500 bg-white rounded-full p-1 shadow-md" />}
+                                        <Icon className={cn(
+                                                "w-10 h-10 mb-2",
+                                                isLocked ? "text-slate-400" : "text-primary"
+                                            )} />
+                                    </div>
+                                    <p className={cn(
+                                            "font-semibold text-sm",
+                                            isLocked ? "text-slate-500" : "text-primary"
+                                        )}>{section.title}</p>
+                                        {!isLocked && <p className="text-xs font-bold text-green-500 mt-1">Terbuka!</p>}
+                                </Card>
+                                );
 
-                            if (isLocked) {
-                                return <div key={index} className="flex">{cardContent}</div>;
-                            }
-                            
-                            return (
-                                <Link href={section.href} key={index} className="flex">
-                                    {cardContent}
-                                </Link>
-                            );
-                        })}
+                                if (isLocked) {
+                                    return <div key={section.id} className="flex">{cardContent}</div>;
+                                }
+                                
+                                return (
+                                    <Link href={section.href(chapterId)} key={section.id} className="flex">
+                                        {cardContent}
+                                    </Link>
+                                );
+                            })
+                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -172,19 +170,17 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
 
 export default function BabSiswaPage() {
     const params = useParams();
-    const router = useRouter();
     const chapterId = params.id as string;
 
-  // This is the main Chapter page content (Peta Petualangan)
-  const [content, setContent] = useState<ChapterContent | null>(null);
+  const [data, setData] = useState<ChapterData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchContent() {
       if (!chapterId) return;
       setLoading(true);
-      const fetchedContent = await getChapterContent(chapterId);
-      setContent(fetchedContent);
+      const fetchedData = await getChapterData(chapterId);
+      setData(fetchedData);
       setLoading(false);
     }
     fetchContent();
@@ -206,7 +202,7 @@ export default function BabSiswaPage() {
             </div>
         </header>
         <main className="flex-1 p-4 md:p-8">
-            <ChapterDetails chapterId={chapterId} content={content} loading={loading} />
+            <ChapterDetails chapterId={chapterId} data={data} loading={loading} />
         </main>
       </div>
     </AuthenticatedLayout>
