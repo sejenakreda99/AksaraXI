@@ -1,58 +1,47 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Users, BarChart } from 'lucide-react';
-import { TeacherHeader } from '@/components/layout/teacher-header';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
+import { Card } from '@/components/ui/card';
+
+const menuItems = [
+    {
+        title: "Manajemen Kelompok",
+        icon: Users,
+        href: "/teacher/students",
+        description: "Tambah atau lihat daftar kelompok."
+    },
+    {
+        title: "Pantau Kemajuan",
+        icon: BarChart,
+        href: "#",
+        description: "Lihat laporan kemajuan belajar siswa.",
+        disabled: true
+    }
+]
 
 export default function DashboardPage() {
   return (
     <AuthenticatedLayout>
-      <div className="flex flex-col h-full">
-        <TeacherHeader
-          title="Dasbor Guru"
-          description="Selamat datang di dasbor Aksara XI. Kelola siswa dan pantau kemajuan mereka di sini."
-        />
-        <main className="flex-1 p-4 md:p-8 grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-6 h-6" />
-                Kelola Siswa
-              </CardTitle>
-              <CardDescription>
-                Tambah atau lihat daftar siswa yang terdaftar di kelas Anda.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow flex items-end">
-              <Button asChild className="w-full">
-                <Link href="/teacher/students">Buka Manajemen Siswa</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart className="w-6 h-6" />
-                Pantau Kemajuan
-              </CardTitle>
-              <CardDescription>
-                Lihat laporan dan analisis kemajuan belajar siswa secara
-                keseluruhan.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow flex items-end">
-              <Button asChild className="w-full" disabled>
-                <Link href="#">Buka Pemantauan</Link>
-              </Button>
-            </CardContent>
-          </Card>
+      <div className="flex flex-col h-full bg-slate-50">
+         <header className="p-6 text-center bg-background border-b">
+            <h1 className="text-xl font-bold uppercase text-foreground">
+              Portal Guru
+            </h1>
+        </header>
+        <main className="flex-1 p-4 md:p-6">
+          <div className="grid grid-cols-2 gap-4">
+            {menuItems.map((item) => (
+              <Link href={item.href} key={item.title} className={`flex ${item.disabled ? "pointer-events-none" : ""}`}>
+                <Card className={`w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md ${item.disabled ? "bg-slate-100/50 opacity-50" : "hover:bg-slate-100 transition-colors"}`}>
+                   <div className="p-3 bg-primary/10 rounded-full mb-3">
+                      <item.icon className="w-8 h-8 text-primary" />
+                   </div>
+                   <p className="font-semibold text-center text-sm">{item.title}</p>
+                   <p className="text-xs text-muted-foreground text-center mt-1">{item.description}</p>
+                </Card>
+              </Link>
+            ))}
+          </div>
         </main>
       </div>
     </AuthenticatedLayout>
