@@ -63,7 +63,7 @@ function MenyimakPageContent({ chapterId }: { chapterId: string }) {
             [no]: { ...prev[no], [type]: value }
         }));
     };
-
+    
     return (
         <div className="flex flex-col h-full">
             <header className="bg-card border-b p-4 md:p-6">
