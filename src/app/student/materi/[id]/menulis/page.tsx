@@ -314,7 +314,7 @@ export default function MenulisSiswaPage() {
     return (
         <AuthenticatedLayout>
             <div className="flex flex-col h-full">
-                <header className="bg-card border-b p-4 md:p-6">
+                <header className="bg-card border-b p-4 sm:p-6 md:p-8">
                     <div className="max-w-4xl mx-auto">
                         <Button asChild variant="outline" size="sm" className="mb-4">
                             <Link href={`/student/materi/${chapterId}`}>
@@ -327,7 +327,7 @@ export default function MenulisSiswaPage() {
                     </div>
                 </header>
 
-                <main className="flex-1 p-4 md:p-8">
+                <main className="flex-1 p-4 sm:p-6 md:p-8">
                     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm font-medium text-muted-foreground">
