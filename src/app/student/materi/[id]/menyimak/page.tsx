@@ -90,7 +90,6 @@ const steps = [
     { id: 'kegiatan1-umpan-balik', title: 'Kegiatan 1: Umpan Balik' },
     { id: 'kegiatan2', title: 'Kegiatan 2: Analisis & Dialog' },
     { id: 'latihan', title: 'Latihan Mandiri' },
-    { id: 'selesai', title: 'Selesai' },
 ];
 
 
@@ -106,6 +105,7 @@ export default function MenyimakSiswaPage() {
     const [user] = useAuthState(auth);
     const { toast } = useToast();
     const [currentStep, setCurrentStep] = useState(0);
+    const [isCompleted, setIsCompleted] = useState(false);
 
     useEffect(() => {
         if (!user || !chapterId) return;
@@ -199,7 +199,7 @@ export default function MenyimakSiswaPage() {
             }, { merge: true });
             
             toast({ title: "Berhasil!", description: "Seluruh jawaban Anda di bagian Menyimak telah berhasil disimpan." });
-            setCurrentStep(steps.length - 1); // Go to completion screen
+            setIsCompleted(true);
 
         } catch (error) {
             toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan jawaban Anda." });
@@ -209,14 +209,34 @@ export default function MenyimakSiswaPage() {
     };
     
     const progressPercentage = useMemo(() => {
-        if(currentStep >= steps.length - 1) return 100;
-        return (currentStep / (steps.length - 1)) * 100;
-    }, [currentStep]);
+        if(isCompleted) return 100;
+        return ((currentStep + 1) / (steps.length + 1)) * 100;
+    }, [currentStep, isCompleted]);
 
 
     const renderStepContent = () => {
         if (loading || !content) {
             return <Card><CardHeader><Skeleton className="h-8 w-3/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-6 w-full" /><Skeleton className="aspect-video w-full" /><Skeleton className="h-48 w-full" /></CardContent></Card>;
+        }
+        
+        if (isCompleted) {
+             return (
+                    <Card className="text-center p-8">
+                        <CardHeader>
+                            <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
+                            <CardTitle className="text-2xl">Kegiatan Selesai!</CardTitle>
+                            <CardDescription>Anda telah menyelesaikan seluruh kegiatan pada bagian Menyimak. Jawaban Anda sudah disimpan. Anda dapat kembali ke Peta Petualangan.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button asChild>
+                            <Link href={`/student/materi/${chapterId}`}>
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Kembali ke Peta Petualangan
+                            </Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )
         }
 
         const stepId = steps[currentStep]?.id;
@@ -392,24 +412,6 @@ export default function MenyimakSiswaPage() {
                         </CardContent>
                     </Card>
                 );
-            case 'selesai':
-                return (
-                    <Card className="text-center p-8">
-                        <CardHeader>
-                            <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-                            <CardTitle className="text-2xl">Kegiatan Selesai!</CardTitle>
-                            <CardDescription>Anda telah menyelesaikan seluruh kegiatan pada bagian Menyimak. Jawaban Anda sudah disimpan. Anda dapat kembali ke Peta Petualangan.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Button asChild>
-                            <Link href={`/student/materi/${chapterId}`}>
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Kembali ke Peta Petualangan
-                            </Link>
-                            </Button>
-                        </CardContent>
-                    </Card>
-                )
             default: return null;
         }
     }
@@ -434,35 +436,33 @@ export default function MenyimakSiswaPage() {
                 <main className="flex-1 p-4 md:p-8">
                      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
                  
-                        {/* Progress Indicator */}
-                        {steps[currentStep].id !== 'selesai' && (
+                        {!isCompleted && (
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                                    <span>Langkah {currentStep + 1} dari {steps.length - 1}</span>
+                                    <span>Langkah {currentStep + 1} dari {steps.length}</span>
                                     <span>{steps[currentStep]?.title || ''}</span>
                                 </div>
-                                <Progress value={progressPercentage} className="w-full" />
+                                <Progress value={((currentStep + 1) / steps.length) * 100} className="w-full" />
                             </div>
                         )}
                         
                         <div>
-                        {renderStepContent()}
+                           {renderStepContent()}
                         </div>
                         
-                        {/* Navigation Buttons */}
-                         {currentStep < steps.length - 1 && (
+                        {!isCompleted && (
                             <div className="flex justify-between items-center pt-4">
                                 <Button type="button" variant="outline" onClick={() => setCurrentStep(s => s - 1)} disabled={currentStep === 0}>
                                     <ArrowLeft className="mr-2 h-4 w-4"/>
                                     Kembali
                                 </Button>
 
-                                {currentStep < steps.length - 2 ? (
+                                {currentStep < steps.length - 1 ? (
                                     <Button type="button" onClick={() => setCurrentStep(s => s + 1)}>
                                         Lanjut
                                         <ArrowRight className="ml-2 h-4 w-4"/>
                                     </Button>
-                                ): (
+                                ) : (
                                     <Button type="submit" disabled={isSubmitting || loading}>
                                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                         {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Semua Jawaban'}
