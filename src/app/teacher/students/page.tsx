@@ -27,11 +27,11 @@ export default function TeacherStudentsPage() {
           description="Tambah kelompok baru dan lihat daftar kelompok yang terdaftar."
         />
         <main className="flex-1 p-4 md:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl mx-auto">
-            <div className="md:col-span-1">
+          <div className="grid grid-cols-1 gap-8 w-full max-w-2xl mx-auto">
+            <div className="w-full">
               <AddGroupForm />
             </div>
-            <div className="md:col-span-2">
+            <div className="w-full">
               <Card>
                 <CardHeader>
                   <CardTitle>Daftar Kelompok</CardTitle>
