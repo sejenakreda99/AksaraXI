@@ -24,6 +24,9 @@ type Statement = {
 
 type LatihanStatement = {
     statement: string;
+    answer: 'benar' | 'salah';
+    points: number;
+    analysisPoints: number;
 }
 
 type MenyimakContent = {
@@ -58,11 +61,11 @@ const defaultContent: MenyimakContent = {
   latihan: {
     youtubeUrl: "https://www.youtube.com/embed/Za2zEoGcfmU",
     statements: [
-        { statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba." },
-        { statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut." },
-        { statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut." },
-        { statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap." },
-        { statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya." }
+        { statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba.", answer: 'benar', points: 10, analysisPoints: 10 },
+        { statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut.", answer: 'benar', points: 10, analysisPoints: 10 },
+        { statement: "Narator mendeskripsikan Danau Toba dengan kesan agar penyimak tertarik sehingga ingin mengunjungi objek tersebut.", answer: 'benar', points: 10, analysisPoints: 10 },
+        { statement: "Narator mendeskripsikan Danau Toba dengan cukup detail sehingga penyimak merasa mendapatkan gambaran Danau Toba secara lengkap.", answer: 'benar', points: 10, analysisPoints: 10 },
+        { statement: "Narator mendeskripsikan Danau Toba secara sistematis sehingga penyimak mudah memahaminya.", answer: 'benar', points: 10, analysisPoints: 10 }
     ]
   }
 };
@@ -104,7 +107,8 @@ export default function MenyimakPage() {
     fetchContent();
   }, []);
 
-  const totalPoints = content?.statements.reduce((acc, s) => acc + (s.points || 0) + (s.evidencePoints || 0), 0) || 0;
+  const totalPointsKegiatan1 = content?.statements.reduce((acc, s) => acc + (s.points || 0) + (s.evidencePoints || 0), 0) || 0;
+  const totalPointsLatihan = content?.latihan.statements.reduce((acc, s) => acc + (s.points || 0) + (s.analysisPoints || 0), 0) || 0;
   
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return '';
@@ -195,7 +199,7 @@ export default function MenyimakPage() {
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>Tabel 1.1 Penilaian Pernyataan</CardTitle>
-                                            <CardDescription>Total Skor Maksimal: {totalPoints}</CardDescription>
+                                            <CardDescription>Total Skor Maksimal: {totalPointsKegiatan1}</CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <Table>
@@ -297,35 +301,51 @@ export default function MenyimakPage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                     <div className="prose prose-sm max-w-none text-foreground">
+                                     <div className="prose prose-sm max-w-none text-foreground mb-4">
                                         <p>Simaklah tayangan deskripsi pada laman YouTube Info Sumut dengan kata kunci pencarian pesona Danau Toba. Setelah kalian menyimak tayangan tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.2. Lalu, berikan analisis terhadap gagasan dan pandangan yang disampaikan narator dalam tayangan tersebut.</p>
                                     </div>
-                                     <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                     <div className="aspect-video w-full rounded-lg overflow-hidden border mb-4">
                                         <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.latihan.youtubeUrl)} title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
                                     </div>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-[50px]">No.</TableHead>
-                                                <TableHead>Pernyataan</TableHead>
-                                                <TableHead className="w-[100px] text-center">Benar</TableHead>
-                                                <TableHead className="w-[100px] text-center">Salah</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {content.latihan.statements.map((item, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>{index + 1}</TableCell>
-                                                    <TableCell>
-                                                        <p>{item.statement}</p>
-                                                        <p className="text-muted-foreground italic mt-2">Jika tidak, seharusnya .... (Siswa mengisi bagian ini)</p>
-                                                    </TableCell>
-                                                    <TableCell className="text-center">✓</TableCell>
-                                                    <TableCell className="text-center">✓</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                    <Card>
+                                      <CardHeader>
+                                          <CardTitle>Tabel 1.2 Penilaian Pernyataan</CardTitle>
+                                          <CardDescription>Total Skor Maksimal: {totalPointsLatihan}</CardDescription>
+                                      </CardHeader>
+                                      <CardContent>
+                                          <Table>
+                                              <TableHeader>
+                                                  <TableRow>
+                                                      <TableHead className="w-[50px]">No.</TableHead>
+                                                      <TableHead>Pernyataan & Analisis</TableHead>
+                                                      <TableHead className="w-[120px] text-center">Kunci Jawaban</TableHead>
+                                                      <TableHead className="w-[120px] text-center">Skor Maksimal</TableHead>
+                                                  </TableRow>
+                                              </TableHeader>
+                                              <TableBody>
+                                                  {content?.latihan.statements.map((item, index) => (
+                                                  <TableRow key={index}>
+                                                      <TableCell>{index + 1}</TableCell>
+                                                      <TableCell>
+                                                          <p>{item.statement}</p>
+                                                          <p className="font-semibold mt-2">Jika tidak, seharusnya ...</p>
+                                                          <p className="text-muted-foreground italic">(Siswa mengisi bagian ini - dinilai manual oleh guru)</p>
+                                                      </TableCell>
+                                                      <TableCell className="text-center font-medium capitalize">
+                                                          {item.answer === 'benar' ? 
+                                                          <span className='flex items-center justify-center text-green-600'><Check className='w-4 h-4 mr-1'/> Benar</span> : 
+                                                          <span className='flex items-center justify-center text-red-600'><X className='w-4 h-4 mr-1'/> Salah</span>}
+                                                      </TableCell>
+                                                      <TableCell className="text-center">
+                                                          <p>Jawaban: {item.points || 0}</p>
+                                                          <p>Analisis: {item.analysisPoints || 0}</p>
+                                                      </TableCell>
+                                                  </TableRow>
+                                                  ))}
+                                              </TableBody>
+                                          </Table>
+                                      </CardContent>
+                                    </Card>
                                 </CardContent>
                             </Card>
                         </>
