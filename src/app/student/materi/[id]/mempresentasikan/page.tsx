@@ -14,6 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 
 type AssessmentAnswers = {
@@ -28,6 +31,8 @@ export default function MempresentasikanSiswaPage() {
     const chapterId = params.id as string;
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [user] = useAuthState(auth);
+    const formRef = React.useRef<HTMLFormElement>(null);
     
     const assessmentCriteria = [
         "Kriteria memerinci objek",
@@ -62,19 +67,44 @@ export default function MempresentasikanSiswaPage() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!user) {
+            toast({ variant: 'destructive', title: 'Gagal', description: 'Anda harus masuk untuk mengirimkan penilaian.' });
+            return;
+        }
+
         setIsSubmitting(true);
-        // TODO: Implement Firebase submission logic
-        console.log(answers);
+        
+        try {
+            const submissionId = `${user.uid}_${chapterId}_mempresentasikan_${Date.now()}`;
+            const submissionRef = doc(db, 'submissions', submissionId);
+            
+            await setDoc(submissionRef, {
+                studentId: user.uid,
+                chapterId: chapterId,
+                activity: 'mempresentasikan',
+                answers: answers,
+                lastSubmitted: serverTimestamp()
+            });
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+            toast({
+                title: "Penilaian Disimpan",
+                description: "Penilaian Anda untuk teman Anda telah berhasil disimpan.",
+            });
+            
+            // Reset form
+            setAnswers({ speakerName: '', speakerClass: '', textTitle: '', scores: {} });
+            formRef.current?.reset();
 
-        toast({
-            title: "Penilaian Disimpan",
-            description: "Penilaian Anda untuk teman Anda telah berhasil disimpan.",
-        });
-
-        setIsSubmitting(false);
+        } catch (error) {
+             console.error("Error submitting assessment: ", error);
+            toast({
+                variant: 'destructive',
+                title: "Gagal Menyimpan",
+                description: "Terjadi kesalahan saat menyimpan penilaian Anda.",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return (
@@ -94,7 +124,7 @@ export default function MempresentasikanSiswaPage() {
                 </header>
 
                 <main className="flex-1 p-4 md:p-8">
-                    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+                    <form ref={formRef} onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
                          <Card>
                             <CardHeader>
                                 <CardTitle>Tujuan Pembelajaran</CardTitle>
@@ -108,7 +138,7 @@ export default function MempresentasikanSiswaPage() {
                             <CardHeader>
                                 <CardTitle>Kegiatan 1: Panduan Membaca Nyaring</CardTitle>
                             </CardHeader>
-                            <CardContent className="prose prose-sm max-w-none text-foreground">
+                            <CardContent className="prose prose-sm max-w-none text-foreground text-justify">
                                 <p>Pada kegiatan ini, kalian akan membacakan secara lisan atau membaca nyaring, teks deskripsi yang telah kalian tulis. Kalian juga bisa menyajikan teks deskripsi seperti para presenter wisata atau presenter kuliner. Salah satu hal yang harus diperhatikan saat membaca nyaring adalah mengatur intonasi. Penggunaan intonasi yang tepat akan membuat kegiatan membaca nyaring kalian lebih menarik.</p>
                                 <p>Cara mengatur intonasi saat berbicara atau membaca nyaring yaitu sebagai berikut.</p>
                                 <ol>
@@ -154,7 +184,7 @@ export default function MempresentasikanSiswaPage() {
                                         {assessmentCriteria.map((item, index) => (
                                             <TableRow key={index}>
                                                 <TableCell>{index + 1}.</TableCell>
-                                                <TableCell className="font-medium">{item}</TableCell>
+                                                <TableCell className="font-medium text-justify">{item}</TableCell>
                                                 <TableCell className="text-center">
                                                     <RadioGroup 
                                                         className="flex justify-center gap-4" 
