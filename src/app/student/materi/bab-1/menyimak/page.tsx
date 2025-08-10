@@ -6,13 +6,14 @@ import { db, auth } from '@/lib/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Youtube, FileText, ArrowLeft, Loader2 } from 'lucide-react';
+import { Youtube, FileText, ArrowLeft, Loader2, BookCopy, Send } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { Separator } from '@/components/ui/separator';
 
 type Statement = {
   no: number;
@@ -38,6 +39,7 @@ export default function MenyimakSiswaPage() {
   const [answers, setAnswers] = useState<
     Record<string, { choice: 'benar' | 'salah' | ''; evidence: string }>
   >({});
+  const [activity2Answers, setActivity2Answers] = useState<Record<string, string>>({});
   const chapterId = '1';
 
   useEffect(() => {
@@ -78,6 +80,13 @@ export default function MenyimakSiswaPage() {
     }));
   };
 
+  const handleActivity2AnswerChange = (question: number, value: string) => {
+    setActivity2Answers((prev) => ({
+      ...prev,
+      [question]: value,
+    }));
+  };
+
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return '';
     try {
@@ -115,8 +124,9 @@ export default function MenyimakSiswaPage() {
             chapterId: chapterId,
             activity: 'menyimak',
             answers: answers,
+            activity2Answers: activity2Answers,
             submittedAt: serverTimestamp()
-        });
+        }, { merge: true });
         
         toast({
             title: "Berhasil!",
@@ -153,7 +163,7 @@ export default function MenyimakSiswaPage() {
       </header>
 
       <main className="flex-1 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
           {loading ? (
             <Card>
               <CardHeader>
@@ -216,7 +226,6 @@ export default function MenyimakSiswaPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <form onSubmit={handleSubmit}>
                     {content.statements.map((stmt) => (
                       <div key={stmt.no} className="border p-4 rounded-lg bg-slate-50/50">
                         <p className="font-semibold">Pernyataan #{stmt.no}</p>
@@ -259,13 +268,76 @@ export default function MenyimakSiswaPage() {
                         </div>
                       </div>
                     ))}
-                    <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
-                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-                      {isSubmitting ? 'Mengirim...' : 'Simpan & Kirim Jawaban'}
-                    </Button>
-                  </form>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Umpan Balik & Teks Transkrip</CardTitle>
+                  <CardDescription>
+                    Setelah kalian menyatakan benar atau salah pernyataan tersebut yang disertai alasan atau bukti informasi, bandingkanlah jawaban kalian dengan penjelasan berikut. Teks deskripsi yang dilisankan dari laman YouTube tersebut dapat dituliskan sebagai berikut.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="prose prose-sm max-w-none bg-slate-50/50 p-4 rounded-md">
+                    <h4 className="font-bold">Candi Borobudur</h4>
+                    <p>
+                        Candi Borobudur adalah candi Budha yang paling besar dan mewah yang ada di Indonesia. Bentuk daripada candi ini nampak seperti piramida atau limas segi empat. Candi ini mempunyai banyak relief dan juga stupa. Karena kemegahan dan ukuran candi, membuat pesona candi bak gunung yang menjulang tinggi. Bahkan, dari arah kejauhan telah nampak dengan jelas akan pesona dari candi ini.
+                    </p>
+                    <p>
+                        Candi Borobudur terdiri dari tiga tingkatan. Tingkat pertama paling bawah disebut dengan Kamadatu. Pada bagian akhir tingkatan ini, terdapat relief yang berjumlah 160 buah. Relief tersebut mengandung kisah tentang Kamawibangga, berbagai macam kisah tentang dosa.
+                    </p>
+                    <p>
+                        Tingkat kedua disebut Rupadatu, berupa empat buah teras. Teras itu seolah membentuk lorong yang berputar. Pada tingkat Rupadatu, terdapat 1300 relief. Pada tingkat kedua ini pula terdapat patung Budha berukuran kecil. Jumlah keseluruhan patung Budha sebanyak 432 patung. Patung itu terletak pada suatu relung terbuka yang ada di sepanjang pagar langkan. Pagar langkan adalah suatu bentuk peralihan dari Rupadatu ke Arupadatu.
+                    </p>
+                    <p>
+                        Tingkat paling atas dinamakan Arupadatu. Khusus untuk tingkat ini, sama sekali tidak ada hiasan relief pada dindingnya. Bentuk dari lantai Arupadatu berupa lingkaran. Di sini, ada 72 stupa kecil. Semua stupa kecil tersebut tersusun atas tiga buah barisan yang seolah mengelilingi stupa induk. Bentuk dari stupa kecil menyerupai lonceng. Di dalam stupa, terdapat patung Budha. Di bagian tengah Arupadatu, terdapat stupa induk. Stupa ini memiliki patung-patung Budha dan mempunyai ukuran paling besar daripada stupa lainnya.
+                    </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                    <CardTitle>Kegiatan 2: Mengevaluasi Gagasan</CardTitle>
+                    <CardDescription>
+                        Simaklah kembali teks deskripsi “Candi Borobudur” melalui tautan video pada Kegiatan 1. Setelah itu, jawablah pertanyaan berikut!
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                        {[
+                            { no: 1, q: "Seandainya kalian belum pernah secara langsung berkunjung ke Candi Borobudur, dapatkah kalian seolah-olah mengindra (melihat, mendengar, merasakan) Candi Borobudur setelah menyimak teks tersebut?" },
+                            { no: 2, q: "Apa yang menarik dari penggambaran objek Candi Borobudur setelah menyimak teks tersebut?" },
+                            { no: 3, q: "Mengapa narator mendeskripsikan Candi Borobudur itu mulai dari tingkat bawah sampai ke tingkat paling atas candi?" },
+                            { no: 4, q: "Apakah narator berhasil menggambarkan secara rinci objek sehingga pembaca seakan-akan melihat, mendengar, atau merasakan objek yang dideskripsikan? Tunjukkan buktinya." },
+                        ].map(item => (
+                            <div key={item.no}>
+                                <Label htmlFor={`activity2-q${item.no}`} className="font-semibold">{item.no}. {item.q}</Label>
+                                <Textarea id={`activity2-q${item.no}`} className="mt-2" placeholder="Tuliskan jawaban Anda di sini..." onChange={e => handleActivity2AnswerChange(item.no, e.target.value)} value={activity2Answers[item.no] || ''} />
+                            </div>
+                        ))}
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                        <p className="text-sm text-foreground">
+                            Selanjutnya, simaklah tayangan dalam laman YouTube Property Inside dengan kata kunci pencarian bagaimana cara Gunadharma membangun Candi Borobudur atau bisa dipindai pada kode QR di samping. Lalu, bandingkan dengan teks deskripsi yang pertama kalian simak pada Kegiatan 1. Mana di antara kedua teks tersebut yang lebih baik deskripsinya?
+                        </p>
+                        <div className="mt-4 space-y-4">
+                            <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                <iframe className="w-full h-full" src="https://www.youtube.com/embed/u1yo-uJDsU4" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                            </div>
+                            <Label htmlFor="comparison" className="font-semibold">Jawaban Perbandingan Anda:</Label>
+                            <Textarea id="comparison" placeholder="Tuliskan hasil perbandingan Anda di sini..." rows={5} onChange={e => handleActivity2AnswerChange(5, e.target.value)} value={activity2Answers[5] || ''} />
+                        </div>
+                    </div>
+                </CardContent>
+              </Card>
+
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                  {isSubmitting ? 'Mengirim...' : 'Simpan & Kirim Semua Jawaban'}
+              </Button>
             </div>
           ) : (
             <Card>
@@ -277,7 +349,7 @@ export default function MenyimakSiswaPage() {
               </CardContent>
             </Card>
           )}
-        </div>
+        </form>
       </main>
     </div>
   );
