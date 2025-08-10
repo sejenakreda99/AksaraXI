@@ -37,10 +37,12 @@ export default function MenyimakSiswaPage() {
   useEffect(() => {
     async function fetchContent() {
       try {
-        const docRef = doc(db, 'chapters', chapterId, 'content', 'menyimak');
+        // FIX: Path is changed to match teacher's data structure
+        const docRef = doc(db, 'chapters', chapterId);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const fetchedContent = docSnap.data() as MenyimakContent;
+        
+        if (docSnap.exists() && docSnap.data().menyimak) {
+          const fetchedContent = docSnap.data().menyimak as MenyimakContent;
           setContent(fetchedContent);
           const initialAnswers: Record<string, { choice: '' | 'benar' | 'salah'; evidence: '' }> = {};
           fetchedContent.statements.forEach((stmt) => {
