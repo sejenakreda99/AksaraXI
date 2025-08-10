@@ -41,13 +41,13 @@ async function getChapterContent(id: string): Promise<ChapterContent | null> {
 function ChapterDetails({ chapterId, content, loading }: { chapterId: string, content: ChapterContent | null, loading: boolean }) {
     
     const initialSections = [
-      { title: "A. Menyimak", slug: "menyimak", icon: BookOpen, status: 'completed', href: `/student/materi/${chapterId}/menyimak` },
+      { title: "A. Menyimak", slug: "menyimak", icon: BookOpen, status: 'active', href: `/student/materi/${chapterId}/menyimak` },
       { title: "B. Membaca", slug: "membaca", icon: FileText, status: 'active', href: `/student/materi/${chapterId}/membaca` },
       { title: "C. Menulis", slug: "menulis", icon: Pencil, status: 'active', href: `/student/materi/${chapterId}/menulis` },
       { title: "D. Mempresentasikan", slug: "mempresentasikan", icon: Presentation, status: 'active', href: `/student/materi/${chapterId}/mempresentasikan` },
-      { title: "E. Asesmen", slug: "asesmen", icon: CheckCircle, status: 'locked', href: '#' },
-      { title: "Jurnal Membaca", slug: "jurnal-membaca", icon: BookOpen, status: 'locked', href: '#' },
-      { title: "Refleksi", slug: "refleksi", icon: PenSquare, status: 'locked', href: '#' },
+      { title: "E. Asesmen", slug: "asesmen", icon: CheckCircle, status: 'active', href: `/student/materi/${chapterId}/asesmen` },
+      { title: "Jurnal Membaca", slug: "jurnal-membaca", icon: BookOpen, status: 'active', href: `/student/materi/${chapterId}/jurnal-membaca` },
+      { title: "Refleksi", slug: "refleksi", icon: PenSquare, status: 'active', href: `/student/materi/${chapterId}/refleksi` },
     ];
     
     const sections = initialSections.map(section => ({
