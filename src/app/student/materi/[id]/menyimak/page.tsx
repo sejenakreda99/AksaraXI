@@ -231,7 +231,7 @@ export default function MenyimakSiswaPage() {
                             <CardTitle>Tujuan Pembelajaran</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <CardDescription className="text-base text-justify">{content.learningObjective}</CardDescription>
+                            <p className="text-base text-justify">{content.learningObjective}</p>
                         </CardContent>
                     </Card>
                 );
@@ -445,7 +445,7 @@ export default function MenyimakSiswaPage() {
                                         <ArrowRight className="ml-2 h-4 w-4"/>
                                     </Button>
                                 ): (
-                                    <Button type="submit" disabled={isSubmitting}>
+                                    <Button type="submit" disabled={isSubmitting || loading}>
                                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                         {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Semua Jawaban'}
                                     </Button>
