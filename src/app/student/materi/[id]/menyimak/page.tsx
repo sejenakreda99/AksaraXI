@@ -231,7 +231,7 @@ export default function MenyimakSiswaPage() {
                             <CardTitle>Tujuan Pembelajaran</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <CardDescription className="text-base">{content.learningObjective}</CardDescription>
+                            <CardDescription className="text-base text-justify">{content.learningObjective}</CardDescription>
                         </CardContent>
                     </Card>
                 );
@@ -239,19 +239,19 @@ export default function MenyimakSiswaPage() {
                 return (
                     <>
                     <Card>
-                        <CardHeader><CardTitle>Kegiatan 1: Menganalisis Teks Deskripsi</CardTitle><CardDescription>Simak video di bawah ini dengan saksama, lalu kerjakan tugas yang diberikan.</CardDescription></CardHeader>
+                        <CardHeader><CardTitle>Kegiatan 1: Menganalisis Teks Deskripsi</CardTitle><CardDescription className="text-justify">Simak video di bawah ini dengan saksama, lalu kerjakan tugas yang diberikan.</CardDescription></CardHeader>
                         <CardContent className="space-y-4">
                             {content.youtubeUrl ? (<div className="aspect-video w-full rounded-lg overflow-hidden border"><iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.youtubeUrl)} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe></div>) : (<p className="text-muted-foreground">Video belum ditambahkan oleh guru.</p>)}
                             {content.youtubeUrl && (<Button asChild variant="outline"><Link href={content.youtubeUrl} target="_blank"><Youtube className="mr-2 h-4 w-4" /> Buka di YouTube</Link></Button>)}
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader><CardTitle>Tugas: Penilaian Pernyataan</CardTitle><CardDescription>Tentukan apakah pernyataan berikut benar atau salah, dan berikan bukti informasi dari video yang telah Anda simak.</CardDescription></CardHeader>
+                        <CardHeader><CardTitle>Tugas: Penilaian Pernyataan</CardTitle><CardDescription className="text-justify">Tentukan apakah pernyataan berikut benar atau salah, dan berikan bukti informasi dari video yang telah Anda simak.</CardDescription></CardHeader>
                         <CardContent className="space-y-6">
                             {content.statements.map((stmt) => (
                                 <div key={stmt.no} className="border p-4 rounded-lg bg-slate-50/50">
-                                <p className="font-semibold">Pernyataan #{stmt.no}</p>
-                                <p className="mt-1 text-sm">{stmt.statement}</p>
+                                <p className="font-semibold text-justify">Pernyataan #{stmt.no}</p>
+                                <p className="mt-1 text-sm text-justify">{stmt.statement}</p>
                                 <div className="mt-4 space-y-4">
                                     <div>
                                     <Label className="font-medium">Tentukan jawaban Anda:</Label>
@@ -274,9 +274,9 @@ export default function MenyimakSiswaPage() {
              case 'kegiatan1-umpan-balik':
                 return (
                      <Card>
-                        <CardHeader><CardTitle>Umpan Balik & Teks Transkrip</CardTitle><CardDescription>Setelah kalian menyatakan benar atau salah pernyataan tersebut yang disertai alasan atau bukti informasi, bandingkanlah jawaban kalian dengan penjelasan berikut. Teks deskripsi yang dilisankan dari laman YouTube tersebut dapat dituliskan sebagai berikut.</CardDescription></CardHeader>
-                        <CardContent className="prose prose-sm max-w-none bg-slate-50/50 p-4 rounded-md">
-                            <h4 className="font-bold">Candi Borobudur</h4>
+                        <CardHeader><CardTitle>Umpan Balik & Teks Transkrip</CardTitle><CardDescription className="text-justify">Setelah kalian menyatakan benar atau salah pernyataan tersebut yang disertai alasan atau bukti informasi, bandingkanlah jawaban kalian dengan penjelasan berikut. Teks deskripsi yang dilisankan dari laman YouTube tersebut dapat dituliskan sebagai berikut.</CardDescription></CardHeader>
+                        <CardContent className="prose prose-sm max-w-none bg-slate-50/50 p-4 rounded-md text-justify">
+                            <h4 className="font-bold text-center">Candi Borobudur</h4>
                             <p>Candi Borobudur adalah candi Budha yang paling besar dan mewah yang ada di Indonesia. Bentuk daripada candi ini nampak seperti piramida atau limas segi empat. Candi ini mempunyai banyak relief dan juga stupa. Karena kemegahan dan ukuran candi, membuat pesona candi bak gunung yang menjulang tinggi. Bahkan, dari arah kejauhan telah nampak dengan jelas akan pesona dari candi ini.</p>
                             <p>Tingkat pertama paling bawah disebut dengan Kamadatu. Pada bagian akhir tingkatan ini, terdapat relief yang berjumlah 160 buah. Relief tersebut mengandung kisah tentang Kamawibangga, berbagai macam kisah tentang dosa.</p>
                             <p>Tingkat kedua disebut Rupadatu, berupa empat buah teras. Teras itu seolah membentuk lorong yang berputar. Pada tingkat Rupadatu, terdapat 1300 relief. Pada tingkat kedua ini pula terdapat patung Budha berukuran kecil. Jumlah keseluruhan patung Budha sebanyak 432 patung. Patung itu terletak pada suatu relung terbuka yang ada di sepanjang pagar langkan. Pagar langkan adalah suatu bentuk peralihan dari Rupadatu ke Arupadatu.</p>
@@ -289,7 +289,7 @@ export default function MenyimakSiswaPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Kegiatan 2: Mengevaluasi Gagasan & Membandingkan</CardTitle>
-                            <CardDescription>
+                            <CardDescription className="text-justify">
                                 Simaklah kembali teks deskripsi “Candi Borobudur” melalui tautan video pada Kegiatan 1 jika perlu. Setelah itu, jawablah pertanyaan-pertanyaan di bawah ini.
                             </CardDescription>
                         </CardHeader>
@@ -297,14 +297,14 @@ export default function MenyimakSiswaPage() {
                             <div className="space-y-4">
                                 {(content.activity2Questions || []).map((q, i) => (
                                     <div key={i}>
-                                        <Label htmlFor={`activity2-q${i}`} className="font-semibold">{i + 1}. {q}</Label>
+                                        <Label htmlFor={`activity2-q${i}`} className="font-semibold text-justify">{i + 1}. {q}</Label>
                                         <Textarea id={`activity2-q${i}`} className="mt-2" placeholder="Tuliskan jawaban Anda di sini..." onChange={e => handleAnswerChange('kegiatan2', q, 'answer', e.target.value)} value={answers.kegiatan2[q] || ''} />
                                     </div>
                                 ))}
                             </div>
                             <Separator />
                             <div>
-                                <p className="text-sm text-foreground">Selanjutnya, simaklah tayangan dalam laman YouTube berikut. Lalu, bandingkan dengan teks deskripsi yang pertama kalian simak pada Kegiatan 1. Mana di antara kedua teks tersebut yang lebih baik deskripsinya?</p>
+                                <p className="text-sm text-foreground text-justify">Selanjutnya, simaklah tayangan dalam laman YouTube berikut. Lalu, bandingkan dengan teks deskripsi yang pertama kalian simak pada Kegiatan 1. Mana di antara kedua teks tersebut yang lebih baik deskripsinya?</p>
                                 <div className="mt-4 space-y-4">
                                     {content.comparisonVideoUrl && <div className="aspect-video w-full rounded-lg overflow-hidden border"><iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.comparisonVideoUrl)} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe></div>}
                                     <Label htmlFor="comparison" className="font-semibold">Jawaban Perbandingan Anda:</Label>
@@ -312,7 +312,7 @@ export default function MenyimakSiswaPage() {
                                 </div>
                             </div>
                             <Separator/>
-                            <div className="prose prose-sm max-w-none text-foreground">
+                            <div className="prose prose-sm max-w-none text-foreground text-justify">
                                 <p>Perhatikan dialog berikut. Apakah orang yang menggambarkan Candi Borobudur ini sudah berusaha menggambarkannya sebaik dan semenarik mungkin?</p>
                                 <blockquote className="border-l-4 pl-4 italic">
                                     <p><strong>Amir:</strong> Waktu liburan tahun ajaran baru kemarin, kelas kami berwisata ke Candi Borobudur.</p>
@@ -336,7 +336,7 @@ export default function MenyimakSiswaPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Latihan</CardTitle>
-                            <CardDescription>
+                            <CardDescription className="text-justify">
                                 Simaklah tayangan deskripsi pada laman YouTube Info Sumut dengan kata kunci pencarian pesona Danau Toba. Setelah kalian menyimak tayangan tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.2. Lalu, berikan analisis terhadap gagasan dan pandangan yang disampaikan narator dalam tayangan tersebut.
                             </CardDescription>
                         </CardHeader>
@@ -366,7 +366,7 @@ export default function MenyimakSiswaPage() {
                                                 <TableRow key={index}>
                                                     <TableCell>{index + 1}</TableCell>
                                                     <TableCell>
-                                                        <p>{item.statement}</p>
+                                                        <p className="text-justify">{item.statement}</p>
                                                         <Label className="mt-4 block font-medium">Jika tidak, seharusnya....</Label>
                                                         <Textarea
                                                             className="mt-2"
@@ -421,7 +421,7 @@ export default function MenyimakSiswaPage() {
                         {/* Progress Indicator */}
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                                <span>Langkah {currentStep + 1} dari {steps.length + 1}</span>
+                                <span>Langkah {currentStep >= steps.length ? steps.length + 1 : currentStep + 1} dari {steps.length + 1}</span>
                                 <span>{steps[currentStep]?.title || 'Selesai'}</span>
                             </div>
                             <Progress value={progressPercentage} className="w-full" />
@@ -458,3 +458,5 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
+
+    
