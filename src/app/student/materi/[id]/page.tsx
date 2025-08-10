@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -28,47 +29,27 @@ type ChapterContent = {
   sparkingQuestions: string[];
 }
 
-export default function BabSiswaPage({ params }: { params: { id: string } }) {
-  const [content, setContent] = useState<ChapterContent | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchContent() {
-      if (!params.id) return;
-      try {
-        const docRef = doc(db, 'chapters', params.id);
+async function getChapterContent(id: string): Promise<ChapterContent | null> {
+    if (!id) return null;
+    try {
+        const docRef = doc(db, 'chapters', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            setContent(docSnap.data() as ChapterContent);
+            return docSnap.data() as ChapterContent;
         } else {
             console.log("No such document!");
+            return null;
         }
-      } catch (error) {
+    } catch (error) {
         console.error("Failed to fetch chapter content:", error);
-      } finally {
-        setLoading(false);
-      }
+        return null;
     }
-    fetchContent();
-  }, [params.id]);
+}
 
-  return (
-    <AuthenticatedLayout>
-      <div className="flex flex-col h-full bg-slate-50">
-         <header className="bg-background border-b p-4 md:p-6">
-            <div className="max-w-4xl mx-auto">
-                <Button asChild variant="outline" size="sm" className="mb-4">
-                    <Link href="/student">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Kembali ke Daftar Bab
-                    </Link>
-                </Button>
-                <h1 className="text-2xl font-bold text-foreground">Bab {params.id}: Membicarakan Teks Deskripsi</h1>
-                <p className="text-muted-foreground mt-1">Tema: Keindahan Alam Indonesia</p>
-            </div>
-        </header>
-        <main className="flex-1 p-4 md:p-8">
-          <div className="max-w-4xl mx-auto space-y-8">
+
+function ChapterDetails({ chapterId, content, loading }: { chapterId: string, content: ChapterContent | null, loading: boolean }) {
+    return (
+        <div className="max-w-4xl mx-auto space-y-8">
             <Card>
                 <CardHeader>
                     <CardTitle>Pengantar & Tujuan Pembelajaran</CardTitle>
@@ -127,7 +108,7 @@ export default function BabSiswaPage({ params }: { params: { id: string } }) {
               <CardHeader>
                 <CardTitle>Mulai Belajar</CardTitle>
                 <CardDescription>
-                  Berikut adalah kerangka materi untuk Bab {params.id}. Klik setiap bagian untuk memulai kegiatan.
+                  Berikut adalah kerangka materi untuk Bab {chapterId}. Klik setiap bagian untuk memulai kegiatan.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -144,6 +125,42 @@ export default function BabSiswaPage({ params }: { params: { id: string } }) {
               </CardContent>
             </Card>
           </div>
+    )
+}
+
+
+export default function BabSiswaPage({ params }: { params: { id: string } }) {
+  const [content, setContent] = useState<ChapterContent | null>(null);
+  const [loading, setLoading] = useState(true);
+  const chapterId = params.id;
+
+  useEffect(() => {
+    async function fetchContent() {
+      setLoading(true);
+      const fetchedContent = await getChapterContent(chapterId);
+      setContent(fetchedContent);
+      setLoading(false);
+    }
+    fetchContent();
+  }, [chapterId]);
+
+  return (
+    <AuthenticatedLayout>
+      <div className="flex flex-col h-full bg-slate-50">
+         <header className="bg-background border-b p-4 md:p-6">
+            <div className="max-w-4xl mx-auto">
+                <Button asChild variant="outline" size="sm" className="mb-4">
+                    <Link href="/student">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Kembali ke Daftar Bab
+                    </Link>
+                </Button>
+                <h1 className="text-2xl font-bold text-foreground">Bab {chapterId}: Membicarakan Teks Deskripsi</h1>
+                <p className="text-muted-foreground mt-1">Tema: Keindahan Alam Indonesia</p>
+            </div>
+        </header>
+        <main className="flex-1 p-4 md:p-8">
+            <ChapterDetails chapterId={chapterId} content={content} loading={loading} />
         </main>
       </div>
     </AuthenticatedLayout>
