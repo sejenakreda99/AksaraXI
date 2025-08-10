@@ -29,13 +29,13 @@ export default function MateriGuruPage() {
           title="Materi Pembelajaran"
           description="Kelola bab dan materi pembelajaran untuk siswa."
         />
-        <main className="flex-1 p-4 md:p-6">
-           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <main className="flex-1 p-4 sm:p-6">
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {chapters.map((chapter) => (
               <Link href={chapter.href} key={chapter.title} className={`flex ${chapter.disabled ? "pointer-events-none" : ""}`}>
                 <Card className={`w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md ${chapter.disabled ? "bg-slate-100/50 opacity-50" : "hover:bg-slate-100 transition-colors"}`}>
-                   <chapter.icon className="w-12 h-12 text-primary mb-2" />
-                   <p className="font-semibold text-center text-sm">{chapter.title}</p>
+                   <chapter.icon className="w-10 h-10 md:w-12 md:h-12 text-primary mb-2" />
+                   <p className="font-semibold text-center text-sm md:text-base">{chapter.title}</p>
                    <p className="text-xs text-muted-foreground text-center mt-1">{chapter.description}</p>
                 </Card>
               </Link>

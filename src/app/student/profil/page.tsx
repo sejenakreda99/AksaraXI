@@ -84,12 +84,12 @@ export default function StudentProfilePage() {
     return (
         <AuthenticatedLayout>
             <div className="flex flex-col h-full bg-slate-50">
-                <header className="bg-background border-b p-4 md:p-6">
+                <header className="bg-background border-b p-4 sm:p-6">
                     <h1 className="text-2xl font-bold text-foreground">Profil Kelompok</h1>
                     <p className="text-muted-foreground mt-1">Lihat detail dan informasi kelompok Anda.</p>
                 </header>
 
-                <main className="flex-1 p-4 md:p-8">
+                <main className="flex-1 p-4 sm:p-6 md:p-8">
                     <div className="max-w-xl mx-auto">
                         <Card>
                             <CardHeader>
@@ -148,4 +148,3 @@ export default function StudentProfilePage() {
         </AuthenticatedLayout>
     );
 }
-

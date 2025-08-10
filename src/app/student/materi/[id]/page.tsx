@@ -116,7 +116,7 @@ function ChapterDetails({ chapterId, data, loading }: { chapterId: string, data:
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         {loading ? (
                              Array.from({ length: 7 }).map((_, index) => (
                                 <Card key={index} className="w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md">
@@ -189,7 +189,7 @@ export default function BabSiswaPage() {
   return (
     <AuthenticatedLayout>
       <div className="flex flex-col h-full bg-slate-50">
-         <header className="bg-background border-b p-4 md:p-6">
+         <header className="bg-background border-b p-4 sm:p-6">
             <div className="max-w-4xl mx-auto">
                 <Button asChild variant="outline" size="sm" className="mb-4">
                     <Link href="/student">
@@ -201,7 +201,7 @@ export default function BabSiswaPage() {
                 <p className="text-muted-foreground mt-1">Tema: Keindahan Alam Indonesia</p>
             </div>
         </header>
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-4 sm:p-6 md:p-8">
             <ChapterDetails chapterId={chapterId} data={data} loading={loading} />
         </main>
       </div>

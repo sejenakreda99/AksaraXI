@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
@@ -12,9 +12,19 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { Skeleton } from '@/components/ui/skeleton';
+
+type AsesmenContent = {
+    part1IntroText: string;
+    part1Text: string;
+    part1Questions: string[];
+    part2IntroText: string;
+    youtubeLinks: string[];
+    part2Questions: string[];
+}
 
 function getYoutubeEmbedUrl(url: string) {
     if (!url) return '';
@@ -44,29 +54,32 @@ export default function AsesmenSiswaPage() {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [user] = useAuthState(auth);
+    const [content, setContent] = useState<AsesmenContent | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [answers, setAnswers] = useState<Record<string, string>>({});
     
-    // In a real app, this would be fetched from Firestore
-    const assessmentQuestions1 = [
-        "Apa sebenarnya gagasan dan pandangan yang ingin disampaikan penulis dalam teks tersebut?",
-        "Apakah gagasan dan pandangan yang disampaikan penulis itu tertata dengan sistematetis dan logis?",
-        "Sudah cukup kuatkah penulis menyampaikan argumennya dalam upaya menjaga lingkungan hidup?",
-        "Apakah fakta atau realita yang dikemukakannya dapat mendukung gagasan dan pandangan yang ingin disampaikan?",
-        "Apakah bahasa yang digunakan sudah tepat untuk menyampaikan gagasan dan pandangan penulis dalam teks tersebut?",
-        "Tulislah kembali teks tersebut menjadi teks deksripsi."
-    ];
+    useEffect(() => {
+        async function fetchContent() {
+            if (!chapterId) return;
+            setLoading(true);
+            try {
+                const docRef = doc(db, 'chapters', chapterId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().asesmen) {
+                    setContent(docSnap.data().asesmen);
+                }
+            } catch (error) {
+                console.error("Failed to fetch asesmen content:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchContent();
+    }, [chapterId]);
 
-    const assessmentQuestions2 = [
-      "Apa gagasan dalam teks 2?",
-      "Apa pandangan dalam teks 2?",
-      "Bandingkan gagasan teks deskripsi 1 dan 2, mana teks yang menyampaiakan gagasan dengan lengkap menggunakan data dan mana yang kurang lengkap? Berikan buktinya.",
-      "Bandingkan pandangan dari kedua teks tersebut, mana yang lebih menarik menurut kalian? Berikan alasan."
-    ]
-
-    const youtubeLinks = [
-      "https://youtu.be/u1yo-uJDsU4",
-      "https://youtu.be/waYM6QorBxw"
-    ]
-
+    const handleAnswerChange = (questionKey: string, value: string) => {
+        setAnswers(prev => ({...prev, [questionKey]: value}));
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -76,12 +89,6 @@ export default function AsesmenSiswaPage() {
         }
         setIsSubmitting(true);
         
-        const formData = new FormData(e.currentTarget);
-        const answers: { [key: string]: string } = {};
-        formData.forEach((value, key) => {
-            answers[key] = value as string;
-        });
-
         try {
             const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_asesmen`);
             await setDoc(submissionRef, {
@@ -112,7 +119,7 @@ export default function AsesmenSiswaPage() {
     return (
         <AuthenticatedLayout>
             <div className="flex flex-col h-full">
-                <header className="bg-card border-b p-4 md:p-6">
+                <header className="bg-card border-b p-4 sm:p-6">
                     <div className="max-w-4xl mx-auto">
                         <Button asChild variant="outline" size="sm" className="mb-4">
                             <Link href={`/student/materi/${chapterId}`}>
@@ -125,60 +132,65 @@ export default function AsesmenSiswaPage() {
                     </div>
                 </header>
 
-                <main className="flex-1 p-4 md:p-8">
+                <main className="flex-1 p-4 sm:p-6 md:p-8">
                     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
-                         {/* Bagian I */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Bagian I: Analisis Teks "Keindahan Alam Indonesia"</CardTitle>
-                                <CardDescription className="text-justify">Bacalah teks berjudul <strong>“Keindahan Alam Indonesia”</strong> untuk menjawab soal 1-6.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="prose prose-sm max-w-none bg-slate-50 border rounded-lg p-4 text-justify">
-                                    <h3 className="text-center font-bold">Keindahan Alam Indonesia</h3>
-                                    <p>Indonesia adalah negara dengan kekayaan alam yang melimpah ruah dari Sabang hingga Merauke. Keindahan alam Indonesia memang dinilai tak ada yang mampu menandingi di negara mana pun di dunia. Hampir semua pesona alam terdapat di Indonesia mulai dari daratan hingga laut. Oleh sebab itu, tidak heran apabila banyak wisatawan asing yang rela datang jauh-jauh ke Indonesia untuk menikmati keindahan alam bumi pertiwi.</p>
-                                    <p>Selain keindahan alam yang disajikan ternyata di dalam keindahan tersebut terdapat banyak hal tersembunyi yang jarang diketahui seperti flora dan fauna yang sangat langka dan eksotis. Alam Indonesia yang paling tersohor di mata dunia adalah keindahan pantainya yang terbentang dari barat hingga ke timur. Banyaknya pulau yang ada di Indonesia membuat kekayaan laut dan pantai semakin berwarna.</p>
-                                    <p>Selain pantai, keindahan dunia bawah laut juga menjadi incaran para wisatawan untuk masuk ke dalamnya dan ikut menikmati kehidupan bawah laut di Indonesia. Daerah yang memiliki keindahan pantai yang menakjubkan di Indonesia yang paling tersohor adalah Manado, Bali, dan Raja Ampat.</p>
-                                    <p>Tidak hanya keindahan pantai, Indonesia juga merupakan negara dengan cangkupan hutan terbesar di Dunia. Oleh karena itu, Indonesia disebut sebagai paru-paru dunia sebab ⅓ hutan di dunia terdapat di Indonesia. Keindahan hutan di Indonesia memang tak perlu diragukan lagi, sebab memang hijau hamparan pohon membuat mata seakan terhipnotis. Selain itu, hewan dan tumbuhan endemik juga banyak yang menjadi buruan wisatawan yang hanya untuk berfoto untuk mengabadikan momen tersebut.</p>
-                                     <p className="text-xs italic">Sumber: https://notepam.com/contoh-teks-deskripsi/</p>
-                                </div>
-                                <div className="space-y-4">
-                                {assessmentQuestions1.map((q, i) => (
-                                    <div key={i} className="space-y-2">
-                                        <Label htmlFor={`q1-${i}`} className="text-justify">{i + 1}. {q}</Label>
-                                        <Textarea id={`q1-${i}`} name={`q1-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required />
+                         {loading ? (
+                             <div className="space-y-4">
+                                <Skeleton className="h-64 w-full" />
+                                <Skeleton className="h-48 w-full" />
+                             </div>
+                         ) : content ? (
+                            <>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Bagian I: Analisis Teks &quot;Keindahan Alam Indonesia&quot;</CardTitle>
+                                    <CardDescription className="text-justify">{content.part1IntroText}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <div className="prose prose-sm max-w-none bg-slate-50 border rounded-lg p-4 text-justify whitespace-pre-wrap">
+                                        <h3 className="text-center font-bold">Keindahan Alam Indonesia</h3>
+                                        {content.part1Text}
                                     </div>
-                                ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Bagian II */}
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Bagian II: Perbandingan Video Deskripsi</CardTitle>
-                                <CardDescription className="text-justify">Simaklah dua teks deskripsi pada youtube berikut ini untuk menjawab soal nomor 7-10.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {youtubeLinks.map((link, i) => (
-                                        <div key={i} className="aspect-video w-full rounded-lg overflow-hidden border">
-                                            <iframe className="w-full h-full" src={getYoutubeEmbedUrl(link)} title={`YouTube video ${i+1}`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                    <div className="space-y-4">
+                                    {content.part1Questions.map((q, i) => (
+                                        <div key={i} className="space-y-2">
+                                            <Label htmlFor={`q1-${i}`} className="text-justify">{i + 1}. {q}</Label>
+                                            <Textarea id={`q1-${i}`} name={`q1-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required onChange={(e) => handleAnswerChange(`q1-${i}`, e.target.value)} />
                                         </div>
                                     ))}
-                                </div>
-                                <div className="space-y-4">
-                                {assessmentQuestions2.map((q, i) => (
-                                    <div key={i} className="space-y-2">
-                                        <Label htmlFor={`q2-${i}`} className="text-justify">{i + 7}. {q}</Label>
-                                        <Textarea id={`q2-${i}`} name={`q2-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required />
                                     </div>
-                                ))}
-                                </div>
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
 
-                        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Bagian II: Perbandingan Video Deskripsi</CardTitle>
+                                    <CardDescription className="text-justify">{content.part2IntroText}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {content.youtubeLinks.map((link, i) => (
+                                            <div key={i} className="aspect-video w-full rounded-lg overflow-hidden border">
+                                                <iframe className="w-full h-full" src={getYoutubeEmbedUrl(link)} title={`YouTube video ${i+1}`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="space-y-4">
+                                    {content.part2Questions.map((q, i) => (
+                                        <div key={i} className="space-y-2">
+                                            <Label htmlFor={`q2-${i}`} className="text-justify">{i + 7}. {q}</Label>
+                                            <Textarea id={`q2-${i}`} name={`q2-${i}`} placeholder="Tuliskan jawaban Anda di sini..." rows={4} required onChange={(e) => handleAnswerChange(`q2-${i}`, e.target.value)} />
+                                        </div>
+                                    ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            </>
+                         ) : (
+                              <Card><CardContent className="p-6 text-center text-muted-foreground">Konten asesmen belum tersedia.</CardContent></Card>
+                         )}
+
+                        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || loading}>
                             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             {isSubmitting ? "Menyimpan..." : "Kirim Jawaban Asesmen"}
                         </Button>
