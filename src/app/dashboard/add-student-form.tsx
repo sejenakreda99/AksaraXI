@@ -3,16 +3,25 @@
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { createGroup } from './actions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+
+const formSchema = z.object({
+  email: z.string().email({ message: 'Alamat email tidak valid.' }),
+  password: z.string().min(8, { message: 'Kata sandi minimal 8 karakter.' }),
+  className: z.string().min(1, { message: 'Kelas harus dipilih.' }),
+  groupName: z.string().min(1, { message: 'Nama kelompok harus dipilih.' }),
+});
+
 
 const initialState = {
   type: '',
@@ -31,7 +40,15 @@ function SubmitButton() {
 export function AddGroupForm() {
   const [state, formAction] = useActionState(createGroup, initialState);
   const { toast } = useToast();
-  const form = useForm();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      className: '',
+      groupName: '',
+    },
+  });
 
   useEffect(() => {
     if (state?.type === 'success') {
@@ -39,12 +56,15 @@ export function AddGroupForm() {
         title: 'Berhasil',
         description: state.message as string,
       });
-      form.reset({ email: '', password: '', className: undefined, groupName: undefined });
+      form.reset();
     } else if (state?.type === 'error') {
+       const errorMessage = typeof state.message === 'string' 
+        ? state.message 
+        : "Terjadi kesalahan pada validasi. Silakan periksa kembali isian Anda.";
        toast({
         variant: 'destructive',
         title: 'Gagal',
-        description: typeof state.message === 'string' ? state.message : 'Silakan periksa kembali isian Anda.',
+        description: errorMessage,
       });
     }
   }, [state, toast, form]);
@@ -61,12 +81,13 @@ export function AddGroupForm() {
       <CardContent>
         <Form {...form}>
           <form
-            action={(formData) => {
-              const data = form.getValues();
-              formData.set('className', data.className || '');
-              formData.set('groupName', data.groupName || '');
+            action={form.handleSubmit((data) => {
+              const formData = new FormData();
+              Object.entries(data).forEach(([key, value]) => {
+                formData.append(key, value);
+              });
               formAction(formData);
-            }}
+            })}
             className="space-y-4"
           >
             <FormField
@@ -75,7 +96,7 @@ export function AddGroupForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Kelas</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                   <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih Kelas" />
@@ -86,9 +107,7 @@ export function AddGroupForm() {
                       <SelectItem value="XI-3">XI-3</SelectItem>
                     </SelectContent>
                   </Select>
-                  {typeof state.message !== 'string' && state.message?.className && (
-                    <p className="text-sm font-medium text-destructive">{state.message.className[0]}</p>
-                  )}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -98,7 +117,7 @@ export function AddGroupForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nama Kelompok</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                   <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih Kelompok" />
@@ -112,9 +131,7 @@ export function AddGroupForm() {
                         ))}
                       </SelectContent>
                   </Select>
-                  {typeof state.message !== 'string' && state.message?.groupName && (
-                    <p className="text-sm font-medium text-destructive">{state.message.groupName[0]}</p>
-                  )}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -131,9 +148,7 @@ export function AddGroupForm() {
                             placeholder="contoh@email.com"
                         />
                     </FormControl>
-                    {typeof state.message !== 'string' && state.message?.email && (
-                        <p className="text-sm font-medium text-destructive">{state.message.email[0]}</p>
-                    )}
+                    <FormMessage />
                  </FormItem>
               )}
             />
@@ -150,9 +165,7 @@ export function AddGroupForm() {
                             placeholder="********"
                         />
                     </FormControl>
-                    {typeof state.message !== 'string' && state.message?.password && (
-                        <p className="text-sm font-medium text-destructive">{state.message.password[0]}</p>
-                    )}
+                     <FormMessage />
                  </FormItem>
               )}
             />
