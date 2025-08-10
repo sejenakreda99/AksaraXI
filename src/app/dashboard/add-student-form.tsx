@@ -53,13 +53,14 @@ export function AddGroupForm() {
 
   // This useEffect handles the response from the server action
   useEffect(() => {
-    if (state?.type === 'success') {
+    if (!state) return;
+    if (state.type === 'success') {
       toast({
         title: 'Berhasil',
         description: state.message,
       });
       form.reset();
-    } else if (state?.type === 'error') {
+    } else if (state.type === 'error') {
        toast({
         variant: 'destructive',
         title: 'Gagal',
