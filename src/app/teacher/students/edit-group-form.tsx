@@ -39,7 +39,7 @@ export function EditGroupForm({ isOpen, setIsOpen, group, onGroupUpdated }: Edit
   const [formData, setFormData] = useState({
     className: group.className,
     groupName: group.groupName,
-    members: group.members.join('\n'),
+    members: Array.isArray(group.members) ? group.members.join('\n') : '',
   });
   const { toast } = useToast();
 
@@ -47,7 +47,7 @@ export function EditGroupForm({ isOpen, setIsOpen, group, onGroupUpdated }: Edit
     setFormData({
       className: group.className,
       groupName: group.groupName,
-      members: group.members.join('\n'),
+      members: Array.isArray(group.members) ? group.members.join('\n') : '',
     });
   }, [group]);
 
