@@ -54,7 +54,7 @@ const defaultContent: MenyimakContent = {
       "Mengapa narator mendeskripsikan Candi Borobudur itu mulai dari tingkat bawah sampai ke tingkat paling atas candi?",
       "Apakah narator berhasil menggambarkan secara rinci objek sehingga pembaca seakan-akan melihat, mendengar, atau merasakan objek yang dideskripsikan? Tunjukkan buktinya."
   ],
-  comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4",
+  comparisonVideoUrl: "https://youtu.be/u1yo-uJDsU4?si=idsX0uBHyt0nrsVw",
   latihan: {
     youtubeUrl: "https://www.youtube.com/embed/Za2zEoGcfmU",
     statements: [
@@ -115,6 +115,14 @@ export default function MenyimakPage() {
       if (videoId) {
         return `https://www.youtube.com/embed/${videoId}`;
       }
+      // Handle youtu.be shortlinks
+      if (videoUrl.hostname === 'youtu.be') {
+          const shortId = videoUrl.pathname.slice(1);
+          if (shortId) {
+              return `https://www.youtube.com/embed/${shortId.split('?')[0]}`;
+          }
+      }
+
       const pathSegments = videoUrl.pathname.split('/');
       const shortId = pathSegments[pathSegments.length - 1];
       if (shortId && !shortId.includes('.be')) {

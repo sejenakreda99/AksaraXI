@@ -57,9 +57,9 @@ const defaultContent: MenyimakContent = {
       "Mengapa narator mendeskripsikan Candi Borobudur itu mulai dari tingkat bawah sampai ke tingkat paling atas candi?",
       "Apakah narator berhasil menggambarkan secara rinci objek sehingga pembaca seakan-akan melihat, mendengar, atau merasakan objek yang dideskripsikan? Tunjukkan buktinya."
   ],
-  comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4",
+  comparisonVideoUrl: "https://youtu.be/u1yo-uJDsU4?si=idsX0uBHyt0nrsVw",
   latihan: {
-    youtubeUrl: "https://youtu.be/Za2zEoGcfmU?si=HjibIVUqCghK530m",
+    youtubeUrl: "https://www.youtube.com/embed/Za2zEoGcfmU",
     statements: [
         { statement: "Teks tersebut secara umum mendeskripsikan Danau Toba. Kemudian, narator mendeskripsikan bagian-bagiannya yang terkait dengan Danau Toba.", answer: 'benar', points: 10, analysisPoints: 10 },
         { statement: "Dalam mendeskripsikan Danau Toba dan bagian-bagiannya, narator menyampaikannya dengan menggunakan pengindraan (melihat, mendengar, merasa) sehingga seolah-olah penyimak dapat mengindra objek-objek tersebut.", answer: 'benar', points: 10, analysisPoints: 10 },
