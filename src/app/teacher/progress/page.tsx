@@ -1,34 +1,96 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
 import { TeacherHeader } from '@/components/layout/teacher-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, Award, Users } from 'lucide-react';
+import { BookOpen, Award, Users, BadgeCheck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Badge } from '@/components/ui/badge';
 
-// --- Placeholder Data ---
-const placeholderGroups = [
-  { id: '1', name: 'Kelompok 1 (XI-2)', progress: 75, score: 88, members: 5 },
-  { id: '2', name: 'Kelompok 2 (XI-2)', progress: 100, score: 95, members: 4 },
-  { id: '3', name: 'Kelompok 3 (XI-2)', progress: 25, score: 30, members: 5 },
-  { id: '4', name: 'Kelompok 1 (XI-3)', progress: 50, score: 65, members: 5 },
-  { id: '5', name: 'Kelompok 2 (XI-3)', progress: 15, score: 10, members: 4 },
-];
+type Group = {
+  id: string;
+  className: string;
+  groupName: string;
+  members: string[];
+};
+
+type Submission = {
+  studentId: string;
+  activity: string;
+  chapterId: string;
+};
+
+type ProgressData = Group & {
+  completedActivities: number;
+  progress: number;
+  score: number | null; // Null for now as scoring is manual
+};
+
+const TOTAL_ACTIVITIES_BAB_1 = 7; // menyimak, membaca, menulis, mempresentasikan, asesmen, jurnal-membaca, refleksi
 
 export default function ProgressPage() {
   const [loading, setLoading] = useState(true);
+  const [allGroups, setAllGroups] = useState<Group[]>([]);
+  const [allSubmissions, setAllSubmissions] = useState<Submission[]>([]);
+  const [classFilter, setClassFilter] = useState('semua-kelas');
+  const [chapterFilter, setChapterFilter] = useState('1');
 
-  // Simulate data fetching
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const groupsSnapshot = await getDocs(collection(db, 'groups'));
+        const submissionsSnapshot = await getDocs(collection(db, 'submissions'));
+
+        const groupsData = groupsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Group));
+        const submissionsData = submissionsSnapshot.docs.map(doc => doc.data() as Submission);
+
+        setAllGroups(groupsData);
+        setAllSubmissions(submissionsData);
+
+      } catch (error) {
+        console.error("Error fetching progress data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
   }, []);
+
+  const progressData = useMemo(() => {
+    return allGroups
+      .map(group => {
+        const groupSubmissions = allSubmissions.filter(sub => sub.studentId === group.id && sub.chapterId === chapterFilter);
+        const uniqueActivities = new Set(groupSubmissions.map(sub => sub.activity));
+        const completedCount = uniqueActivities.size;
+        const progressPercentage = Math.round((completedCount / TOTAL_ACTIVITIES_BAB_1) * 100);
+
+        return {
+          ...group,
+          completedActivities: completedCount,
+          progress: progressPercentage,
+          score: null, // Manual scoring to be implemented
+        };
+      })
+      .filter(group => {
+        if (classFilter === 'semua-kelas') return true;
+        return group.className === classFilter;
+      })
+      .sort((a, b) => {
+         if (a.className < b.className) return -1;
+         if (a.className > b.className) return 1;
+         if (a.groupName < b.groupName) return -1;
+         if (a.groupName > b.groupName) return 1;
+         return 0;
+      });
+  }, [allGroups, allSubmissions, classFilter, chapterFilter]);
 
   return (
     <AuthenticatedLayout>
@@ -44,19 +106,19 @@ export default function ProgressPage() {
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                   <div>
                     <CardTitle>Laporan Kemajuan Kelompok</CardTitle>
-                    <CardDescription>Data di bawah ini adalah placeholder dan akan diganti dengan data real-time.</CardDescription>
+                    <CardDescription>Data progres diambil dari pengumpulan tugas siswa.</CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Select defaultValue="bab-1">
+                    <Select defaultValue={chapterFilter} onValueChange={setChapterFilter}>
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Pilih Bab" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="bab-1">Bab 1</SelectItem>
-                        <SelectItem value="bab-2" disabled>Bab 2 (Segera)</SelectItem>
+                        <SelectItem value="1">Bab 1</SelectItem>
+                        <SelectItem value="2" disabled>Bab 2 (Segera)</SelectItem>
                       </SelectContent>
                     </Select>
-                     <Select defaultValue="semua-kelas">
+                     <Select defaultValue={classFilter} onValueChange={setClassFilter}>
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Pilih Kelas" />
                       </SelectTrigger>
@@ -75,7 +137,7 @@ export default function ProgressPage() {
                     <TableRow>
                       <TableHead className="w-[250px]"><Users className="inline-block mr-2 h-4 w-4" />Nama Kelompok</TableHead>
                       <TableHead><BookOpen className="inline-block mr-2 h-4 w-4" />Progres Materi</TableHead>
-                      <TableHead className="text-right"><Award className="inline-block mr-2 h-4 w-4" />Total Skor</TableHead>
+                      <TableHead className="text-right"><Award className="inline-block mr-2 h-4 w-4" />Skor</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -84,26 +146,30 @@ export default function ProgressPage() {
                         <TableRow key={i}>
                           <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                           <TableCell><Skeleton className="h-5 w-full" /></TableCell>
-                          <TableCell className="text-right"><Skeleton className="h-5 w-12 ml-auto" /></TableCell>
+                          <TableCell className="text-right"><Skeleton className="h-5 w-24 ml-auto" /></TableCell>
                         </TableRow>
                       ))
-                    ) : placeholderGroups.length > 0 ? (
-                      placeholderGroups.map((group) => (
+                    ) : progressData.length > 0 ? (
+                      progressData.map((group) => (
                         <TableRow key={group.id}>
-                          <TableCell className="font-medium">{group.name}</TableCell>
+                          <TableCell className="font-medium">{group.groupName} ({group.className})</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                               <Progress value={group.progress} className="w-[60%]" />
+                               <Progress value={group.progress} className="w-[60%]" aria-label={`${group.progress}% selesai`} />
                                <span className="text-xs text-muted-foreground font-mono">{group.progress}%</span>
+                               {group.progress === 100 && <BadgeCheck className="h-5 w-5 text-green-500" />}
                             </div>
+                            <span className="text-xs text-muted-foreground">{group.completedActivities} dari {TOTAL_ACTIVITIES_BAB_1} kegiatan selesai</span>
                           </TableCell>
-                          <TableCell className="text-right font-semibold text-lg text-primary">{group.score}</TableCell>
+                           <TableCell className="text-right">
+                                <Badge variant="secondary">Perlu Dinilai</Badge>
+                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
                         <TableCell colSpan={3} className="h-24 text-center">
-                          Belum ada data kemajuan yang tersedia.
+                          Belum ada data kemajuan yang tersedia untuk filter yang dipilih.
                         </TableCell>
                       </TableRow>
                     )}
