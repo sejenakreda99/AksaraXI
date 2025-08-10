@@ -69,8 +69,8 @@ export default function AsesmenPage() {
                   Kembali ke Struktur Bab
                 </Link>
               </Button>
-               <Button asChild variant="outline" size="sm" disabled>
-                  <Link href="#">
+               <Button asChild variant="outline" size="sm">
+                  <Link href="/teacher/materi/bab-1/asesmen/edit">
                     <Edit className="mr-2 h-4 w-4" />
                     Edit Asesmen
                   </Link>
