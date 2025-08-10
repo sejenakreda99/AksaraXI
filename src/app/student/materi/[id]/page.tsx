@@ -1,7 +1,7 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import AuthenticatedLayout from "@/app/(authenticated)/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -129,13 +129,15 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
 }
 
 
-export default function BabSiswaPage({ params }: { params: { id: string } }) {
+export default function BabSiswaPage() {
   const [content, setContent] = useState<ChapterContent | null>(null);
   const [loading, setLoading] = useState(true);
-  const chapterId = params.id;
+  const params = useParams();
+  const chapterId = params.id as string;
 
   useEffect(() => {
     async function fetchContent() {
+      if (!chapterId) return;
       setLoading(true);
       const fetchedContent = await getChapterContent(chapterId);
       setContent(fetchedContent);
