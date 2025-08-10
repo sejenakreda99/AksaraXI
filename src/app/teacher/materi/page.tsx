@@ -2,7 +2,7 @@ import AuthenticatedLayout from "@/app/(authenticated)/layout";
 import { TeacherHeader } from "@/components/layout/teacher-header";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import { BookOpen, PlusCircle } from "lucide-react";
+import { BookOpen } from "lucide-react";
 
 const chapters = [
   {
@@ -21,7 +21,7 @@ const chapters = [
   }
 ];
 
-export default function MateriPage() {
+export default function MateriGuruPage() {
   return (
     <AuthenticatedLayout>
       <div className="flex flex-col h-full bg-slate-50">

@@ -32,10 +32,9 @@ const studentNavItems = [
 const teacherNavItems = [
     { href: "/dashboard", label: "Dasbor", icon: Home },
     { href: "/teacher/students", label: "Siswa", icon: Users },
-    { href: "/teacher/materi", label: "Materi", icon: BookCopy },
 ]
 
-export default function AuthenticatedLayout({
+export default function MateriLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -88,7 +87,7 @@ export default function AuthenticatedLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={pathname.startsWith(item.href) && item.href !== '/student' || pathname === item.href}
                 >
                   <Link href={item.href}>
                     <item.icon className="h-5 w-5" />
