@@ -38,10 +38,7 @@ function SubmitButton() {
 }
 
 export function AddGroupForm() {
-  // Note: We are not using the 'state' from useActionState directly for toasts
-  // because react-hook-form will manage the submission state.
-  // We keep it to handle the server response.
-  const [serverState, formAction] = useActionState(createGroup, initialState);
+  const [state, formAction] = useActionState(createGroup, initialState);
   
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -54,38 +51,23 @@ export function AddGroupForm() {
     },
   });
 
-  const { formState: { isSubmitting } } = form;
-
   // This useEffect handles the response from the server action
   useEffect(() => {
-    if (serverState?.type === 'success') {
+    if (state?.type === 'success') {
       toast({
         title: 'Berhasil',
-        description: serverState.message as string,
+        description: state.message,
       });
       form.reset();
-    } else if (serverState?.type === 'error') {
-       const errorMessage = typeof serverState.message === 'string' 
-        ? serverState.message 
-        : "Terjadi kesalahan pada validasi. Silakan periksa kembali isian Anda.";
+    } else if (state?.type === 'error') {
        toast({
         variant: 'destructive',
         title: 'Gagal',
-        description: errorMessage,
+        description: state.message,
       });
     }
-  }, [serverState, toast, form]);
-
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    // Manually create FormData to pass to the server action
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-    formAction(formData);
-  };
-
-
+  }, [state, toast, form]);
+  
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
@@ -97,7 +79,7 @@ export function AddGroupForm() {
       <CardContent>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            action={formAction}
             className="space-y-4"
           >
             <FormField
@@ -106,7 +88,7 @@ export function AddGroupForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Kelas</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih Kelas" />
@@ -127,7 +109,7 @@ export function AddGroupForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nama Kelompok</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih Kelompok" />
@@ -179,9 +161,7 @@ export function AddGroupForm() {
                  </FormItem>
               )}
             />
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Menambahkan...' : 'Tambah Kelompok'}
-            </Button>
+            <SubmitButton />
           </form>
         </Form>
       </CardContent>
