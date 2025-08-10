@@ -56,7 +56,7 @@ export default function AuthenticatedLayout({
   
   const studentNavItems: NavItem[] = [
     { href: "/student", label: "Beranda", icon: Home },
-    { href: "/student", label: "Materi", icon: BookCopy },
+    { href: "/student/materi/1", label: "Materi", icon: BookCopy },
     { href: "/student/profil", label: "Profil", icon: User },
     { label: "Keluar", icon: LogOut, onClick: handleSignOut },
   ];
@@ -89,19 +89,22 @@ export default function AuthenticatedLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {sidebarNavItems.map((item) => (
-              <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={item.href ? pathname.startsWith(item.href) && (item.href === '/' || item.href.length > 1) || pathname === item.href : false}
-                >
-                  <Link href={item.href!}>
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {sidebarNavItems.map((item) => {
+              const isActive = item.href ? pathname.startsWith(item.href) : false;
+              return (
+                <SidebarMenuItem key={item.label}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive}
+                  >
+                    <Link href={item.href!}>
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>

@@ -21,7 +21,7 @@ export function BottomNavBar({ navItems }: { navItems: NavItem[] }) {
     <footer className="fixed bottom-0 z-40 w-full border-t bg-background md:hidden">
       <div className={`grid h-16 grid-flow-col items-center justify-around px-4`}>
         {navItems.map((item) => {
-          const isActive = item.href ? pathname === item.href : false;
+          const isActive = item.href ? pathname.startsWith(item.href) : false;
           
           if (item.onClick) {
             return (
@@ -47,7 +47,7 @@ export function BottomNavBar({ navItems }: { navItems: NavItem[] }) {
 
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className="flex flex-col items-center justify-center gap-1 text-muted-foreground h-full"
             >
