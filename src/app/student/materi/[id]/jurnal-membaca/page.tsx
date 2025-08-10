@@ -11,6 +11,9 @@ import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 
 export default function JurnalMembacaSiswaPage() {
@@ -18,21 +21,49 @@ export default function JurnalMembacaSiswaPage() {
     const chapterId = params.id as string;
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [journalText, setJournalText] = useState('');
+    const [user] = useAuthState(auth);
     
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!user) {
+            toast({ variant: 'destructive', title: 'Gagal', description: 'Anda harus masuk untuk mengirimkan jawaban.' });
+            return;
+        }
+        if (journalText.trim() === '') {
+            toast({ variant: 'destructive', title: 'Gagal', description: 'Harap isi jurnal Anda sebelum menyimpan.' });
+            return;
+        }
+
         setIsSubmitting(true);
-        // TODO: Implement Firebase submission logic
-        console.log("Submitting reading journal...");
+        
+        try {
+            const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_jurnal-membaca`);
+            await setDoc(submissionRef, {
+                studentId: user.uid,
+                chapterId: chapterId,
+                activity: 'jurnal-membaca',
+                answers: {
+                    journal: journalText
+                },
+                lastSubmitted: serverTimestamp()
+            }, { merge: true });
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+            toast({
+                title: "Jurnal Membaca Disimpan",
+                description: "Jurnal Anda telah berhasil disimpan dan akan dinilai oleh guru.",
+            });
 
-        toast({
-            title: "Jurnal Membaca Disimpan",
-            description: "Jurnal Anda telah berhasil disimpan dan akan dinilai oleh guru.",
-        });
-
-        setIsSubmitting(false);
+        } catch (error) {
+            console.error("Error submitting journal:", error);
+            toast({
+                variant: 'destructive',
+                title: "Gagal Menyimpan",
+                description: "Terjadi kesalahan saat menyimpan jurnal Anda.",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return (
@@ -78,7 +109,14 @@ export default function JurnalMembacaSiswaPage() {
                              <CardContent>
                                 <div className="space-y-2">
                                     <Label htmlFor="apresiasi-jurnal" className="sr-only">Hasil Apresiasi</Label>
-                                    <Textarea id="apresiasi-jurnal" placeholder="Tuliskan hasil apresiasi kelompok Anda di sini..." rows={15} />
+                                    <Textarea 
+                                        id="apresiasi-jurnal" 
+                                        placeholder="Tuliskan hasil apresiasi kelompok Anda di sini..." 
+                                        rows={15} 
+                                        value={journalText}
+                                        onChange={(e) => setJournalText(e.target.value)}
+                                        required
+                                    />
                                 </div>
                              </CardContent>
                         </Card>
