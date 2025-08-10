@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,7 +12,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { BottomNavBar } from "@/components/layout/bottom-nav-bar";
 
 
 const studentNavItems = [
@@ -106,7 +107,8 @@ export default function AuthenticatedLayout({
           </Button>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset className="pb-16 md:pb-0">{children}</SidebarInset>
+      <BottomNavBar homeHref={isTeacher ? "/dashboard" : "/student"} />
     </SidebarProvider>
   );
 }
