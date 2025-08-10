@@ -6,10 +6,22 @@ import { useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { createGroup } from './actions';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
 const initialState = {
@@ -40,7 +52,7 @@ export function AddGroupForm() {
       });
       formRef.current?.reset();
     } else if (state.type === 'error') {
-       toast({
+      toast({
         variant: 'destructive',
         title: 'Gagal',
         description: state.message,
@@ -57,11 +69,7 @@ export function AddGroupForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form
-          ref={formRef}
-          action={formAction}
-          className="space-y-4"
-        >
+        <form ref={formRef} action={formAction} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="className">Kelas</Label>
             <Select name="className" required>
@@ -90,27 +98,28 @@ export function AddGroupForm() {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
-             <Label htmlFor="email">Email Kelompok</Label>
-             <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="contoh@email.com"
-                required
-             />
+            <Label htmlFor="email">Email Kelompok</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="contoh@email.com"
+              required
+            />
           </div>
 
-           <div className="space-y-2">
-             <Label htmlFor="password">Kata Sandi</Label>
-             <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="********"
-                required
-             />
+          <div className="space-y-2">
+            <Label htmlFor="password">Kata Sandi</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="********"
+              minLength={8}
+              required
+            />
           </div>
           <SubmitButton />
         </form>

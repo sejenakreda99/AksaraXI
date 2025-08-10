@@ -1,7 +1,8 @@
 'use server';
 
-import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
 const CreateGroupSchema = z.object({
@@ -13,14 +14,27 @@ const CreateGroupSchema = z.object({
   groupName: z.string().min(1, { message: 'Nama kelompok harus dipilih.' }),
 });
 
+// Initialize Firebase Admin SDK
 let adminApp: App;
 if (!getApps().length) {
-  adminApp = initializeApp();
+  // Check if service account JSON is provided in environment variables
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    adminApp = initializeApp({
+      credential: cert(serviceAccount),
+    });
+  } else {
+     // Fallback for local development if you have GOOGLE_APPLICATION_CREDENTIALS set up
+     // or if the code is running in a GCP environment.
+    adminApp = initializeApp();
+  }
 } else {
   adminApp = getApps()[0];
 }
 
 const auth = getAuth(adminApp);
+const db = getFirestore(adminApp);
+
 
 export async function createGroup(prevState: any, formData: FormData) {
   const validatedFields = CreateGroupSchema.safeParse(
@@ -39,13 +53,18 @@ export async function createGroup(prevState: any, formData: FormData) {
   const displayName = "Siswa";
 
   try {
-    await auth.createUser({
+    const userRecord = await auth.createUser({
       email,
       password,
-      displayName: displayName, 
+      displayName: displayName,
     });
-    // Here you could also save the group info (className, groupName) to Firestore
-    // under the user's UID if you need to retrieve it later. For example, to a 'groups' collection.
+    
+    // Save group info to Firestore
+    await db.collection('groups').doc(userRecord.uid).set({
+      className,
+      groupName,
+      email,
+    });
 
     return {
       type: 'success',
@@ -55,6 +74,8 @@ export async function createGroup(prevState: any, formData: FormData) {
     let message = 'Terjadi kesalahan yang tidak diketahui.';
     if (error.code === 'auth/email-already-exists') {
       message = 'Email ini sudah terdaftar. Silakan gunakan email lain.';
+    } else if (error.code === 'auth/invalid-password') {
+        message = 'Kata sandi tidak valid. Harus minimal 6 karakter.';
     }
     console.error('Error creating user:', error);
     return {
