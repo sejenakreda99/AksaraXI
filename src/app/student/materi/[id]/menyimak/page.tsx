@@ -209,6 +209,7 @@ export default function MenyimakSiswaPage() {
     };
     
     const progressPercentage = useMemo(() => {
+        if(currentStep >= steps.length - 1) return 100;
         return (currentStep / (steps.length - 1)) * 100;
     }, [currentStep]);
 
@@ -449,7 +450,7 @@ export default function MenyimakSiswaPage() {
                         </div>
                         
                         {/* Navigation Buttons */}
-                        {steps[currentStep].id !== 'selesai' && (
+                         {currentStep < steps.length - 1 && (
                             <div className="flex justify-between items-center pt-4">
                                 <Button type="button" variant="outline" onClick={() => setCurrentStep(s => s - 1)} disabled={currentStep === 0}>
                                     <ArrowLeft className="mr-2 h-4 w-4"/>
@@ -475,3 +476,5 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
+
+    
