@@ -75,17 +75,13 @@ export default function StudentDashboard() {
             {chapterSections.map((section) => (
               <Link href={section.href} key={section.title} className="flex">
                 <Card className="w-full aspect-square flex flex-col items-center justify-center p-4 hover:bg-slate-100 transition-colors rounded-xl shadow-md">
-                   <div className="p-3 bg-primary/10 rounded-full mb-3">
-                      <section.icon className="w-8 h-8 text-primary" />
-                   </div>
-                   <p className="font-semibold text-center text-sm">{section.title}</p>
+                  <section.icon className="w-12 h-12 text-primary mb-2" />
+                  <p className="font-semibold text-center text-sm">{section.title}</p>
                 </Card>
               </Link>
             ))}
              <Card className="w-full aspect-square flex flex-col items-center justify-center p-4 bg-slate-100/50 rounded-xl shadow-md opacity-50">
-               <div className="p-3 bg-primary/10 rounded-full mb-3">
-                  <BookOpen className="w-8 h-8 text-primary" />
-               </div>
+               <BookOpen className="w-12 h-12 text-primary mb-2" />
                <p className="font-semibold text-center text-sm">Bab 2 (Segera)</p>
             </Card>
           </div>

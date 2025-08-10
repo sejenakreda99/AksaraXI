@@ -33,9 +33,7 @@ export default function DashboardPage() {
             {menuItems.map((item) => (
               <Link href={item.href} key={item.title} className={`flex ${item.disabled ? "pointer-events-none" : ""}`}>
                 <Card className={`w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md ${item.disabled ? "bg-slate-100/50 opacity-50" : "hover:bg-slate-100 transition-colors"}`}>
-                   <div className="p-3 bg-primary/10 rounded-full mb-3">
-                      <item.icon className="w-8 h-8 text-primary" />
-                   </div>
+                   <item.icon className="w-12 h-12 text-primary mb-2" />
                    <p className="font-semibold text-center text-sm">{item.title}</p>
                    <p className="text-xs text-muted-foreground text-center mt-1">{item.description}</p>
                 </Card>
