@@ -21,20 +21,8 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { BottomNavBar } from "@/components/layout/bottom-nav-bar";
+import { BottomNavBar, type NavItem } from "@/components/layout/bottom-nav-bar";
 
-
-const studentNavItems = [
-  { href: "/student", label: "Beranda", icon: Home },
-  { href: "/student/materi", label: "Materi", icon: BookCopy },
-  { href: "/student/profil", label: "Profil", icon: User },
-];
-
-const teacherNavItems = [
-    { href: "/dashboard", label: "Dasbor", icon: Home },
-    { href: "/teacher/students", label: "Siswa", icon: Users },
-    { href: "/teacher/materi", label: "Materi", icon: BookCopy },
-]
 
 export default function AuthenticatedLayout({
   children,
@@ -63,9 +51,25 @@ export default function AuthenticatedLayout({
   };
   
   const isTeacher = pathname.startsWith('/dashboard') || pathname.startsWith('/teacher');
-  const navItems = isTeacher ? teacherNavItems : studentNavItems;
   const userDisplayName = isTeacher ? "Guru" : "Siswa";
   const userEmail = auth.currentUser?.email || "pengguna@email.com";
+  
+  const studentNavItems: NavItem[] = [
+    { href: "/student", label: "Beranda", icon: Home },
+    { href: "/student/materi", label: "Materi", icon: BookCopy },
+    { href: "/student/profil", label: "Profil", icon: User },
+    { label: "Keluar", icon: LogOut, onClick: handleSignOut },
+  ];
+
+  const teacherNavItems: NavItem[] = [
+      { href: "/dashboard", label: "Dasbor", icon: Home },
+      { href: "/teacher/students", label: "Siswa", icon: Users },
+      { href: "/teacher/materi", label: "Materi", icon: BookCopy },
+      { label: "Keluar", icon: LogOut, onClick: handleSignOut },
+  ];
+
+  const navItems = isTeacher ? teacherNavItems : studentNavItems;
+  const sidebarNavItems = navItems.filter(item => item.href); // Sidebar only shows links
 
 
   return (
@@ -85,13 +89,13 @@ export default function AuthenticatedLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {navItems.map((item) => (
+            {sidebarNavItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
                   isActive={pathname === item.href}
                 >
-                  <Link href={item.href}>
+                  <Link href={item.href!}>
                     <item.icon className="h-5 w-5" />
                     <span>{item.label}</span>
                   </Link>
