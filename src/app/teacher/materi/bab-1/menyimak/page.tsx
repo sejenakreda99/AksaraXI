@@ -64,7 +64,8 @@ export default function MenyimakPage() {
     fetchContent();
   }, []);
 
-  const totalPoints = content?.statements.reduce((acc, s) => acc + s.points + s.evidencePoints, 0) || 0;
+  const totalPoints = content?.statements.reduce((acc, s) => acc + (s.points || 0) + (s.evidencePoints || 0), 0) || 0;
+
 
   return (
     <AuthenticatedLayout>
@@ -153,8 +154,8 @@ export default function MenyimakPage() {
                                                       <span className='flex items-center justify-center text-red-600'><X className='w-4 h-4 mr-1'/> Salah</span>}
                                                 </TableCell>
                                                  <TableCell className="text-center">
-                                                    <p>Jawaban: {item.points}</p>
-                                                    <p>Bukti: {item.evidencePoints}</p>
+                                                    <p>Jawaban: {item.points || 0}</p>
+                                                    <p>Bukti: {item.evidencePoints || 0}</p>
                                                 </TableCell>
                                             </TableRow>
                                             ))}
