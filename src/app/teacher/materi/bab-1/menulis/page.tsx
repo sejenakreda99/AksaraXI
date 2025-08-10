@@ -71,9 +71,26 @@ function getYoutubeEmbedUrl(url: string) {
     if (!url) return '';
     try {
         const videoUrl = new URL(url);
-        let videoId = videoUrl.searchParams.get('v') || videoUrl.pathname.split('/').pop();
-        return `https://www.youtube.com/embed/${videoId}`;
-    } catch (e) { return url; }
+        let videoId = videoUrl.searchParams.get('v');
+        if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+        if (videoUrl.hostname === 'youtu.be') {
+            const shortId = videoUrl.pathname.slice(1);
+            if (shortId) {
+                return `https://www.youtube.com/embed/${shortId.split('?')[0]}`;
+            }
+        }
+        const pathSegments = videoUrl.pathname.split('/');
+        const shortId = pathSegments[pathSegments.length - 1];
+        if (shortId && !shortId.includes('.be')) {
+            return `https://www.youtube.com/embed/${shortId.split('?')[0]}`;
+        }
+    } catch (e) { 
+        console.error('Invalid YouTube URL', e);
+        return url; 
+    }
+    return url;
 }
 
 
@@ -133,17 +150,23 @@ export default function MenulisPage() {
                                                 <AccordionTrigger className="p-6 text-lg font-semibold">Kegiatan 1 & Latihan</AccordionTrigger>
                                                 <AccordionContent className="p-6 pt-0 space-y-6">
                                                     <div className="prose prose-sm max-w-none">
+                                                        <p>{content.kegiatan1Intro}</p>
                                                         <h4 className="font-bold">Langkah-Langkah Menulis</h4>
                                                         {content.kegiatan1Steps.map((step, i) => <div key={i}><h5>{i+1}. {step.title}</h5><p>{step.description}</p></div>)}
                                                         <Separator className="my-4"/>
                                                          <h4 className="font-bold">Panduan Latihan</h4>
+                                                        <p>{content.latihanIntro}</p>
                                                         <ol className="list-decimal list-outside pl-5 space-y-2">{content.latihanGuidelines.map((item, i) => <li key={i}>{item}</li>)}</ol>
                                                     </div>
                                                     <Separator/>
                                                     <Table>
-                                                        <TableHeader><TableRow><TableHead>Unsur yang Diperiksa (Checklist Diri Siswa)</TableHead></TableRow></TableHeader>
+                                                         <CardHeader className="px-0">
+                                                            <CardTitle>Tabel 1.5 Memeriksa Unsur</CardTitle>
+                                                            <CardDescription>Siswa akan menggunakan tabel ini untuk memeriksa mandiri.</CardDescription>
+                                                        </CardHeader>
+                                                        <TableHeader><TableRow><TableHead>Unsur yang Diperiksa</TableHead><TableHead className="w-[100px] text-center">Ya</TableHead></TableRow></TableHeader>
                                                         <TableBody>
-                                                            {content.checklistItems.map((item, i) => (<TableRow key={i}><TableCell>{i+1}. {item.text}</TableCell></TableRow>))}
+                                                            {content.checklistItems.map((item, i) => (<TableRow key={i}><TableCell>{i+1}. {item.text}</TableCell><TableCell className="text-center"><Check className="w-5 h-5 text-muted-foreground"/></TableCell></TableRow>))}
                                                         </TableBody>
                                                     </Table>
                                                      <Separator/>

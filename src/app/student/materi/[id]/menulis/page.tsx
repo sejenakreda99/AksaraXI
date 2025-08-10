@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Loader2, Save, CheckCircle, Youtube, UploadCloud } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, Save, CheckCircle } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -48,8 +48,8 @@ const steps = [
     { id: 'langkah', title: 'Langkah Menulis' },
     { id: 'panduan', title: 'Panduan Latihan' },
     { id: 'checklist', title: 'Cek Mandiri' },
-    { id: 'publikasi', title: 'Tips Publikasi' },
     { id: 'pengumpulan', title: 'Pengumpulan Karya' },
+    { id: 'publikasi', title: 'Tips Publikasi' },
 ];
 
 function getYoutubeEmbedUrl(url: string) {
@@ -246,34 +246,6 @@ export default function MenulisSiswaPage() {
                         </CardContent>
                     </Card>
                 );
-            case 'publikasi':
-                 return (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Kegiatan 2: Menyempurnakan Teks untuk Publikasi</CardTitle>
-                            <CardDescription>{content.kegiatan2Intro}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="prose prose-sm max-w-none">
-                                <h4 className="font-semibold">Tips Publikasi</h4>
-                                <ol className="list-decimal list-outside pl-5 space-y-2">
-                                    {content.kegiatan2Tips.map((tip, index) => <li key={index}>{tip}</li>)}
-                                </ol>
-                            </div>
-                            <Separator />
-                            <div>
-                                <h4 className="font-semibold mb-4">Video Referensi</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                     {content.youtubeLinks.map((link, index) => (
-                                        <div key={index} className="aspect-video w-full rounded-lg overflow-hidden border">
-                                            <iframe className="w-full h-full" src={getYoutubeEmbedUrl(link)} title={`YouTube video ${index+1}`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                );
             case 'pengumpulan':
                 return (
                     <Card>
@@ -293,6 +265,34 @@ export default function MenulisSiswaPage() {
                                 <Label htmlFor="submissionLink" className="font-semibold">Tautan Publikasi (Opsional)</Label>
                                 <Input id="submissionLink" className="mt-2" placeholder="https://tiktok.com/..." value={answers.submissionLink} onChange={e => setAnswers(prev => ({...prev, submissionLink: e.target.value}))}/>
                                 <p className="text-xs text-muted-foreground mt-1">Tempelkan tautan ke TikTok, YouTube, Instagram, Blog, dll.</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                );
+            case 'publikasi':
+                 return (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Kegiatan 2: Menyempurnakan Teks untuk Publikasi</CardTitle>
+                            <CardDescription className="whitespace-pre-wrap">{content.kegiatan2Intro}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="prose prose-sm max-w-none">
+                                <h4 className="font-semibold">Tips Publikasi</h4>
+                                <ol className="list-decimal list-outside pl-5 space-y-2">
+                                    {content.kegiatan2Tips.map((tip, index) => <li key={index}>{tip}</li>)}
+                                </ol>
+                            </div>
+                            <Separator />
+                            <div>
+                                <h4 className="font-semibold mb-4">Video Referensi</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                     {content.youtubeLinks.map((link, index) => (
+                                        <div key={index} className="aspect-video w-full rounded-lg overflow-hidden border">
+                                            <iframe className="w-full h-full" src={getYoutubeEmbedUrl(link)} title={`YouTube video ${index+1}`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
