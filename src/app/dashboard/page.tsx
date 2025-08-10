@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Users, BarChart } from 'lucide-react';
+import { Users, BarChart, BookOpen } from 'lucide-react';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
 import { Card } from '@/components/ui/card';
 
@@ -9,6 +9,12 @@ const menuItems = [
         icon: Users,
         href: "/teacher/students",
         description: "Tambah atau lihat daftar kelompok."
+    },
+    {
+        title: "Materi Pembelajaran",
+        icon: BookOpen,
+        href: "/teacher/materi",
+        description: "Buat dan kelola materi untuk siswa."
     },
     {
         title: "Pantau Kemajuan",
@@ -29,7 +35,7 @@ export default function DashboardPage() {
             </h1>
         </header>
         <main className="flex-1 p-4 md:p-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {menuItems.map((item) => (
               <Link href={item.href} key={item.title} className={`flex ${item.disabled ? "pointer-events-none" : ""}`}>
                 <Card className={`w-full aspect-square flex flex-col items-center justify-center p-4 rounded-xl shadow-md ${item.disabled ? "bg-slate-100/50 opacity-50" : "hover:bg-slate-100 transition-colors"}`}>
