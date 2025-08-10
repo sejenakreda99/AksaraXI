@@ -16,15 +16,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 
 
-const assessmentCriteria = [
-    "Kriteria memerinci objek",
-    "Kejelasan ekspresi",
-    "Teks deskripsi dimulai dengan gambaran umum",
-    "Teks memuat deskripsi bagian",
-    "Teks mengandung kesan-kesan yang menyenangkan",
-    "Teks sudah memperhatikan kaidah kebahasaan deskripsi"
-];
-
 type AssessmentAnswers = {
     speakerName: string;
     speakerClass: string;
@@ -37,6 +28,16 @@ export default function MempresentasikanSiswaPage() {
     const chapterId = params.id as string;
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    const assessmentCriteria = [
+        "Kriteria memerinci objek",
+        "Kejelasan ekspresi",
+        "Teks deskripsi dimulai dengan gambaran umum",
+        "Teks memuat deskripsi bagian",
+        "Teks mengandung kesan-kesan yang menyenangkan",
+        "Teks sudah memperhatikan kaidah kebahasaan deskripsi"
+    ];
+
     const [answers, setAnswers] = useState<AssessmentAnswers>({
         speakerName: '',
         speakerClass: '',
@@ -106,7 +107,7 @@ export default function MempresentasikanSiswaPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Kegiatan 1: Panduan Membaca Nyaring</CardTitle>
-                            </Header>
+                            </CardHeader>
                             <CardContent className="prose prose-sm max-w-none text-foreground">
                                 <p>Pada kegiatan ini, kalian akan membacakan secara lisan atau membaca nyaring, teks deskripsi yang telah kalian tulis. Kalian juga bisa menyajikan teks deskripsi seperti para presenter wisata atau presenter kuliner. Salah satu hal yang harus diperhatikan saat membaca nyaring adalah mengatur intonasi. Penggunaan intonasi yang tepat akan membuat kegiatan membaca nyaring kalian lebih menarik.</p>
                                 <p>Cara mengatur intonasi saat berbicara atau membaca nyaring yaitu sebagai berikut.</p>
