@@ -40,7 +40,7 @@ async function getChapterContent(id: string): Promise<ChapterContent | null> {
 
 function ChapterDetails({ chapterId, content, loading }: { chapterId: string, content: ChapterContent | null, loading: boolean }) {
     
-    const sections = [
+    const initialSections = [
       { title: "A. Menyimak", slug: "menyimak", icon: BookOpen, status: 'completed' },
       { title: "B. Membaca", slug: "membaca", icon: FileText, status: 'active' },
       { title: "C. Menulis", slug: "menulis", icon: Pencil, status: 'locked' },
@@ -49,6 +49,11 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
       { title: "Jurnal Membaca", slug: "jurnal-membaca", icon: BookOpen, status: 'locked' },
       { title: "Refleksi", slug: "refleksi", icon: PenSquare, status: 'locked' },
     ];
+    
+    const sections = initialSections.map(section => ({
+        ...section,
+        href: `/student/materi/${chapterId}/${section.slug}`
+    }));
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
@@ -120,7 +125,6 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
                             const isActive = section.status === 'active';
                             const isCompleted = section.status === 'completed';
                             const Icon = section.icon;
-                            const href = `/student/materi/bab-${chapterId}/${section.slug}`;
 
                             const cardContent = (
                                <Card className={cn(
@@ -154,7 +158,7 @@ function ChapterDetails({ chapterId, content, loading }: { chapterId: string, co
                             }
                             
                             return (
-                                <Link href={href} key={index} className="flex">
+                                <Link href={section.href} key={index} className="flex">
                                     {cardContent}
                                 </Link>
                             );
