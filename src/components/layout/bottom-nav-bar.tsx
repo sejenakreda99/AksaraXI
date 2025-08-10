@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
+import React from 'react';
 
 export type NavItem = {
   href?: string;
@@ -21,8 +22,10 @@ export function BottomNavBar({ navItems }: { navItems: NavItem[] }) {
     <footer className="fixed bottom-0 z-40 w-full border-t bg-background md:hidden">
       <div className={`grid h-16 grid-flow-col items-center justify-around px-4`}>
         {navItems.map((item) => {
-          const isActive = item.href ? pathname.startsWith(item.href) : false;
-          
+           const isActive = item.href === '/student'
+              ? pathname === '/student'
+              : (item.href ? pathname.startsWith(item.href) : false);
+
           if (item.onClick) {
             return (
               <Button
@@ -46,18 +49,19 @@ export function BottomNavBar({ navItems }: { navItems: NavItem[] }) {
           }
 
           return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground h-full"
-            >
-              <item.icon
-                className={cn('h-6 w-6', isActive && 'text-primary')}
-              />
-              <span className={cn('text-xs', isActive && 'text-primary font-semibold')}>
-                {item.label}
-              </span>
-            </Link>
+             <React.Fragment key={item.label}>
+                <Link
+                  href={item.href}
+                  className="flex flex-col items-center justify-center gap-1 text-muted-foreground h-full"
+                >
+                  <item.icon
+                    className={cn('h-6 w-6', isActive && 'text-primary')}
+                  />
+                  <span className={cn('text-xs', isActive && 'text-primary font-semibold')}>
+                    {item.label}
+                  </span>
+                </Link>
+             </React.Fragment>
           );
         })}
       </div>
