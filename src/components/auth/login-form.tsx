@@ -5,6 +5,9 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
 import { Mail, Lock } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +41,7 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,14 +52,22 @@ export function LoginForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // Here you would typically handle the login logic,
-    // e.g., call an API endpoint.
-    toast({
-      title: "Percobaan Masuk",
-      description: "Fitur ini sedang dalam pengembangan.",
-    });
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: "Masuk Berhasil",
+        description: "Selamat datang kembali!",
+      });
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        variant: "destructive",
+        title: "Gagal Masuk",
+        description: "Email atau kata sandi yang Anda masukkan salah.",
+      });
+    }
   }
 
   return (
