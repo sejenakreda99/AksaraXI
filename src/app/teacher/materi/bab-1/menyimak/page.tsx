@@ -25,6 +25,8 @@ type MenyimakContent = {
   learningObjective: string;
   youtubeUrl: string;
   statements: Statement[];
+  activity2Questions: string[];
+  comparisonVideoUrl: string;
 };
 
 const defaultContent: MenyimakContent = {
@@ -36,7 +38,14 @@ const defaultContent: MenyimakContent = {
     { no: 3, statement: "Tingkat kedua Candi Borobudur disebut Rupadatu. Di sini, terdapat 1300 relief. Pada tingkat kedua ini pula terdapat patung Budha berukuran kecil. Jumlah keseluruhan patung Budha sebanyak 432 patung.", answer: 'benar', points: 10, evidencePoints: 10 },
     { no: 4, statement: "Tingkat paling atas dari Candi Borobudur adalah Arupadatu. Pada tingkat ini, sama sekali tidak ada hiasan relief pada dindingnya. Bentuk dari lantai Arupadatu, yaitu lingkaran. Di sini, ada 72 stupa kecil.", answer: 'benar', points: 10, evidencePoints: 10 },
     { no: 5, statement: "Teks tersebut menggambarkan Candi Borobudur secara berurutan, dari tingkat bawah sampai ke bagian paling atas.", answer: 'benar', points: 10, evidencePoints: 10 }
-  ]
+  ],
+  activity2Questions: [
+      "Seandainya kalian belum pernah secara langsung berkunjung ke Candi Borobudur, dapatkah kalian seolah-olah mengindra (melihat, mendengar, merasakan) Candi Borobudur setelah menyimak teks tersebut?",
+      "Apa yang menarik dari penggambaran objek Candi Borobudur setelah menyimak teks tersebut?",
+      "Mengapa narator mendeskripsikan Candi Borobudur itu mulai dari tingkat bawah sampai ke tingkat paling atas candi?",
+      "Apakah narator berhasil menggambarkan secara rinci objek sehingga pembaca seakan-akan melihat, mendengar, atau merasakan objek yang dideskripsikan? Tunjukkan buktinya."
+  ],
+  comparisonVideoUrl: "https://www.youtube.com/embed/u1yo-uJDsU4"
 };
 
 export default function MenyimakPage() {
@@ -66,6 +75,27 @@ export default function MenyimakPage() {
   }, []);
 
   const totalPoints = content?.statements.reduce((acc, s) => acc + (s.points || 0) + (s.evidencePoints || 0), 0) || 0;
+  
+  const getYoutubeEmbedUrl = (url: string) => {
+    if (!url) return '';
+    if (url.includes('embed')) return url;
+    try {
+      const videoUrl = new URL(url);
+      let videoId = videoUrl.searchParams.get('v');
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+      const pathSegments = videoUrl.pathname.split('/');
+      const shortId = pathSegments[pathSegments.length - 1];
+      if (shortId) {
+        return `https://www.youtube.com/embed/${shortId}`;
+      }
+    } catch (error) {
+      console.error('Invalid YouTube URL', error);
+      return '';
+    }
+    return '';
+  };
 
   return (
     <AuthenticatedLayout>
@@ -175,8 +205,12 @@ export default function MenyimakPage() {
                                 </CardHeader>
                                 <CardContent className="prose prose-sm max-w-none bg-slate-50/50 p-4 rounded-md">
                                     <h4 className="font-bold">Candi Borobudur</h4>
-                                    <p>Candi Borobudur adalah candi Budha yang paling besar dan mewah yang ada di Indonesia...</p>
-                                    <p>(Teks lengkap ditampilkan kepada siswa)</p>
+                                    <p>
+                                        Candi Borobudur adalah candi Budha yang paling besar dan mewah yang ada di Indonesia. Bentuk daripada candi ini nampak seperti piramida atau limas segi empat. Candi ini mempunyai banyak relief dan juga stupa. Karena kemegahan dan ukuran candi, membuat pesona candi bak gunung yang menjulang tinggi. Bahkan, dari arah kejauhan telah nampak dengan jelas akan pesona dari candi ini.
+                                    </p>
+                                    <p>
+                                        (Teks lengkap ditampilkan kepada siswa)
+                                    </p>
                                 </CardContent>
                             </Card>
 
@@ -190,16 +224,13 @@ export default function MenyimakPage() {
                                 <CardContent className="space-y-4">
                                     <p className="font-semibold">Daftar Pertanyaan untuk Siswa:</p>
                                     <ol className="list-decimal list-inside text-sm space-y-1">
-                                        <li>Seandainya kalian belum pernah secara langsung berkunjung ke Candi Borobudur, dapatkah kalian seolah-olah mengindra (melihat, mendengar, merasakan) Candi Borobudur setelah menyimak teks tersebut?</li>
-                                        <li>Apa yang menarik dari penggambaran objek Candi Borobudur setelah menyimak teks tersebut?</li>
-                                        <li>Mengapa narator mendeskripsikan Candi Borobudur itu mulai dari tingkat bawah sampai ke tingkat paling atas candi?</li>
-                                        <li>Apakah narator berhasil menggambarkan secara rinci objek sehingga pembaca seakan-akan melihat, mendengar, atau merasakan objek yang dideskripsikan? Tunjukkan buktinya.</li>
+                                       {(content.activity2Questions || []).map((q, i) => <li key={i}>{q}</li>)}
                                     </ol>
                                     <Separator />
                                     <p className="font-semibold">Video Perbandingan:</p>
-                                     <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                                        <iframe className="w-full h-full" src="https://www.youtube.com/embed/u1yo-uJDsU4" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
-                                    </div>
+                                     {content.comparisonVideoUrl && <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                        <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.comparisonVideoUrl)} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                                    </div>}
                                     <p className='text-sm'>Siswa diminta membandingkan kedua video dan menentukan mana yang deskripsinya lebih baik.</p>
                                 </CardContent>
                             </Card>

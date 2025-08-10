@@ -30,6 +30,8 @@ type MenyimakContent = {
   learningObjective: string;
   youtubeUrl: string;
   statements: Statement[];
+  activity2Questions: string[];
+  comparisonVideoUrl: string;
 };
 
 export default function EditMenyimakPage() {
@@ -45,12 +47,21 @@ export default function EditMenyimakPage() {
         const docRef = doc(db, 'chapters', '1');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists() && docSnap.data().menyimak) {
-          setContent(docSnap.data().menyimak);
+          const data = docSnap.data().menyimak;
+           setContent({
+            learningObjective: data.learningObjective || '',
+            youtubeUrl: data.youtubeUrl || '',
+            statements: data.statements || [{ no: 1, statement: '', answer: 'benar', points: 10, evidencePoints: 10 }],
+            activity2Questions: data.activity2Questions || [],
+            comparisonVideoUrl: data.comparisonVideoUrl || '',
+          });
         } else {
           setContent({
             learningObjective: '',
             youtubeUrl: '',
-            statements: [{ no: 1, statement: '', answer: 'benar', points: 10, evidencePoints: 10 }]
+            statements: [{ no: 1, statement: '', answer: 'benar', points: 10, evidencePoints: 10 }],
+            activity2Questions: [],
+            comparisonVideoUrl: '',
           });
         }
       } catch (error) {
@@ -87,7 +98,6 @@ export default function EditMenyimakPage() {
     setContent({ ...content, statements: newStatements });
   };
   
-
   const addStatement = () => {
     if (!content) return;
     const newStatement: Statement = {
@@ -113,17 +123,15 @@ export default function EditMenyimakPage() {
     event.preventDefault();
     if (!content) return;
 
-    const finalStatements = content.statements.filter(s => s.statement.trim() !== '');
+    const finalContent = {
+        ...content,
+        statements: content.statements.filter(s => s.statement.trim() !== '')
+    };
 
     startTransition(async () => {
       try {
         const docRef = doc(db, 'chapters', '1');
-        await setDoc(docRef, { 
-            menyimak: {
-                ...content,
-                statements: finalStatements
-            } 
-        }, { merge: true });
+        await setDoc(docRef, { menyimak: finalContent }, { merge: true });
 
         toast({
           title: "Berhasil",
@@ -180,7 +188,7 @@ export default function EditMenyimakPage() {
             <form onSubmit={handleSubmit}>
               <Card>
                 <CardHeader>
-                  <CardTitle>Formulir Konten Menyimak</CardTitle>
+                  <CardTitle>Kegiatan 1: Video & Pernyataan</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
@@ -194,7 +202,7 @@ export default function EditMenyimakPage() {
                     />
                   </div>
                    <div className="space-y-2">
-                    <Label htmlFor="youtubeUrl">Tautan Video YouTube</Label>
+                    <Label htmlFor="youtubeUrl">Tautan Video YouTube (Kegiatan 1)</Label>
                     <Input
                       id="youtubeUrl"
                       name="youtubeUrl"
@@ -274,15 +282,43 @@ export default function EditMenyimakPage() {
                       Tambah Pernyataan
                     </Button>
                   </div>
-                  
-                  <Separator />
-
-                  <Button type="submit" disabled={isPending}>
-                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    {isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
-                  </Button>
                 </CardContent>
               </Card>
+
+              <Card className="mt-6">
+                 <CardHeader>
+                  <CardTitle>Kegiatan 2: Analisis & Perbandingan</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="activity2Questions">Pertanyaan Evaluasi Gagasan</Label>
+                        <Textarea
+                            id="activity2Questions"
+                            value={(content.activity2Questions || []).join('\n')}
+                            onChange={(e) => setContent({...content, activity2Questions: e.target.value.split('\n')})}
+                            rows={8}
+                            placeholder="Masukkan satu pertanyaan per baris..."
+                        />
+                         <p className="text-xs text-muted-foreground">Satu pertanyaan per baris.</p>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="comparisonVideoUrl">Tautan Video Perbandingan (Kegiatan 2)</Label>
+                        <Input
+                            id="comparisonVideoUrl"
+                            value={content.comparisonVideoUrl}
+                            onChange={(e) => setContent({...content, comparisonVideoUrl: e.target.value})}
+                            placeholder="https://www.youtube.com/embed/..."
+                        />
+                    </div>
+                </CardContent>
+              </Card>
+              
+              <div className="mt-6">
+                  <Button type="submit" disabled={isPending} size="lg" className="w-full">
+                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    {isPending ? 'Menyimpan...' : 'Simpan Semua Perubahan'}
+                  </Button>
+              </div>
             </form>
           </div>
         </main>
