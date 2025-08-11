@@ -29,6 +29,12 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  // Expose server-side environment variables to the Next.js server runtime.
+  serverRuntimeConfig: {
+    firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
+    firebasePrivateKey: process.env.FIREBASE_PRIVATE_KEY,
+    firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+  },
 };
 
 export default nextConfig;
