@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { auth, db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase/client';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { Loader2, LogOut, User, Users, Mail } from 'lucide-react';

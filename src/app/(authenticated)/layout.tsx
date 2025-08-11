@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Home, User, BookCopy, LogOut, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase/client";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { BottomNavBar, type NavItem } from "@/components/layout/bottom-nav-bar";

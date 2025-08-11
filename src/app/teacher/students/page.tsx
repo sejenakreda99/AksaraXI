@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table"
 import { TeacherHeader } from "@/components/layout/teacher-header";
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';

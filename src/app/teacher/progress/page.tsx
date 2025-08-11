@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { BookOpen, Award, Users, BadgeCheck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/client';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 

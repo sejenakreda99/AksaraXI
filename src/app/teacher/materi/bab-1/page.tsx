@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { BookOpen, CheckCircle, FileText, PenSquare, Pencil, Presentation, HelpCircle, Edit, BarChart, Lock, Unlock } from "lucide-react";
 import Link from "next/link";
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';

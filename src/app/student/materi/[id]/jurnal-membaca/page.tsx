@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase/client';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 

@@ -8,7 +8,7 @@ import { Mail, Lock } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, getAuth } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase/client";
 
 
 import { Button } from "@/components/ui/button";

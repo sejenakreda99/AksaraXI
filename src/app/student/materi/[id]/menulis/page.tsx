@@ -11,7 +11,7 @@ import { ArrowLeft, ArrowRight, Loader2, Save, CheckCircle } from 'lucide-react'
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';

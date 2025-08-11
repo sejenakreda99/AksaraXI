@@ -11,8 +11,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { adminAuth, adminDb } from '@/lib/firebase/server';
 
 
 const CreateStudentInputSchema = z.object({
@@ -32,7 +31,12 @@ const CreateStudentOutputSchema = z.object({
 export type CreateStudentOutput = z.infer<typeof CreateStudentOutputSchema>;
 
 export async function createStudent(input: CreateStudentInput): Promise<CreateStudentOutput> {
-  return createStudentFlow(input);
+  // Temporarily bypass the Genkit flow to test direct Firebase Admin SDK call
+  // const userRecord = await (await import('firebase-admin/auth')).getAuth().createUser({
+  //   email: input.email,
+  //   password: input.password,
+  // });
+   return createStudentFlow(input);
 }
 
 
@@ -59,14 +63,14 @@ const createStudentFlow = ai.defineFlow(
   async (input) => {
     try {
       // 1. Create the user in Firebase Authentication
-      const userRecord = await getAuth().createUser({
+      const userRecord = await adminAuth.createUser({
         email: input.email,
         password: input.password,
         displayName: 'Siswa', // Set role
       });
 
       // 2. Save the group information to Firestore
-      await getFirestore().collection('groups').doc(userRecord.uid).set({
+      await adminDb.collection('groups').doc(userRecord.uid).set({
         email: input.email,
         className: input.className,
         groupName: input.groupName,
@@ -81,15 +85,23 @@ const createStudentFlow = ai.defineFlow(
     } catch (error: any) {
         // Log the error for debugging on the server
         console.error('Error in createStudentFlow:', error);
-        
-        // Throw a new, user-friendly error to be caught by the client
-        // This prevents leaking sensitive implementation details.
+
+        let errorMessage = 'Gagal membuat akun siswa di server.';
+
         if (error.code === 'auth/email-already-exists') {
-            throw new Error('Email ini sudah terdaftar. Silakan gunakan email lain.');
+            errorMessage = 'Email ini sudah terdaftar. Silakan gunakan email lain.';
         } else if (error.code === 'auth/weak-password') {
-            throw new Error('Kata sandi terlalu lemah. Gunakan minimal 8 karakter.');
+            errorMessage = 'Kata sandi terlalu lemah. Gunakan minimal 8 karakter.';
+        } else if (error.message) {
+            errorMessage += `: ${error.message}`;
         }
-        throw new Error('Gagal membuat akun siswa di server.');
+
+        // Return an object with an error property
+ return {
+ error: { message: errorMessage },
+ uid: '', // Provide default values for required properties
+ email: '',
+        };
     }
   }
 );
