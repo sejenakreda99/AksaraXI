@@ -5,9 +5,8 @@ require('dotenv').config();
 
 const nextConfig: NextConfig = {
   /* config options here */
-  runtime: 'nodejs',
   typescript: {
-    ignoreBuildErrors: true,
+ ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
