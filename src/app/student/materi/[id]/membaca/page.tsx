@@ -168,7 +168,7 @@ export default function MembacaSiswaPage() {
       setAnswers(prev => ({...prev, simpulan: value}));
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Anda harus masuk untuk mengirimkan jawaban." });
@@ -191,7 +191,7 @@ export default function MembacaSiswaPage() {
             title: "Berhasil!",
             description: "Jawaban Anda telah berhasil disimpan.",
         });
-        setCurrentStep(steps.length); // Move to completion view
+        setCurrentStep(s => s + 1); // Move to completion view
 
     } catch (error) {
         console.error("Error submitting answers:", error);
@@ -420,12 +420,12 @@ export default function MembacaSiswaPage() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 md:p-8">
-            <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-6">
                  
                  {/* Progress Indicator */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                        <span>Langkah {currentStep >= steps.length ? steps.length + 1 : currentStep + 1} dari {steps.length + 1}</span>
+                        <span>Langkah {currentStep >= steps.length ? steps.length : currentStep + 1} dari {steps.length}</span>
                         <span>{steps[currentStep]?.title || 'Selesai'}</span>
                     </div>
                     <Progress value={progressPercentage} className="w-full" />
@@ -449,18 +449,16 @@ export default function MembacaSiswaPage() {
                                 <ArrowRight className="ml-2 h-4 w-4"/>
                               </Button>
                          ): (
-                             <Button type="submit" disabled={isSubmitting || loading}>
+                             <Button onClick={handleSubmit} disabled={isSubmitting || loading}>
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                 {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Jawaban'}
                             </Button>
                          )}
                      </div>
                  )}
-            </form>
+            </div>
         </main>
       </div>
     </AuthenticatedLayout>
   );
 }
-
-    

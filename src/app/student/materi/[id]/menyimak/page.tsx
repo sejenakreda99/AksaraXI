@@ -105,7 +105,6 @@ export default function MenyimakSiswaPage() {
     const [user] = useAuthState(auth);
     const { toast } = useToast();
     const [currentStep, setCurrentStep] = useState(0);
-    const [isCompleted, setIsCompleted] = useState(false);
 
     useEffect(() => {
         if (!user || !chapterId) return;
@@ -129,10 +128,6 @@ export default function MenyimakSiswaPage() {
 
                 if (submissionSnap.exists()) {
                     setAnswers(submissionSnap.data().answers);
-                     // Check if it was already completed
-                    if (submissionSnap.data().status === 'completed') {
-                        setIsCompleted(true);
-                    }
                 } else if (fetchedContent) {
                      // Initialize answers structure if no submission exists
                      const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
@@ -199,11 +194,9 @@ export default function MenyimakSiswaPage() {
                 activity: 'menyimak',
                 answers, 
                 lastSubmitted: serverTimestamp(),
-                status: 'completed'
             }, { merge: true });
             
             toast({ title: "Berhasil!", description: "Seluruh jawaban Anda di bagian Menyimak telah berhasil disimpan." });
-            setIsCompleted(true);
 
         } catch (error) {
             toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan jawaban Anda." });
@@ -213,9 +206,8 @@ export default function MenyimakSiswaPage() {
     };
     
     const progressPercentage = useMemo(() => {
-        if(isCompleted) return 100;
-        return (currentStep / steps.length) * 100;
-    }, [currentStep, isCompleted]);
+        return ((currentStep + 1) / (steps.length + 1)) * 100;
+    }, [currentStep]);
 
 
     const renderStepContent = () => {
@@ -223,7 +215,7 @@ export default function MenyimakSiswaPage() {
             return <Card><CardHeader><Skeleton className="h-8 w-3/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-6 w-full" /><Skeleton className="aspect-video w-full" /><Skeleton className="h-48 w-full" /></CardContent></Card>;
         }
         
-        if (isCompleted) {
+        if (currentStep >= steps.length) {
              return (
                     <Card className="text-center p-8">
                         <CardHeader>
@@ -440,21 +432,19 @@ export default function MenyimakSiswaPage() {
                 <main className="flex-1 p-4 md:p-8">
                      <div className="max-w-4xl mx-auto space-y-6">
                  
-                        {!isCompleted && (
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                                    <span>Langkah {currentStep + 1} dari {steps.length}</span>
-                                    <span>{steps[currentStep]?.title || ''}</span>
-                                </div>
-                                <Progress value={progressPercentage} className="w-full" />
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-sm font-medium text-muted-foreground">
+                                <span>Langkah {currentStep >= steps.length ? steps.length : currentStep + 1} dari {steps.length}</span>
+                                <span>{steps[currentStep]?.title || 'Selesai'}</span>
                             </div>
-                        )}
+                            <Progress value={progressPercentage} className="w-full" />
+                        </div>
                         
                         <div>
                            {renderStepContent()}
                         </div>
                         
-                        {!isCompleted && (
+                        {currentStep < steps.length && (
                             <div className="flex justify-between items-center pt-4">
                                 <Button type="button" variant="outline" onClick={() => setCurrentStep(s => s - 1)} disabled={currentStep === 0}>
                                     <ArrowLeft className="mr-2 h-4 w-4"/>
@@ -467,7 +457,10 @@ export default function MenyimakSiswaPage() {
                                         <ArrowRight className="ml-2 h-4 w-4"/>
                                     </Button>
                                 ) : (
-                                    <Button onClick={handleSaveAndFinish} disabled={isSubmitting || loading}>
+                                    <Button onClick={() => {
+                                        handleSaveAndFinish();
+                                        setCurrentStep(s => s + 1);
+                                    }} disabled={isSubmitting || loading}>
                                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                         {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Semua Jawaban'}
                                     </Button>
@@ -480,5 +473,3 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
-
-    
