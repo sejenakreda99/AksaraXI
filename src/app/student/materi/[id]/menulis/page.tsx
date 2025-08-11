@@ -91,6 +91,8 @@ export default function MenulisSiswaPage() {
     const { toast } = useToast();
     const [answers, setAnswers] = useState<MenulisAnswers>({ checklist: {}, finalText: '', submissionLink: '' });
     const [currentStep, setCurrentStep] = useState(0);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [existingSubmission, setExistingSubmission] = useState<any>(null);
 
     useEffect(() => {
         if (!user || !chapterId) return;
@@ -111,7 +113,10 @@ export default function MenulisSiswaPage() {
                 }
 
                 if (submissionSnap.exists()) {
-                    setAnswers(submissionSnap.data().answers as MenulisAnswers);
+                    const submissionData = submissionSnap.data();
+                    setExistingSubmission(submissionData);
+                    setAnswers(submissionData.answers as MenulisAnswers);
+                    setIsCompleted(true);
                 }
 
             } catch (error) {
@@ -142,16 +147,20 @@ export default function MenulisSiswaPage() {
         setIsSubmitting(true);
         try {
             const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menulis`);
-            await setDoc(submissionRef, {
+            const dataToSave = {
                 studentId: user.uid,
                 chapterId: chapterId,
                 activity: 'menulis',
                 answers,
-                lastSubmitted: serverTimestamp()
-            }, { merge: true });
+                lastSubmitted: serverTimestamp(),
+                // Pertahankan skor yang ada jika sudah dinilai
+                ...(existingSubmission?.scores && { scores: existingSubmission.scores })
+            };
+            
+            await setDoc(submissionRef, dataToSave, { merge: true });
             
             toast({ title: "Berhasil!", description: "Tugas menulis Anda telah berhasil dikumpulkan." });
-            setCurrentStep(s => s + 1);
+            setIsCompleted(true);
         } catch (error) {
             console.error("Error submitting task:", error);
             toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat mengumpulkan tugas." });
@@ -161,33 +170,12 @@ export default function MenulisSiswaPage() {
     };
 
     const progressPercentage = useMemo(() => {
-        if (currentStep >= steps.length) return 100;
-        return ((currentStep + 1) / (steps.length + 1)) * 100;
+        return ((currentStep + 1) / steps.length) * 100;
     }, [currentStep]);
 
     const renderStepContent = () => {
         if (loading || !content) {
             return <Card><CardContent className="pt-6"><Skeleton className="h-64 w-full" /></CardContent></Card>;
-        }
-
-        if (currentStep >= steps.length) {
-            return (
-                <Card className="text-center p-8">
-                    <CardHeader>
-                        <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-                        <CardTitle className="text-2xl">Kegiatan Selesai!</CardTitle>
-                        <CardDescription>Anda telah menyelesaikan kegiatan Menulis Teks Deskripsi. Jawaban Anda sudah disimpan dan akan dinilai oleh guru.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button asChild>
-                            <Link href={`/student/materi/${chapterId}`}>
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Kembali ke Peta Petualangan
-                            </Link>
-                        </Button>
-                    </CardContent>
-                </Card>
-            );
         }
         
         switch (steps[currentStep].id) {
@@ -342,36 +330,48 @@ export default function MenulisSiswaPage() {
                     <div className="max-w-4xl mx-auto space-y-6">
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                                <span>Langkah {currentStep >= steps.length ? steps.length : currentStep + 1} dari {steps.length}</span>
+                                <span>Langkah {currentStep + 1} dari {steps.length}</span>
                                 <span>{steps[currentStep]?.title || 'Selesai'}</span>
                             </div>
                             <Progress value={progressPercentage} className="w-full" />
                         </div>
                         
+                        {isCompleted && (
+                            <Card className="bg-green-50 border-green-200">
+                                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                                    <CheckCircle className="w-8 h-8 text-green-600" />
+                                    <div>
+                                        <CardTitle className="text-green-800">Tugas Telah Dikumpulkan</CardTitle>
+                                        <CardDescription className="text-green-700">Anda dapat meninjau kembali materi atau memperbarui jawaban Anda jika perlu.</CardDescription>
+                                    </div>
+                                </CardHeader>
+                            </Card>
+                        )}
+
                         <div>{renderStepContent()}</div>
                         
-                        {currentStep < steps.length && (
-                            <div className="flex justify-between items-center">
-                                <Button type="button" variant="outline" onClick={() => setCurrentStep(s => s - 1)} disabled={currentStep === 0}>
-                                    <ArrowLeft className="mr-2 h-4 w-4"/>
-                                    Kembali
+                        <div className="flex justify-between items-center">
+                            <Button type="button" variant="outline" onClick={() => setCurrentStep(s => s - 1)} disabled={currentStep === 0}>
+                                <ArrowLeft className="mr-2 h-4 w-4"/>
+                                Kembali
+                            </Button>
+                            {steps[currentStep].id !== 'publikasi' ? (
+                                <Button type="button" onClick={() => setCurrentStep(s => s + 1)} disabled={currentStep >= steps.length - 1}>
+                                    Lanjut
+                                    <ArrowRight className="ml-2 h-4 w-4"/>
                                 </Button>
-                                {steps[currentStep].id !== 'publikasi' ? (
-                                    <Button type="button" onClick={() => setCurrentStep(s => s + 1)}>
-                                        Lanjut
-                                        <ArrowRight className="ml-2 h-4 w-4"/>
-                                    </Button>
-                                ) : (
-                                    <Button onClick={handleSubmit} disabled={isSubmitting || loading}>
-                                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                        {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Tugas'}
-                                    </Button>
-                                )}
-                            </div>
-                        )}
+                            ) : (
+                                <Button onClick={handleSubmit} disabled={isSubmitting || loading}>
+                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                    {isSubmitting ? 'Menyimpan...' : 'Simpan Tugas'}
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </main>
             </div>
         </AuthenticatedLayout>
     );
 }
+
+    

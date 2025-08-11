@@ -105,6 +105,7 @@ export default function MenyimakSiswaPage() {
     const [user] = useAuthState(auth);
     const { toast } = useToast();
     const [currentStep, setCurrentStep] = useState(0);
+    const [existingSubmission, setExistingSubmission] = useState<any>(null);
 
     useEffect(() => {
         if (!user || !chapterId) return;
@@ -127,7 +128,9 @@ export default function MenyimakSiswaPage() {
                 }
 
                 if (submissionSnap.exists()) {
-                    setAnswers(submissionSnap.data().answers);
+                    const submissionData = submissionSnap.data();
+                    setExistingSubmission(submissionData);
+                    setAnswers(submissionData.answers);
                 } else if (fetchedContent) {
                      // Initialize answers structure if no submission exists
                      const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
@@ -188,15 +191,21 @@ export default function MenyimakSiswaPage() {
         setIsSubmitting(true);
         try {
             const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menyimak`);
-            await setDoc(submissionRef, { 
+            
+            const dataToSave = {
                 studentId: user.uid,
                 chapterId: chapterId,
                 activity: 'menyimak',
-                answers, 
+                answers,
                 lastSubmitted: serverTimestamp(),
-            }, { merge: true });
+                // Pertahankan skor yang ada jika sudah dinilai
+                ...(existingSubmission?.scores && { scores: existingSubmission.scores })
+            };
+
+            await setDoc(submissionRef, dataToSave, { merge: true });
             
             toast({ title: "Berhasil!", description: "Seluruh jawaban Anda di bagian Menyimak telah berhasil disimpan." });
+            setCurrentStep(s => s + 1);
 
         } catch (error) {
             toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan jawaban Anda." });
@@ -206,6 +215,7 @@ export default function MenyimakSiswaPage() {
     };
     
     const progressPercentage = useMemo(() => {
+        if (currentStep >= steps.length) return 100;
         return ((currentStep + 1) / (steps.length + 1)) * 100;
     }, [currentStep]);
 
@@ -457,10 +467,7 @@ export default function MenyimakSiswaPage() {
                                         <ArrowRight className="ml-2 h-4 w-4"/>
                                     </Button>
                                 ) : (
-                                    <Button onClick={() => {
-                                        handleSaveAndFinish();
-                                        setCurrentStep(s => s + 1);
-                                    }} disabled={isSubmitting || loading}>
+                                    <Button onClick={handleSaveAndFinish} disabled={isSubmitting || loading}>
                                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                         {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Semua Jawaban'}
                                     </Button>
@@ -473,3 +480,5 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
+
+    

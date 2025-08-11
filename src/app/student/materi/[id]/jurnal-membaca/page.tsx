@@ -24,6 +24,7 @@ export default function JurnalMembacaSiswaPage() {
     const [journalText, setJournalText] = useState('');
     const [user] = useAuthState(auth);
     const [loading, setLoading] = useState(true);
+    const [existingSubmission, setExistingSubmission] = useState<any>(null);
     
      useEffect(() => {
         if (!user || !chapterId) return;
@@ -34,7 +35,9 @@ export default function JurnalMembacaSiswaPage() {
             try {
                 const docSnap = await getDoc(submissionRef);
                 if (docSnap.exists()) {
-                    setJournalText(docSnap.data().answers?.journal || '');
+                    const submissionData = docSnap.data();
+                    setExistingSubmission(submissionData);
+                    setJournalText(submissionData.answers?.journal || '');
                 }
             } catch (error) {
                 console.error("Error fetching journal:", error);
@@ -65,15 +68,20 @@ export default function JurnalMembacaSiswaPage() {
         
         try {
             const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_jurnal-membaca`);
-            await setDoc(submissionRef, {
+            
+            const dataToSave = {
                 studentId: user.uid,
                 chapterId: chapterId,
                 activity: 'jurnal-membaca',
                 answers: {
                     journal: journalText
                 },
-                lastSubmitted: serverTimestamp()
-            }, { merge: true });
+                lastSubmitted: serverTimestamp(),
+                 // Pertahankan skor yang ada jika sudah dinilai
+                ...(existingSubmission?.scores && { scores: existingSubmission.scores })
+            };
+
+            await setDoc(submissionRef, dataToSave, { merge: true });
 
             toast({
                 title: "Jurnal Membaca Disimpan",

@@ -29,6 +29,7 @@ export default function RefleksiSiswaPage() {
     const [user] = useAuthState(auth);
     const [content, setContent] = useState<RefleksiContent | null>(null);
     const [loading, setLoading] = useState(true);
+    const [existingSubmission, setExistingSubmission] = useState<any>(null);
 
     useEffect(() => {
         if (!user || !chapterId) return;
@@ -49,7 +50,9 @@ export default function RefleksiSiswaPage() {
                 }
 
                 if (submissionSnap.exists()) {
-                    setAnswers(submissionSnap.data().answers || {});
+                    const submissionData = submissionSnap.data();
+                    setExistingSubmission(submissionData);
+                    setAnswers(submissionData.answers || {});
                 }
 
             } catch (error) {
@@ -86,13 +89,16 @@ export default function RefleksiSiswaPage() {
         setIsSubmitting(true);
         try {
              const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_refleksi`);
-             await setDoc(submissionRef, {
+             const dataToSave = {
                 studentId: user.uid,
                 chapterId: chapterId,
                 activity: 'refleksi',
                 answers: answers,
-                lastSubmitted: serverTimestamp()
-            }, { merge: true });
+                lastSubmitted: serverTimestamp(),
+                 // Pertahankan skor yang ada jika sudah dinilai
+                ...(existingSubmission?.scores && { scores: existingSubmission.scores })
+            };
+             await setDoc(submissionRef, dataToSave, { merge: true });
 
             toast({
                 title: "Refleksi Disimpan",

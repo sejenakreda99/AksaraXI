@@ -86,6 +86,8 @@ export default function MembacaSiswaPage() {
   const { toast } = useToast();
   const [answers, setAnswers] = useState<ReadingAnswers>({kegiatan1: {}, latihan: {}, simpulan: ''});
   const [currentStep, setCurrentStep] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [existingSubmission, setExistingSubmission] = useState<any>(null);
 
   useEffect(() => {
     if (!user || !chapterId) return;
@@ -115,7 +117,11 @@ export default function MembacaSiswaPage() {
             }
 
             if (submissionSnap.exists()) {
-                const existingAnswers = submissionSnap.data().answers as ReadingAnswers;
+                const submissionData = submissionSnap.data();
+                setExistingSubmission(submissionData);
+                const existingAnswers = submissionData.answers as ReadingAnswers;
+                setIsCompleted(true); // Mark as completed if submission exists
+
                 // Merge existing answers, making sure not to override with undefined
                 if (existingAnswers.kegiatan1) {
                     Object.keys(initialAnswers.kegiatan1).forEach(key => {
@@ -179,19 +185,23 @@ export default function MembacaSiswaPage() {
     try {
         const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_membaca`);
         
-        await setDoc(submissionRef, {
+        const dataToSave = {
             studentId: user.uid,
             chapterId: chapterId,
             activity: 'membaca',
             answers,
-            lastSubmitted: serverTimestamp()
-        }, { merge: true });
+            lastSubmitted: serverTimestamp(),
+            // Pertahankan skor yang ada jika sudah dinilai
+            ...(existingSubmission?.scores && { scores: existingSubmission.scores })
+        };
+        
+        await setDoc(submissionRef, dataToSave, { merge: true });
         
         toast({
             title: "Berhasil!",
             description: "Jawaban Anda telah berhasil disimpan.",
         });
-        setCurrentStep(s => s + 1); // Move to completion view
+        setIsCompleted(true);
 
     } catch (error) {
         console.error("Error submitting answers:", error);
@@ -206,8 +216,7 @@ export default function MembacaSiswaPage() {
   };
 
   const progressPercentage = useMemo(() => {
-    if (currentStep >= steps.length) return 100;
-    return ((currentStep + 1) / (steps.length + 1)) * 100;
+    return ((currentStep + 1) / steps.length) * 100;
   }, [currentStep]);
 
 
@@ -228,26 +237,6 @@ export default function MembacaSiswaPage() {
 
     if (!content) {
          return <Card><CardHeader><CardTitle>Konten Tidak Tersedia</CardTitle></CardHeader><CardContent><p>Materi untuk bagian ini belum disiapkan oleh guru.</p></CardContent></Card>;
-    }
-
-    if (currentStep >= steps.length) {
-        return (
-             <Card className="text-center p-8">
-                <CardHeader>
-                    <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-                    <CardTitle className="text-2xl">Kegiatan Selesai!</CardTitle>
-                    <CardDescription>Anda telah menyelesaikan kegiatan Membaca Teks Deskripsi. Jawaban Anda sudah disimpan. Anda dapat kembali ke Peta Petualangan.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                     <Button asChild>
-                      <Link href={`/student/materi/${chapterId}`}>
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Kembali ke Peta Petualangan
-                      </Link>
-                    </Button>
-                </CardContent>
-            </Card>
-        )
     }
     
     switch (steps[currentStep].id) {
@@ -425,40 +414,52 @@ export default function MembacaSiswaPage() {
                  {/* Progress Indicator */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                        <span>Langkah {currentStep >= steps.length ? steps.length : currentStep + 1} dari {steps.length}</span>
+                        <span>Langkah {currentStep + 1} dari {steps.length}</span>
                         <span>{steps[currentStep]?.title || 'Selesai'}</span>
                     </div>
                     <Progress value={progressPercentage} className="w-full" />
                 </div>
+
+                {isCompleted && (
+                    <Card className="bg-green-50 border-green-200">
+                        <CardHeader className="flex-row items-center gap-4 space-y-0">
+                            <CheckCircle className="w-8 h-8 text-green-600" />
+                            <div>
+                                <CardTitle className="text-green-800">Tugas Telah Dikumpulkan</CardTitle>
+                                <CardDescription className="text-green-700">Anda dapat meninjau kembali materi atau memperbarui jawaban Anda jika perlu.</CardDescription>
+                            </div>
+                        </CardHeader>
+                    </Card>
+                )}
                  
                 <div>
                   {renderStepContent()}
                 </div>
                  
                 {/* Navigation Buttons */}
-                 {currentStep < steps.length && (
-                     <div className="flex justify-between items-center">
-                         <Button type="button" variant="outline" onClick={() => setCurrentStep(s => s - 1)} disabled={currentStep === 0}>
-                            <ArrowLeft className="mr-2 h-4 w-4"/>
-                            Kembali
-                         </Button>
+                 <div className="flex justify-between items-center">
+                     <Button type="button" variant="outline" onClick={() => setCurrentStep(s => s - 1)} disabled={currentStep === 0}>
+                        <ArrowLeft className="mr-2 h-4 w-4"/>
+                        Kembali
+                     </Button>
 
-                         {steps[currentStep].id !== 'latihan-simpulan' ? (
-                              <Button type="button" onClick={() => setCurrentStep(s => s + 1)}>
-                                Lanjut
-                                <ArrowRight className="ml-2 h-4 w-4"/>
-                              </Button>
-                         ): (
-                             <Button onClick={handleSubmit} disabled={isSubmitting || loading}>
-                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Jawaban'}
-                            </Button>
-                         )}
-                     </div>
-                 )}
+                     {steps[currentStep].id !== 'latihan-simpulan' ? (
+                          <Button type="button" onClick={() => setCurrentStep(s => s + 1)} disabled={currentStep >= steps.length -1}>
+                            Lanjut
+                            <ArrowRight className="ml-2 h-4 w-4"/>
+                          </Button>
+                     ): (
+                         <Button onClick={handleSubmit} disabled={isSubmitting || loading}>
+                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                            {isSubmitting ? 'Menyimpan...' : 'Simpan & Kirim Jawaban'}
+                        </Button>
+                     )}
+                 </div>
             </div>
         </main>
       </div>
     </AuthenticatedLayout>
   );
 }
+
+    

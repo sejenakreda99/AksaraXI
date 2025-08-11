@@ -68,6 +68,9 @@ export default function MempresentasikanSiswaPage() {
         scores: {}
     });
 
+    // Perhatikan: Tidak ada pengambilan data lama di sini karena setiap penilaian
+    // untuk teman yang berbeda dianggap sebagai submisi baru.
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setAnswers(prev => ({ ...prev, [name]: value }));
@@ -93,6 +96,7 @@ export default function MempresentasikanSiswaPage() {
         setIsSubmitting(true);
         
         try {
+            // Setiap pengiriman dianggap sebagai entri baru dengan timestamp unik
             const submissionId = `${user.uid}_${chapterId}_mempresentasikan_${Date.now()}`;
             const submissionRef = doc(db, 'submissions', submissionId);
             
@@ -109,7 +113,7 @@ export default function MempresentasikanSiswaPage() {
                 description: "Penilaian Anda untuk teman Anda telah berhasil disimpan.",
             });
             
-            // Reset form
+            // Reset form untuk penilaian berikutnya
             setAnswers({ speakerName: '', speakerClass: '', textTitle: '', scores: {} });
             formRef.current?.reset();
 
@@ -244,3 +248,5 @@ export default function MempresentasikanSiswaPage() {
         </AuthenticatedLayout>
     );
 }
+
+    
