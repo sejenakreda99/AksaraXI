@@ -92,16 +92,10 @@ const createStudentFlow = ai.defineFlow(
             errorMessage = 'Email ini sudah terdaftar. Silakan gunakan email lain.';
         } else if (error.code === 'auth/weak-password') {
             errorMessage = 'Kata sandi terlalu lemah. Gunakan minimal 8 karakter.';
-        } else if (error.message) {
-            errorMessage += `: ${error.message}`;
         }
 
-        // Return an object with an error property
- return {
- error: { message: errorMessage },
- uid: '', // Provide default values for required properties
- email: '',
-        };
+        // Throw an error that will be caught by the client-side form
+        throw new Error(errorMessage);
     }
   }
 );
