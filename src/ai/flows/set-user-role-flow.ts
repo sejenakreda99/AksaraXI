@@ -55,16 +55,28 @@ const setUserRoleFlow = ai.defineFlow(
 );
 
 /**
+ * ===================================================================================
  * UTILITY FLOW TO MAKE YOUR ACCOUNT A TEACHER
- * To run this, you can temporarily call it from a test page or use the Genkit developer UI.
- * This is a one-time setup for your admin account.
+ * ===================================================================================
+ * This is a one-time setup flow for your admin/teacher account.
+ * You MUST run this flow to give your account 'Guru' permissions.
+ *
+ * HOW TO RUN:
+ * 1. Replace 'admin@demo.com' below with your actual teacher email address.
+ * 2. Start the Genkit developer UI (run `npm run genkit:watch` in your terminal).
+ * 3. Open your browser to http://localhost:4000.
+ * 4. Find 'makeTeacherAdmin' in the list of flows and click the 'Run' button.
+ *
+ * After running this, your account will have the 'Guru' role and will be able
+ * to view the student list.
+ * ===================================================================================
  */
 ai.defineFlow(
     { name: 'makeTeacherAdmin' },
     async () => {
         try {
             const result = await setUserRole({
-                email: 'admin@demo.com', // <<! RPLACE THIS WITH YOUR TEACHER/ADMIN EMAIL
+                email: 'admin@demo.com', // <<! REPLACE THIS WITH YOUR TEACHER/ADMIN EMAIL
                 role: 'Guru'
             });
             console.log(result.message);
