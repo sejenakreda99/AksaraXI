@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Youtube, ArrowLeft, Loader2, Send, CheckCircle, ArrowRight } from 'lucide-react';
+import { Youtube, ArrowLeft, Loader2, Save, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -18,8 +18,6 @@ import { Separator } from '@/components/ui/separator';
 import { useParams } from 'next/navigation';
 import AuthenticatedLayout from '@/app/(authenticated)/layout';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
-
 
 // --- Type Definitions ---
 type Statement = {
@@ -43,7 +41,7 @@ type MenyimakContentData = {
   statements: Statement[];
   activity2Questions: string[];
   comparisonVideoUrl: string;
-  latihan?: { // Make latihan optional to handle cases where it might not exist yet
+  latihan?: { 
       youtubeUrl: string;
       statements: LatihanStatement[];
   }
@@ -83,16 +81,6 @@ function getYoutubeEmbedUrl(url: string) {
     return url;
 }
 
-
-const steps = [
-    { id: 'tujuan', title: 'Tujuan Pembelajaran' },
-    { id: 'kegiatan1-tugas', title: 'Kegiatan 1: Video & Tugas' },
-    { id: 'kegiatan1-umpan-balik', title: 'Kegiatan 1: Umpan Balik' },
-    { id: 'kegiatan2', title: 'Kegiatan 2: Analisis & Dialog' },
-    { id: 'latihan', title: 'Latihan Mandiri' },
-];
-
-
 // --- Main Page Component ---
 export default function MenyimakSiswaPage() {
     const params = useParams();
@@ -104,9 +92,8 @@ export default function MenyimakSiswaPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [user] = useAuthState(auth);
     const { toast } = useToast();
-    const [currentStep, setCurrentStep] = useState(0);
-    const [existingSubmission, setExistingSubmission] = useState<any>(null);
-
+    const [isCompleted, setIsCompleted] = useState(false);
+    
     useEffect(() => {
         if (!user || !chapterId) return;
 
@@ -128,11 +115,9 @@ export default function MenyimakSiswaPage() {
                 }
 
                 if (submissionSnap.exists()) {
-                    const submissionData = submissionSnap.data();
-                    setExistingSubmission(submissionData);
-                    setAnswers(submissionData.answers);
+                    setAnswers(submissionSnap.data().answers);
+                    setIsCompleted(true);
                 } else if (fetchedContent) {
-                     // Initialize answers structure if no submission exists
                      const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
                      (fetchedContent.statements || []).forEach((stmt) => {
                          initialAnswers.kegiatan1[stmt.no.toString()] = { choice: '', evidence: '' };
@@ -142,7 +127,6 @@ export default function MenyimakSiswaPage() {
                       });
                       initialAnswers.kegiatan2['comparison'] = '';
                       initialAnswers.kegiatan2['dialogue-fix'] = '';
-                      // Safely access latihan content
                       if (fetchedContent.latihan && fetchedContent.latihan.statements) {
                           (fetchedContent.latihan.statements || []).forEach((_, index) => {
                              initialAnswers.latihan[(index + 1).toString()] = { choice: '', analysis: '' };
@@ -156,7 +140,7 @@ export default function MenyimakSiswaPage() {
                 toast({
                     variant: 'destructive',
                     title: 'Gagal Memuat',
-                    description: 'Tidak dapat memuat konten atau data sebelumnya.',
+                    description: 'Gagal memuat konten atau data sebelumnya.',
                 });
             } finally {
                 setLoading(false);
@@ -189,8 +173,10 @@ export default function MenyimakSiswaPage() {
         });
     };
     
-    const handleSaveAndFinish = async () => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
         if (!user || !answers) return toast({ variant: "destructive", title: "Anda harus masuk." });
+        
         setIsSubmitting(true);
         try {
             const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menyimak`);
@@ -201,14 +187,12 @@ export default function MenyimakSiswaPage() {
                 activity: 'menyimak',
                 answers,
                 lastSubmitted: serverTimestamp(),
-                // Pertahankan skor yang ada jika sudah dinilai
-                ...(existingSubmission?.scores && { scores: existingSubmission.scores })
             };
 
             await setDoc(submissionRef, dataToSave, { merge: true });
             
-            toast({ title: "Berhasil!", description: "Seluruh jawaban Anda di bagian Menyimak telah berhasil disimpan." });
-            setCurrentStep(s => s + 1);
+            toast({ title: "Jawaban Disimpan!", description: "Progres latihan Anda telah berhasil disimpan." });
+            setIsCompleted(true);
 
         } catch (error) {
             toast({ variant: "destructive", title: "Gagal Menyimpan", description: "Terjadi kesalahan saat menyimpan jawaban Anda." });
@@ -216,219 +200,6 @@ export default function MenyimakSiswaPage() {
             setIsSubmitting(false);
         }
     };
-    
-    const progressPercentage = useMemo(() => {
-        if (currentStep >= steps.length) return 100;
-        return ((currentStep + 1) / (steps.length + 1)) * 100;
-    }, [currentStep]);
-
-
-    const renderStepContent = () => {
-        if (loading) {
-            return <Card><CardHeader><Skeleton className="h-8 w-3/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-6 w-full" /><Skeleton className="aspect-video w-full" /><Skeleton className="h-48 w-full" /></CardContent></Card>;
-        }
-
-        if (!content) {
-             return <Card><CardHeader><CardTitle>Konten Tidak Tersedia</CardTitle></CardHeader><CardContent><p>Materi untuk bagian ini belum disiapkan oleh guru.</p></CardContent></Card>;
-        }
-        
-        if (currentStep >= steps.length) {
-             return (
-                    <Card className="text-center p-8">
-                        <CardHeader>
-                            <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-                            <CardTitle className="text-2xl">Kegiatan Selesai!</CardTitle>
-                            <CardDescription>Anda telah menyelesaikan seluruh kegiatan pada bagian Menyimak. Jawaban Anda sudah disimpan. Anda dapat kembali ke Peta Petualangan.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Button asChild>
-                            <Link href={`/student/materi/${chapterId}`}>
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Kembali ke Peta Petualangan
-                            </Link>
-                            </Button>
-                        </CardContent>
-                    </Card>
-                )
-        }
-
-        const stepId = steps[currentStep]?.id;
-
-        switch(stepId) {
-            case 'tujuan':
-                return (
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Tujuan Pembelajaran</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-base text-justify">{content.learningObjective}</p>
-                        </CardContent>
-                    </Card>
-                );
-            case 'kegiatan1-tugas':
-                return (
-                    <>
-                    <Card>
-                        <CardHeader><CardTitle>Kegiatan 1: Menganalisis Teks Deskripsi</CardTitle><CardDescription className="text-justify">Simak video di bawah ini dengan saksama, lalu kerjakan tugas yang diberikan.</CardDescription></CardHeader>
-                        <CardContent className="space-y-4">
-                            {content.youtubeUrl ? (<div className="aspect-video w-full rounded-lg overflow-hidden border"><iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.youtubeUrl)} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe></div>) : (<p className="text-muted-foreground">Video belum ditambahkan oleh guru.</p>)}
-                            {content.youtubeUrl && (<Button asChild variant="outline"><Link href={content.youtubeUrl} target="_blank"><Youtube className="mr-2 h-4 w-4" /> Buka di YouTube</Link></Button>)}
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader><CardTitle>Tugas: Penilaian Pernyataan</CardTitle><CardDescription className="text-justify">Tentukan apakah pernyataan berikut benar atau salah, dan berikan bukti informasi dari video yang telah Anda simak.</CardDescription></CardHeader>
-                        <CardContent className="space-y-6">
-                            {content.statements.map((stmt) => (
-                                <div key={stmt.no} className="border p-4 rounded-lg bg-slate-50/50">
-                                <p className="font-semibold text-justify">Pernyataan #{stmt.no}</p>
-                                <p className="mt-1 text-sm text-justify">{stmt.statement}</p>
-                                <div className="mt-4 space-y-4">
-                                    <div>
-                                    <Label className="font-medium">Tentukan jawaban Anda:</Label>
-                                    <RadioGroup className="flex gap-4 mt-2" onValueChange={(value) => handleAnswerChange('kegiatan1', stmt.no.toString(), 'choice', value)} value={answers?.kegiatan1?.[stmt.no.toString()]?.choice || ''}>
-                                        <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`r-${stmt.no}-benar`} /><Label htmlFor={`r-${stmt.no}-benar`}>Benar</Label></div>
-                                        <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`r-${stmt.no}-salah`} /><Label htmlFor={`r-${stmt.no}-salah`}>Salah</Label></div>
-                                    </RadioGroup>
-                                    </div>
-                                    <div>
-                                    <Label htmlFor={`evidence-${stmt.no}`} className="font-medium">Tuliskan bukti informasinya:</Label>
-                                    <Textarea id={`evidence-${stmt.no}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari video di sini..." rows={4} onChange={(e) => handleAnswerChange('kegiatan1', stmt.no.toString(), 'evidence', e.target.value)} value={answers?.kegiatan1?.[stmt.no.toString()]?.evidence || ''} />
-                                    </div>
-                                </div>
-                                </div>
-                            ))}
-                        </CardContent>
-                    </Card>
-                    </>
-                );
-             case 'kegiatan1-umpan-balik':
-                return (
-                     <Card>
-                        <CardHeader><CardTitle>Umpan Balik & Teks Transkrip</CardTitle><CardDescription className="text-justify">Setelah kalian menyatakan benar atau salah pernyataan tersebut yang disertai alasan atau bukti informasi, bandingkanlah jawaban kalian dengan penjelasan berikut. Teks deskripsi yang dilisankan dari laman YouTube tersebut dapat dituliskan sebagai berikut.</CardDescription></CardHeader>
-                        <CardContent className="prose prose-sm max-w-none bg-slate-50/50 p-4 rounded-md text-justify">
-                            <h4 className="font-bold text-center">Candi Borobudur</h4>
-                            <p>Candi Borobudur adalah candi Budha yang paling besar dan mewah yang ada di Indonesia. Bentuk daripada candi ini nampak seperti piramida atau limas segi empat. Candi ini mempunyai banyak relief dan juga stupa. Karena kemegahan dan ukuran candi, membuat pesona candi bak gunung yang menjulang tinggi. Bahkan, dari arah kejauhan telah nampak dengan jelas akan pesona dari candi ini.</p>
-                            <p>Tingkat pertama paling bawah disebut dengan Kamadatu. Pada bagian akhir tingkatan ini, terdapat relief yang berjumlah 160 buah. Relief tersebut mengandung kisah tentang Kamawibangga, berbagai macam kisah tentang dosa.</p>
-                            <p>Tingkat kedua disebut Rupadatu, berupa empat buah teras. Teras itu seolah membentuk lorong yang berputar. Pada tingkat Rupadatu, terdapat 1300 relief. Pada tingkat kedua ini pula terdapat patung Budha berukuran kecil. Jumlah keseluruhan patung Budha sebanyak 432 patung. Patung itu terletak pada suatu relung terbuka yang ada di sepanjang pagar langkan. Pagar langkan adalah suatu bentuk peralihan dari Rupadatu ke Arupadatu.</p>
-                            <p>Tingkat paling atas dinamakan Arupadatu. Khusus untuk tingkat ini, sama sekali tidak ada hiasan relief pada dindingnya. Bentuk dari lantai Arupadatu berupa lingkaran. Di sini, ada 72 stupa kecil. Semua stupa kecil tersebut tersusun atas tiga buah barisan yang seolah mengelilingi stupa induk. Bentuk dari stupa kecil menyerupai lonceng. Di dalam stupa, terdapat patung Budha. Di bagian tengah Arupadatu, terdapat stupa induk. Stupa ini memiliki patung-patung Budha dan mempunyai ukuran paling besar daripada stupa lainnya.</p>
-                        </CardContent>
-                    </Card>
-                );
-             case 'kegiatan2':
-                 return (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Kegiatan 2: Mengevaluasi Gagasan & Membandingkan</CardTitle>
-                            <CardDescription className="text-justify">
-                                Simaklah kembali teks deskripsi “Candi Borobudur” melalui tautan video pada Kegiatan 1 jika perlu. Setelah itu, jawablah pertanyaan-pertanyaan di bawah ini.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="space-y-4">
-                                {(content.activity2Questions || []).map((q, i) => (
-                                    <div key={i}>
-                                        <Label htmlFor={`activity2-q${i}`} className="font-semibold text-justify">{i + 1}. {q}</Label>
-                                        <Textarea id={`activity2-q${i}`} className="mt-2" placeholder="Tuliskan jawaban Anda di sini..." onChange={e => handleAnswerChange('kegiatan2', q, 'answer', e.target.value)} value={answers?.kegiatan2?.[q] || ''} />
-                                    </div>
-                                ))}
-                            </div>
-                            <Separator />
-                            <div>
-                                <p className="text-sm text-foreground text-justify">Selanjutnya, simaklah tayangan dalam laman YouTube berikut. Lalu, bandingkan dengan teks deskripsi yang pertama kalian simak pada Kegiatan 1. Mana di antara kedua teks tersebut yang lebih baik deskripsinya?</p>
-                                <div className="mt-4 space-y-4">
-                                    {content.comparisonVideoUrl && <div className="aspect-video w-full rounded-lg overflow-hidden border"><iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.comparisonVideoUrl)} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe></div>}
-                                    <Label htmlFor="comparison" className="font-semibold">Jawaban Perbandingan Anda:</Label>
-                                    <Textarea id="comparison" placeholder="Tuliskan hasil perbandingan Anda di sini..." rows={5} onChange={e => handleAnswerChange('kegiatan2', 'comparison', 'answer', e.target.value)} value={answers?.kegiatan2?.['comparison'] || ''} />
-                                </div>
-                            </div>
-                            <Separator/>
-                            <div className="prose prose-sm max-w-none text-foreground text-justify">
-                                <p>Perhatikan dialog berikut. Apakah orang yang menggambarkan Candi Borobudur ini sudah berusaha menggambarkannya sebaik dan semenarik mungkin?</p>
-                                <blockquote className="border-l-4 pl-4 italic">
-                                    <p><strong>Amir:</strong> Waktu liburan tahun ajaran baru kemarin, kelas kami berwisata ke Candi Borobudur.</p>
-                                    <p><strong>Usman:</strong> Wah, enak benar. Saya belum pernah ke sana. Seperti apa Candi Borobudur itu?</p>
-                                    <p><strong>Amir:</strong> Ya, pokoknya Borobudur itu suatu candi.</p>
-                                    <p><strong>Usman:</strong> Gambarannya seperti apa?</p>
-                                    <p><strong>Amir:</strong> Ya, candi itu besar, tinggi. Banyak orang berkunjung ke sana. Ada yang foto-foto, berundak-undak, ada patungnya, dan ada reliefnya. Untuk mencapai ke atas, perlu tenaga. Lelah soalnya. Coba kamu berkunjung ke sana. Pokoknya, sulit digambarkan dengan kata-kata. Langsung saja lihat ke sana.</p>
-                                    <p><strong>Usman:</strong> Oh, begitu.</p>
-                                </blockquote>
-                                <p>Apa yang kalian perhatikan dari dialog tersebut? Si Amir diminta menggambarkan objek Candi Borobudur. Namun, dia tidak begitu terampil menggambarkannya. Selanjutnya, coba kalian perbaiki teks tersebut agar sesuai dengan kriteria teks deskripsi.</p>
-                            </div>
-                            <div>
-                                <Label htmlFor="dialogue-fix" className="font-semibold">Perbaikan Dialog oleh Kelompok Anda:</Label>
-                                <Textarea id="dialogue-fix" placeholder="Tuliskan perbaikan dialog di sini..." rows={8} onChange={e => handleAnswerChange('kegiatan2', 'dialogue-fix', 'answer', e.target.value)} value={answers?.kegiatan2?.['dialogue-fix'] || ''} />
-                            </div>
-                        </CardContent>
-                    </Card>
-                 );
-            case 'latihan':
-                return (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Latihan</CardTitle>
-                            <CardDescription className="text-justify">
-                                Simaklah tayangan deskripsi pada laman YouTube Info Sumut dengan kata kunci pencarian pesona Danau Toba. Setelah kalian menyimak tayangan tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.2. Lalu, berikan analisis terhadap gagasan dan pandangan yang disampaikan narator dalam tayangan tersebut.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {content.latihan?.youtubeUrl ? (
-                                <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                                    <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.latihan.youtubeUrl)} title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
-                                </div>
-                            ): (
-                                <p className="text-muted-foreground">Video latihan belum ditambahkan oleh guru.</p>
-                            )}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Tabel 1.2 Pernyataan Penilaian</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-[50px]">No.</TableHead>
-                                                <TableHead>Pernyataan</TableHead>
-                                                <TableHead className="w-[150px] text-center">Benar / Salah</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {content.latihan?.statements.map((item, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>{index + 1}</TableCell>
-                                                    <TableCell>
-                                                        <p className="text-justify">{item.statement}</p>
-                                                        <Label className="mt-4 block font-medium">Jika tidak, seharusnya....</Label>
-                                                        <Textarea
-                                                            className="mt-2"
-                                                            placeholder="Tuliskan analisis Anda..."
-                                                            onChange={e => handleAnswerChange('latihan', String(index + 1), 'analysis', e.target.value)}
-                                                            value={answers?.latihan?.[String(index + 1)]?.analysis || ''}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <RadioGroup
-                                                            className="flex flex-col space-y-2 items-center justify-center"
-                                                            onValueChange={(value) => handleAnswerChange('latihan', String(index + 1), 'choice', value)}
-                                                            value={answers?.latihan?.[String(index + 1)]?.choice || ''}
-                                                        >
-                                                            <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`l-${index}-benar`} /><Label htmlFor={`l-${index}-benar`}>Benar</Label></div>
-                                                            <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`l-${index}-salah`} /><Label htmlFor={`l-${index}-salah`}>Salah</Label></div>
-                                                        </RadioGroup>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        </CardContent>
-                    </Card>
-                );
-            default: return null;
-        }
-    }
-
 
     return (
         <AuthenticatedLayout>
@@ -447,43 +218,203 @@ export default function MenyimakSiswaPage() {
                 </header>
 
                 <main className="flex-1 p-4 md:p-8">
-                     <div className="max-w-4xl mx-auto space-y-6">
-                 
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm font-medium text-muted-foreground">
-                                <span>Langkah {currentStep >= steps.length ? steps.length : currentStep + 1} dari {steps.length}</span>
-                                <span>{steps[currentStep]?.title || 'Selesai'}</span>
-                            </div>
-                            <Progress value={progressPercentage} className="w-full" />
-                        </div>
-                        
-                        <div>
-                           {renderStepContent()}
-                        </div>
-                        
-                        {currentStep < steps.length && (
-                            <div className="flex justify-between items-center pt-4">
-                                <Button type="button" variant="outline" onClick={() => setCurrentStep(s => s - 1)} disabled={currentStep === 0}>
-                                    <ArrowLeft className="mr-2 h-4 w-4"/>
-                                    Kembali
-                                </Button>
-
-                                {steps[currentStep]?.id !== 'latihan' ? (
-                                    <Button type="button" onClick={() => setCurrentStep(s => s + 1)}>
-                                        Lanjut
-                                        <ArrowRight className="ml-2 h-4 w-4"/>
-                                    </Button>
-                                ) : (
-                                    <Button onClick={handleSaveAndFinish} disabled={isSubmitting || loading}>
-                                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                                        {isSubmitting ? 'Mengirim...' : 'Selesai & Kirim Semua Jawaban'}
-                                    </Button>
-                                )}
-                            </div>
+                     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
+                        {isCompleted && (
+                            <Card className="bg-green-50 border-green-200">
+                                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                                    <CheckCircle className="w-8 h-8 text-green-600" />
+                                    <div>
+                                        <CardTitle className="text-green-800">Progres Tersimpan</CardTitle>
+                                        <CardDescription className="text-green-700">Anda dapat meninjau kembali materi atau memperbarui jawaban Anda jika perlu.</CardDescription>
+                                    </div>
+                                </CardHeader>
+                            </Card>
                         )}
-                    </div>
+                        {loading ? (
+                            <div className="space-y-4">
+                               <Skeleton className="h-24 w-full" />
+                               <Skeleton className="h-96 w-full" />
+                               <Skeleton className="h-64 w-full" />
+                            </div>
+                        ) : content ? (
+                            <>
+                                <Card>
+                                    <CardHeader><CardTitle>Tujuan Pembelajaran</CardTitle></CardHeader>
+                                    <CardContent><p className="text-base text-justify">{content.learningObjective}</p></CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Kegiatan 1: Menganalisis Teks Deskripsi</CardTitle>
+                                        <CardDescription className="text-justify">Simak video di bawah ini dengan saksama, lalu kerjakan tugas yang diberikan.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
+                                        {content.youtubeUrl && (
+                                            <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                                <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.youtubeUrl)} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                            </div>
+                                        )}
+                                        
+                                        <Card className="bg-slate-50 border-slate-200">
+                                            <CardHeader>
+                                                <CardTitle>Tugas: Penilaian Pernyataan</CardTitle>
+                                                <CardDescription className="text-justify">Tentukan apakah pernyataan berikut benar atau salah, dan berikan bukti informasi dari video yang telah Anda simak.</CardDescription>
+                                            </CardHeader>
+                                            <CardContent className="space-y-6">
+                                                {content.statements.map((stmt) => (
+                                                    <div key={stmt.no} className="border p-4 rounded-lg bg-white">
+                                                        <p className="font-semibold text-justify">Pernyataan #{stmt.no}</p>
+                                                        <p className="mt-1 text-sm text-justify">{stmt.statement}</p>
+                                                        <div className="mt-4 space-y-4">
+                                                            <div>
+                                                                <Label className="font-medium">Tentukan jawaban Anda:</Label>
+                                                                <RadioGroup className="flex gap-4 mt-2" onValueChange={(value) => handleAnswerChange('kegiatan1', stmt.no.toString(), 'choice', value)} value={answers?.kegiatan1?.[stmt.no.toString()]?.choice || ''}>
+                                                                    <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`r-${stmt.no}-benar`} /><Label htmlFor={`r-${stmt.no}-benar`}>Benar</Label></div>
+                                                                    <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`r-${stmt.no}-salah`} /><Label htmlFor={`r-${stmt.no}-salah`}>Salah</Label></div>
+                                                                </RadioGroup>
+                                                            </div>
+                                                            <div>
+                                                                <Label htmlFor={`evidence-${stmt.no}`} className="font-medium">Tuliskan bukti informasinya:</Label>
+                                                                <Textarea id={`evidence-${stmt.no}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari video di sini..." rows={4} onChange={(e) => handleAnswerChange('kegiatan1', stmt.no.toString(), 'evidence', e.target.value)} value={answers?.kegiatan1?.[stmt.no.toString()]?.evidence || ''} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </CardContent>
+                                        </Card>
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader><CardTitle>Umpan Balik & Teks Transkrip</CardTitle><CardDescription className="text-justify">Setelah kalian menyatakan benar atau salah pernyataan tersebut yang disertai alasan atau bukti informasi, bandingkanlah jawaban kalian dengan penjelasan berikut. Teks deskripsi yang dilisankan dari laman YouTube tersebut dapat dituliskan sebagai berikut.</CardDescription></CardHeader>
+                                    <CardContent className="prose prose-sm max-w-none bg-slate-50/50 p-4 rounded-md text-justify">
+                                        <h4 className="font-bold text-center">Candi Borobudur</h4>
+                                        <p>Candi Borobudur adalah candi Budha yang paling besar dan mewah yang ada di Indonesia. Bentuk daripada candi ini nampak seperti piramida atau limas segi empat. Candi ini mempunyai banyak relief dan juga stupa. Karena kemegahan dan ukuran candi, membuat pesona candi bak gunung yang menjulang tinggi. Bahkan, dari arah kejauhan telah nampak dengan jelas akan pesona dari candi ini.</p>
+                                        <p>Tingkat pertama paling bawah disebut dengan Kamadatu. Pada bagian akhir tingkatan ini, terdapat relief yang berjumlah 160 buah. Relief tersebut mengandung kisah tentang Kamawibangga, berbagai macam kisah tentang dosa.</p>
+                                        <p>Tingkat kedua disebut Rupadatu, berupa empat buah teras. Teras itu seolah membentuk lorong yang berputar. Pada tingkat Rupadatu, terdapat 1300 relief. Pada tingkat kedua ini pula terdapat patung Budha berukuran kecil. Jumlah keseluruhan patung Budha sebanyak 432 patung. Patung itu terletak pada suatu relung terbuka yang ada di sepanjang pagar langkan. Pagar langkan adalah suatu bentuk peralihan dari Rupadatu ke Arupadatu.</p>
+                                        <p>Tingkat paling atas dinamakan Arupadatu. Khusus untuk tingkat ini, sama sekali tidak ada hiasan relief pada dindingnya. Bentuk dari lantai Arupadatu berupa lingkaran. Di sini, ada 72 stupa kecil. Semua stupa kecil tersebut tersusun atas tiga buah barisan yang seolah mengelilingi stupa induk. Bentuk dari stupa kecil menyerupai lonceng. Di dalam stupa, terdapat patung Budha. Di bagian tengah Arupadatu, terdapat stupa induk. Stupa ini memiliki patung-patung Budha dan mempunyai ukuran paling besar daripada stupa lainnya.</p>
+                                    </CardContent>
+                                </Card>
+                                
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Kegiatan 2: Mengevaluasi Gagasan & Membandingkan</CardTitle>
+                                        <CardDescription className="text-justify">
+                                            Simaklah kembali teks deskripsi “Candi Borobudur” melalui tautan video pada Kegiatan 1 jika perlu. Setelah itu, jawablah pertanyaan-pertanyaan di bawah ini.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
+                                        <div className="space-y-4">
+                                            {(content.activity2Questions || []).map((q, i) => (
+                                                <div key={i}>
+                                                    <Label htmlFor={`activity2-q${i}`} className="font-semibold text-justify">{i + 1}. {q}</Label>
+                                                    <Textarea id={`activity2-q${i}`} className="mt-2" placeholder="Tuliskan jawaban Anda di sini..." onChange={e => handleAnswerChange('kegiatan2', q, 'answer', e.target.value)} value={answers?.kegiatan2?.[q] || ''} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <Separator />
+                                        <div>
+                                            <p className="text-sm text-foreground text-justify">Selanjutnya, simaklah tayangan dalam laman YouTube berikut. Lalu, bandingkan dengan teks deskripsi yang pertama kalian simak pada Kegiatan 1. Mana di antara kedua teks tersebut yang lebih baik deskripsinya?</p>
+                                            <div className="mt-4 space-y-4">
+                                                {content.comparisonVideoUrl && <div className="aspect-video w-full rounded-lg overflow-hidden border"><iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.comparisonVideoUrl)} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe></div>}
+                                                <Label htmlFor="comparison" className="font-semibold">Jawaban Perbandingan Anda:</Label>
+                                                <Textarea id="comparison" placeholder="Tuliskan hasil perbandingan Anda di sini..." rows={5} onChange={e => handleAnswerChange('kegiatan2', 'comparison', 'answer', e.target.value)} value={answers?.kegiatan2?.['comparison'] || ''} />
+                                            </div>
+                                        </div>
+                                        <Separator/>
+                                        <div className="prose prose-sm max-w-none text-foreground text-justify">
+                                            <p>Perhatikan dialog berikut. Apakah orang yang menggambarkan Candi Borobudur ini sudah berusaha menggambarkannya sebaik dan semenarik mungkin?</p>
+                                            <blockquote className="border-l-4 pl-4 italic">
+                                                <p><strong>Amir:</strong> Waktu liburan tahun ajaran baru kemarin, kelas kami berwisata ke Candi Borobudur.</p>
+                                                <p><strong>Usman:</strong> Wah, enak benar. Saya belum pernah ke sana. Seperti apa Candi Borobudur itu?</p>
+                                                <p><strong>Amir:</strong> Ya, pokoknya Borobudur itu suatu candi.</p>
+                                                <p><strong>Usman:</strong> Gambarannya seperti apa?</p>
+                                                <p><strong>Amir:</strong> Ya, candi itu besar, tinggi. Banyak orang berkunjung ke sana. Ada yang foto-foto, berundak-undak, ada patungnya, dan ada reliefnya. Untuk mencapai ke atas, perlu tenaga. Lelah soalnya. Coba kamu berkunjung ke sana. Pokoknya, sulit digambarkan dengan kata-kata. Langsung saja lihat ke sana.</p>
+                                                <p><strong>Usman:</strong> Oh, begitu.</p>
+                                            </blockquote>
+                                            <p>Apa yang kalian perhatikan dari dialog tersebut? Si Amir diminta menggambarkan objek Candi Borobudur. Namun, dia tidak begitu terampil menggambarkannya. Selanjutnya, coba kalian perbaiki teks tersebut agar sesuai dengan kriteria teks deskripsi.</p>
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="dialogue-fix" className="font-semibold">Perbaikan Dialog oleh Kelompok Anda:</Label>
+                                            <Textarea id="dialogue-fix" placeholder="Tuliskan perbaikan dialog di sini..." rows={8} onChange={e => handleAnswerChange('kegiatan2', 'dialogue-fix', 'answer', e.target.value)} value={answers?.kegiatan2?.['dialogue-fix'] || ''} />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {content.latihan && (
+                                     <Card>
+                                        <CardHeader>
+                                            <CardTitle>Latihan Mandiri</CardTitle>
+                                            <CardDescription className="text-justify">
+                                                Simaklah tayangan deskripsi pada laman YouTube Info Sumut dengan kata kunci pencarian pesona Danau Toba. Setelah kalian menyimak tayangan tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.2. Lalu, berikan analisis terhadap gagasan dan pandangan yang disampaikan narator dalam tayangan tersebut.
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-6">
+                                            {content.latihan?.youtubeUrl && (
+                                                <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                                    <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.latihan.youtubeUrl)} title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                                                </div>
+                                            )}
+                                            <Card className="bg-slate-50 border-slate-200">
+                                                <CardHeader>
+                                                    <CardTitle>Tabel 1.2 Pernyataan Penilaian</CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead className="w-[50px]">No.</TableHead>
+                                                                <TableHead>Pernyataan</TableHead>
+                                                                <TableHead className="w-[150px] text-center">Benar / Salah</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {content.latihan?.statements.map((item, index) => (
+                                                                <TableRow key={index}>
+                                                                    <TableCell>{index + 1}</TableCell>
+                                                                    <TableCell>
+                                                                        <p className="text-justify">{item.statement}</p>
+                                                                        <Label className="mt-4 block font-medium">Jika tidak, seharusnya....</Label>
+                                                                        <Textarea
+                                                                            className="mt-2 bg-white"
+                                                                            placeholder="Tuliskan analisis Anda..."
+                                                                            onChange={e => handleAnswerChange('latihan', String(index + 1), 'analysis', e.target.value)}
+                                                                            value={answers?.latihan?.[String(index + 1)]?.analysis || ''}
+                                                                        />
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <RadioGroup
+                                                                            className="flex flex-col space-y-2 items-center justify-center"
+                                                                            onValueChange={(value) => handleAnswerChange('latihan', String(index + 1), 'choice', value)}
+                                                                            value={answers?.latihan?.[String(index + 1)]?.choice || ''}
+                                                                        >
+                                                                            <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`l-${index}-benar`} /><Label htmlFor={`l-${index}-benar`}>Benar</Label></div>
+                                                                            <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`l-${index}-salah`} /><Label htmlFor={`l-${index}-salah`}>Salah</Label></div>
+                                                                        </RadioGroup>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </CardContent>
+                                            </Card>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </>
+                        ) : (
+                            <Card><CardContent className="p-6 text-center text-muted-foreground">Konten untuk bagian ini belum disiapkan oleh guru.</CardContent></Card>
+                        )}
+                        
+                        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || loading}>
+                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                            {isSubmitting ? "Menyimpan..." : "Simpan Progres Latihan"}
+                        </Button>
+                    </form>
                 </main>
             </div>
         </AuthenticatedLayout>
     );
 }
+
+    

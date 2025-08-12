@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -129,6 +130,8 @@ export default function GradeGroupPage() {
         setIsSaving(true);
         try {
             const promises = submissions.map(sub => {
+                if (sub.activity !== 'asesmen') return Promise.resolve(); // Only save scores for asesmen
+
                 const submissionRef = doc(db, 'submissions', sub.id);
                 const currentScores = scores[sub.activity] || {};
                 const finalScore = calculateTotalScore(sub.activity);
@@ -140,7 +143,7 @@ export default function GradeGroupPage() {
 
             toast({
                 title: "Berhasil",
-                description: `Nilai untuk kelompok ${group?.groupName} telah disimpan.`
+                description: `Nilai Asesmen untuk kelompok ${group?.groupName} telah disimpan.`
             });
         } catch (error) {
             console.error("Error saving scores: ", error);
@@ -345,129 +348,36 @@ export default function GradeGroupPage() {
         const activityContent = chapterContent?.[sub.activity];
         const activityScores = scores[sub.activity] || {};
 
-        const renderSimpleScoring = (label = "Nilai Akhir") => (
-             <div className="flex items-center gap-2">
-                <Label htmlFor={`score-${sub.activity}`} className="flex-shrink-0">{label}:</Label>
-                <Input 
-                    id={`score-${sub.activity}`}
-                    type="number" 
-                    className="w-24"
-                    placeholder="0-100"
-                    value={activityScores.finalScore ?? ''}
-                    onChange={(e) => handleScoreChange(sub.activity, 'finalScore', e.target.value)}
-                />
-            </div>
-        );
+        if (sub.activity !== 'asesmen') {
+             return <p className="text-sm text-muted-foreground">Penilaian untuk kegiatan ini tidak diperlukan.</p>;
+        }
 
-        if (!activityContent) return renderSimpleScoring();
+        if (!activityContent) return <p className="text-sm text-muted-foreground">Konten penilaian tidak ditemukan.</p>;
 
-        switch(sub.activity) {
-            case 'asesmen':
-                 const questions = [
-                    ...(activityContent?.part1Questions || []),
-                    ...(activityContent?.part2Questions || []),
-                ];
-                return (
-                    <div className="space-y-2">
-                        {questions.map((q: string, index: number) => {
-                             const answerKey = index < (activityContent?.part1Questions.length || 0) ? `q1-${index}` : `q2-${index - (activityContent?.part1Questions.length || 0)}`;
-                             return (
-                                <div key={index} className="flex items-center justify-between gap-2 p-2 bg-slate-50 rounded-md border">
-                                    <Label htmlFor={`score-${sub.activity}-${index}`} className="flex-shrink-0 text-sm truncate pr-4">Poin Soal #{index + 1}</Label>
-                                    <Input 
-                                        id={`score-${sub.activity}-${index}`}
-                                        type="number" 
-                                        className="w-24 h-8"
-                                        placeholder="Poin"
-                                        value={activityScores[answerKey] ?? ''}
-                                        onChange={(e) => handleScoreChange(sub.activity, answerKey, e.target.value)}
-                                    />
-                                </div>
-                             )
-                        })}
-                    </div>
-                )
-            case 'menyimak':
-                 const menyimakQuestions = activityContent?.statements || [];
-                 const autoScores: Record<string, number> = {};
-                 menyimakQuestions.forEach((q: any, index: number) => {
-                     const answerKey = q.no.toString();
-                     const answer = sub.answers?.kegiatan1?.[answerKey];
-                     if (answer?.choice === q.answer) {
-                        autoScores[`q${answerKey}_choice`] = q.points;
-                     } else {
-                        autoScores[`q${answerKey}_choice`] = 0;
-                     }
-                 });
-
-                 return (
-                     <div className="space-y-2">
-                        {menyimakQuestions.map((q: any) => {
-                             const answerKey = q.no.toString();
-                             const isCorrect = sub.answers?.kegiatan1?.[answerKey]?.choice === q.answer;
-                            return (
-                                <div key={q.no} className="flex items-center justify-between gap-2 p-2 bg-slate-50 rounded-md border">
-                                    <div className="flex items-center gap-2">
-                                        <Label htmlFor={`score-menyimak-evidence-${q.no}`} className="flex-shrink-0 text-sm">Poin Bukti (Soal #{answerKey})</Label>
-                                        <Badge variant={isCorrect ? 'default': 'destructive'} className="bg-opacity-80">
-                                            {isCorrect ? 'Benar' : 'Salah'} (+{autoScores[`q${answerKey}_choice`]})
-                                        </Badge>
-                                    </div>
-                                    <Input 
-                                        id={`score-menyimak-evidence-${q.no}`}
-                                        type="number" 
-                                        className="w-24 h-8"
-                                        placeholder={`0-${q.evidencePoints}`}
-                                        max={q.evidencePoints}
-                                        value={activityScores[`q${answerKey}_evidence`] ?? ''}
-                                        onChange={(e) => handleScoreChange(sub.activity, `q${answerKey}_evidence`, e.target.value)}
-                                    />
-                                </div>
-                            )
-                        })}
-                     </div>
-                 );
-            
-            case 'menulis':
-                 return (
-                     <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2 p-2 bg-slate-50 rounded-md border">
-                           <Label htmlFor="score-menulis-text" className="flex-shrink-0 text-sm">Poin Teks Deskripsi</Label>
-                           <Input 
-                                id="score-menulis-text"
-                                type="number" 
-                                className="w-24 h-8"
-                                placeholder="0-100"
-                                value={activityScores.finalText ?? ''}
-                                onChange={(e) => handleScoreChange(sub.activity, 'finalText', e.target.value)}
-                            />
-                        </div>
-                         <div className="flex items-center justify-between gap-2 p-2 bg-slate-50 rounded-md border">
-                           <Label htmlFor="score-menulis-link" className="flex-shrink-0 text-sm">Poin Tautan Publikasi</Label>
-                           <Input 
-                                id="score-menulis-link"
+        const questions = [
+            ...(activityContent?.part1Questions || []),
+            ...(activityContent?.part2Questions || []),
+        ];
+        return (
+            <div className="space-y-2">
+                {questions.map((q: string, index: number) => {
+                        const answerKey = index < (activityContent?.part1Questions.length || 0) ? `q1-${index}` : `q2-${index - (activityContent?.part1Questions.length || 0)}`;
+                        return (
+                        <div key={index} className="flex items-center justify-between gap-2 p-2 bg-slate-50 rounded-md border">
+                            <Label htmlFor={`score-${sub.activity}-${index}`} className="flex-shrink-0 text-sm truncate pr-4">Poin Soal #{index + 1}</Label>
+                            <Input 
+                                id={`score-${sub.activity}-${index}`}
                                 type="number" 
                                 className="w-24 h-8"
                                 placeholder="Poin"
-                                value={activityScores.submissionLink ?? ''}
-                                onChange={(e) => handleScoreChange(sub.activity, 'submissionLink', e.target.value)}
+                                value={activityScores[answerKey] ?? ''}
+                                onChange={(e) => handleScoreChange(sub.activity, answerKey, e.target.value)}
                             />
                         </div>
-                     </div>
-                 )
-
-            case 'jurnal-membaca':
-                return renderSimpleScoring("Skor Jurnal");
-            
-            case 'refleksi':
-                 return renderSimpleScoring("Skor Refleksi");
-            
-            case 'mempresentasikan':
-                 return renderSimpleScoring("Skor Penilaian Presentasi");
-            
-            default:
-                return renderSimpleScoring();
-        }
+                        )
+                })}
+            </div>
+        )
      };
 
     const sortedSubmissions = useMemo(() => {
@@ -508,7 +418,7 @@ export default function GradeGroupPage() {
                                 Kembali ke Laporan
                             </Button>
                              <Button onClick={handleSaveScores} disabled={isSaving}>
-                                {isSaving ? 'Menyimpan...' : <><Save className="mr-2 h-4 w-4" />Simpan Semua Nilai</>}
+                                {isSaving ? 'Menyimpan...' : <><Save className="mr-2 h-4 w-4" />Simpan Nilai Asesmen</>}
                             </Button>
                         </div>
                         
@@ -516,7 +426,7 @@ export default function GradeGroupPage() {
                             <Accordion type="multiple" className="w-full space-y-4" defaultValue={sortedSubmissions.map(sub => sub.id)}>
                                 {sortedSubmissions.map((sub) => {
                                     const totalScore = calculateTotalScore(sub.activity);
-                                    const hasBeenScored = totalScore > 0 || Object.keys(scores[sub.activity] || {}).length > 0;
+                                    const hasBeenScored = sub.activity === 'asesmen' && (totalScore > 0 || Object.keys(scores[sub.activity] || {}).length > 0);
                                     
                                     return (
                                         <Card key={sub.id}>
@@ -524,10 +434,12 @@ export default function GradeGroupPage() {
                                                 <AccordionTrigger className="p-6 text-lg font-semibold hover:no-underline">
                                                     <div className="flex justify-between w-full pr-4 items-center">
                                                         <span>{activityNames[sub.activity] || sub.activity}</span>
-                                                        {hasBeenScored ? (
-                                                            <Badge variant="default" className="bg-green-600">Total Skor: {totalScore}</Badge>
-                                                        ) : (
-                                                            <Badge variant="destructive">Belum Dinilai</Badge>
+                                                        {sub.activity === 'asesmen' && (
+                                                            hasBeenScored ? (
+                                                                <Badge variant="default" className="bg-green-600">Total Skor: {totalScore}</Badge>
+                                                            ) : (
+                                                                <Badge variant="destructive">Belum Dinilai</Badge>
+                                                            )
                                                         )}
                                                     </div>
                                                 </AccordionTrigger>
@@ -560,3 +472,5 @@ export default function GradeGroupPage() {
         </AuthenticatedLayout>
     );
 }
+
+    
