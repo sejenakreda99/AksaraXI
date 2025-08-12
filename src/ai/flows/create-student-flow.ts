@@ -12,6 +12,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { adminAuth, adminDb } from '@/lib/firebase/server';
+import { setUserRole } from './set-user-role-flow';
 
 
 const CreateStudentInputSchema = z.object({
@@ -37,20 +38,6 @@ const createStudentFlow = ai.defineFlow(
     name: 'createStudentFlow',
     inputSchema: CreateStudentInputSchema,
     outputSchema: CreateStudentOutputSchema,
-    auth: {
-        // This policy ensures only authenticated users who are 'teachers' can run this flow.
-        // You would need to set this custom claim on the teacher's user account in Firebase Auth.
-        // For simplicity, we'll allow any authenticated user for now.
-        // In production, uncomment the policy and set custom claims.
-        // policy: (auth, input) => {
-        //   if (!auth) {
-        //     throw new Error('Authentication required.');
-        //   }
-        //   if (auth.customClaims?.role !== 'teacher') {
-        //     throw new Error('Only teachers can create student accounts.');
-        //   }
-        // },
-    },
   },
   async (input) => {
     try {
@@ -58,10 +45,13 @@ const createStudentFlow = ai.defineFlow(
       const userRecord = await adminAuth.createUser({
         email: input.email,
         password: input.password,
-        displayName: 'Siswa', // Set role
+        displayName: 'Siswa', // Default display name
       });
 
-      // 2. Optional: Save basic user info to Firestore if needed later
+      // 2. Set custom claim for the user role
+      await setUserRole({ email: userRecord.email!, role: 'Siswa' });
+
+      // 3. Optional: Save basic user info to Firestore if needed later
       await adminDb.collection('users').doc(userRecord.uid).set({
         email: input.email,
         role: 'Siswa',
