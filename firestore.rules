@@ -1,28 +1,44 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Teachers can list all users. A user can read/write their own document.
+    // /users collection rules
     match /users/{userId} {
-      allow list: if request.auth.token.role == 'Guru';
-      allow read, write: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'Guru');
+      // Teachers can list all users that have the 'Siswa' role.
+      // The query in the app filters by role, so this rule is sufficient.
+      allow list: if request.auth != null && request.auth.token.role == 'Guru';
+
+      // A user can read/write their OWN document.
+      // A teacher can also read ANY user document.
+      allow read: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'Guru');
+
+      // A user can update their OWN document.
+      // A teacher can create/update ANY user document.
+      allow write: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'Guru');
     }
     
-    // Chapters are public read for any authenticated user. Only teachers can write.
+    // Chapters are public read for any authenticated user
     match /chapters/{chapterId} {
       allow read: if request.auth != null;
-      allow write: if request.auth.token.role == 'Guru';
+      // Write access should be restricted to teachers
+      allow write: if request.auth != null && request.auth.token.role == 'Guru';
     }
 
-    // Submissions can be listed by teachers.
-    // Students can create/update/get their own submissions.
-    // Teachers can get any submission.
+    // Submissions can only be read/written by the student who owns them, or by a teacher
     match /submissions/{submissionId} {
-        allow list: if request.auth.token.role == 'Guru';
+        // Teachers can list all submissions for progress tracking.
+        allow list: if request.auth != null && request.auth.token.role == 'Guru';
+        
+        // Students can get their own submissions.
+        // Teachers can get any submission.
         allow get: if request.auth != null && (resource.data.studentId == request.auth.uid || request.auth.token.role == 'Guru');
+
+        // Students can create and update their own submissions.
         allow create, update: if request.auth != null && request.resource.data.studentId == request.auth.uid;
+
+        // Only teachers can delete submissions (optional)
+        allow delete: if request.auth != null && request.auth.token.role == 'Guru';
     }
   }
 }
