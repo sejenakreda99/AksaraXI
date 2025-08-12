@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -7,44 +8,45 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
+
+    // Helper function to get user role data
+    function getRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    }
     
-    // Helper function to check the role of the user
-    function isRole(role) {
-      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
-    }
-
-    // Helper function to check if the user is the owner of the document
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    // Chapters can be read by any authenticated user, but only written by teachers.
+    // Students can read all chapters
     match /chapters/{chapterId} {
       allow read: if isAuthenticated();
-      // In a real app, you might want to restrict write access to specific admin/teacher UIDs
-      allow write: if isAuthenticated(); // Simplified for now, but ideally check for a teacher role
-    }
-
-    // Group information can only be read by the group members themselves or by a teacher.
-    // It can only be written by a teacher (via the server-side flow).
-    match /groups/{groupId} {
-      allow read: if (isAuthenticated() && isOwner(groupId));
-      // Teachers can read all group data
-      // allow read: if isRole('Guru'); // This would be the more robust rule
-      allow read, write: if isAuthenticated(); // Looser rule for now for teacher access
-    }
-
-    // Submissions can only be created/updated/read by the student who owns it, or read by a teacher.
-    match /submissions/{submissionId} {
-        allow read, write: if isAuthenticated() && isOwner(request.resource.data.studentId);
-        // Teachers can read all submissions
-        // allow read: if isRole('Guru'); // This would be the more robust rule
-        allow read: if isAuthenticated(); // Looser rule for now
+      // Lock down writes for now, only editable via console or admin tools
+      allow write: if false; 
     }
     
-    // Fallback rule: deny all other access by default
-    match /{document=**} {
-      allow read, write: if false;
+    // Defines rules for the 'users' collection
+    match /users/{userId} {
+        // Any authenticated user can create their own user document (on signup)
+        allow create: if isAuthenticated();
+        // Users can only read their own document. Teachers can read any user document.
+        allow read: if isAuthenticated() && (request.auth.uid == userId || getRole(request.auth.uid) == 'Guru');
+        // Users can only update their own document
+        allow update: if isAuthenticated() && request.auth.uid == userId;
+        // Only teachers can delete users
+        allow delete: if isAuthenticated() && getRole(request.auth.uid) == 'Guru';
+    }
+
+    // Defines rules for the 'submissions' collection
+    match /submissions/{submissionId} {
+        // Students can create submissions for themselves.
+        // A submission ID should be formatted as: {userId}_{chapterId}_{activity}
+        allow create, update: if isAuthenticated() && request.auth.uid == submissionId.split('_')[0];
+        // Students can only read their own submissions. Teachers can read all submissions.
+        allow read: if isAuthenticated() && (request.auth.uid == submissionId.split('_')[0] || getRole(request.auth.uid) == 'Guru');
+        // Only teachers can delete submissions.
+        allow delete: if isAuthenticated() && getRole(request.auth.uid) == 'Guru';
+    }
+
+    // Lock down the groups collection as it's no longer used
+    match /groups/{groupId} {
+        allow read, write: if false;
     }
   }
 }
