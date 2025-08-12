@@ -4,32 +4,24 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // The /users collection
+    // Teachers can list all users. A user can read/write their own document.
     match /users/{userId} {
-      // Teachers can list all users.
-      allow list: if request.auth != null && request.auth.token.role == 'Guru';
-
-      // A user can read/write their OWN document.
-      // A teacher can also read/write ANY user document.
+      allow list: if request.auth.token.role == 'Guru';
       allow read, write: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'Guru');
     }
     
-    // Chapters are public read for any authenticated user
+    // Chapters are public read for any authenticated user. Only teachers can write.
     match /chapters/{chapterId} {
       allow read: if request.auth != null;
-      // Write access should be restricted, e.g., only for admins/teachers from a secure environment
-      allow write: if request.auth != null && request.auth.token.role == 'Guru';
+      allow write: if request.auth.token.role == 'Guru';
     }
 
-    // Submissions can only be read/written by the student who owns them, or read by a teacher
+    // Submissions can be listed by teachers.
+    // Students can create/update/get their own submissions.
+    // Teachers can get any submission.
     match /submissions/{submissionId} {
-        // Teachers can list all submissions for progress tracking.
-        allow list: if request.auth != null && request.auth.token.role == 'Guru';
-        
-        // Students can read their own submissions, teachers can read any submission.
+        allow list: if request.auth.token.role == 'Guru';
         allow get: if request.auth != null && (resource.data.studentId == request.auth.uid || request.auth.token.role == 'Guru');
-
-        // Students can create and update their own submissions.
         allow create, update: if request.auth != null && request.resource.data.studentId == request.auth.uid;
     }
   }
