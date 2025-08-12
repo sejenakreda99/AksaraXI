@@ -1,39 +1,32 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users collection:
-    // - Authenticated users can read their own data.
-    // - Authenticated users can update their own data.
-    // - Gurus can read and write any user document.
-    match /users/{userId} {
-      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null;
-      allow list, read, write: if request.auth != null && request.auth.token.role == 'Guru';
-    }
-
-    // Groups collection:
-    // - Gurus can manage groups.
-    match /groups/{groupId} {
-      allow read, write, create, delete: if request.auth != null && request.auth.token.role == 'Guru';
-    }
-
-    // Chapters collection:
-    // - Any authenticated user (student or teacher) can read chapter content.
-    // - Only teachers can write/update chapter content.
+    // Teachers can manage chapter content and section status
     match /chapters/{chapterId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.token.role == 'Guru';
+      allow read: if request.auth != null; // All authenticated users can read chapters
+      allow write: if request.auth.token.role == 'Guru'; // Only teachers can write/update chapters
     }
 
-    // Submissions collection:
-    // - Students can create and update their own submissions.
-    // - Teachers can read any submission for grading.
+    // Users can only read their own user document
+    // Teachers can read all user documents for management purposes
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId || request.auth.token.role == 'Guru';
+      allow list: if request.auth.token.role == 'Guru';
+      allow create: if request.auth.uid == userId;
+    }
+    
+    // Groups are managed by teachers
+    match /groups/{groupId} {
+        allow read, write: if request.auth.token.role == 'Guru';
+        allow list: if request.auth.token.role == 'Guru';
+    }
+
+    // Students can only read/write their own submissions.
+    // Teachers can read all submissions for grading.
     match /submissions/{submissionId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.studentId;
-      allow read: if request.auth != null && request.auth.token.role == 'Guru';
+      allow read, write: if request.auth.uid == submissionId.split('_')[0];
+      allow list: if request.auth.token.role == 'Guru';
     }
   }
 }
