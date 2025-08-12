@@ -76,7 +76,7 @@ ai.defineFlow(
     async () => {
         try {
             const result = await setUserRole({
-                email: 'admin@demo.com', // <<! REPLACE THIS WITH YOUR TEACHER/ADMIN EMAIL
+                email: 'guruindonesia@gmail.com', // <<! REPLACE THIS WITH YOUR TEACHER/ADMIN EMAIL
                 role: 'Guru'
             });
             console.log(result.message);

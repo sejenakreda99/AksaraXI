@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,9 +7,8 @@ import * as z from "zod";
 import Link from "next/link";
 import { Mail, Lock } from "lucide-react";
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, getAuth } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase/client";
+import { signInWithEmailAndPassword, getIdTokenResult } from "firebase/auth";
+import { auth } from "@/lib/firebase/client";
 
 
 import { Button } from "@/components/ui/button";
@@ -59,16 +59,28 @@ export function LoginForm() {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
+      // Force refresh to get the latest token with custom claims
+      const idTokenResult = await getIdTokenResult(user, true);
+      const userRole = idTokenResult.claims.role;
+
       toast({
         title: "Masuk Berhasil",
-        description: "Selamat datang kembali!",
+        description: `Selamat datang kembali, ${userRole || 'Pengguna'}!`,
       });
 
-      // Check user role
-      if (user.displayName === 'Siswa') {
+      // Redirect based on the custom claim role
+      if (userRole === 'Guru') {
+         router.push("/dashboard");
+      } else if (userRole === 'Siswa') {
          router.push("/student");
       } else {
-         router.push("/dashboard");
+         // Fallback for users without a role
+         router.push("/");
+         toast({
+            variant: "destructive",
+            title: "Peran Tidak Ditemukan",
+            description: "Akun Anda tidak memiliki peran yang valid.",
+         });
       }
       
     } catch (error) {
@@ -152,8 +164,8 @@ export function LoginForm() {
                 Lupa kata sandi?
               </Link>
             </div>
-            <Button type="submit" className="w-full h-12 text-base font-semibold">
-              Masuk
+            <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? "Memproses..." : "Masuk"}
             </Button>
           </form>
         </Form>
