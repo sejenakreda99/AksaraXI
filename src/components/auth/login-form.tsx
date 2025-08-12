@@ -26,11 +26,13 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { setUserRole } from "@/ai/flows/set-user-role-flow";
+import { Separator } from "../ui/separator";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -57,15 +59,9 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // THIS IS THE FIX:
-      // If the user is the teacher, we will ensure their role is set before attempting to log in.
-      // This is a robust way to solve the "role not found" issue permanently.
       if (values.email.toLowerCase() === 'guruindonesia@gmail.com') {
           console.log("Teacher email detected. Ensuring 'Guru' role is set...");
-          // We call this in the background. We don't need to wait for it,
-          // as the subsequent login and token refresh will pick up the new role.
-          // Using .catch to prevent unhandled promise rejection if it fails, as login is the primary goal.
-          setUserRole({ email: values.email, role: 'Guru' }).catch(err => {
+          await setUserRole({ email: values.email, role: 'Guru' }).catch(err => {
               console.error("Failed to set teacher role in background:", err);
           });
       }
@@ -189,6 +185,20 @@ export function LoginForm() {
           </form>
         </Form>
       </CardContent>
+       <CardFooter className="flex flex-col gap-4">
+            <div className="relative w-full">
+                <Separator />
+                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">ATAU</span>
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+                Belum punya akun?{' '}
+                <Button variant="link" asChild className="p-0 h-auto">
+                    <Link href="/register">
+                        Daftar sebagai siswa
+                    </Link>
+                </Button>
+            </p>
+        </CardFooter>
     </Card>
   );
 }

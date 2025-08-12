@@ -16,6 +16,7 @@ import { adminAuth, adminDb } from '@/lib/firebase/server';
 const CreateStudentInputSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
+  phone: z.string().min(10),
 });
 export type CreateStudentInput = z.infer<typeof CreateStudentInputSchema>;
 
@@ -42,7 +43,8 @@ const createStudentFlow = ai.defineFlow(
       const userRecord = await adminAuth.createUser({
         email: input.email,
         password: input.password,
-        emailVerified: true, // Mark email as verified
+        phoneNumber: `+62${input.phone.substring(1)}`, // Assuming Indonesian country code
+        emailVerified: true, 
         disabled: false,
       });
 
@@ -53,6 +55,7 @@ const createStudentFlow = ai.defineFlow(
       const userDocRef = adminDb.collection('users').doc(userRecord.uid);
       await userDocRef.set({
         email: input.email,
+        phone: input.phone,
         role: 'Siswa',
         createdAt: new Date().toISOString(),
       });
@@ -68,9 +71,11 @@ const createStudentFlow = ai.defineFlow(
     } catch (error: any) {
         console.error('Error in createStudentFlow:', error);
 
-        // Provide a more user-friendly error message
         if (error.code === 'auth/email-already-exists') {
             throw new Error('Alamat email ini sudah terdaftar. Silakan gunakan email lain.');
+        }
+         if (error.code === 'auth/phone-number-already-exists') {
+            throw new Error('Nomor telepon ini sudah terdaftar. Silakan gunakan nomor lain.');
         }
 
         throw new Error(`Gagal membuat akun siswa: ${error.message}`);

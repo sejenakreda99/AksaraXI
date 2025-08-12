@@ -7,17 +7,43 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { auth, db } from '@/lib/firebase/client';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { Loader2, LogOut, User, Mail } from 'lucide-react';
+import { Loader2, LogOut, User, Mail, Phone } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { doc, getDoc } from 'firebase/firestore';
+
+type UserProfile = {
+    email: string;
+    phone: string;
+    role: string;
+}
 
 export default function StudentProfilePage() {
     const [user, loadingAuth] = useAuthState(auth);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [loadingProfile, setLoadingProfile] = useState(true);
     const [isSigningOut, setIsSigningOut] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
+
+    useEffect(() => {
+        if (user) {
+            const fetchProfile = async () => {
+                setLoadingProfile(true);
+                const userDocRef = doc(db, 'users', user.uid);
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    setProfile(docSnap.data() as UserProfile);
+                } else {
+                     toast({ variant: 'destructive', title: 'Profil tidak ditemukan.'});
+                }
+                setLoadingProfile(false);
+            }
+            fetchProfile();
+        }
+    }, [user, toast]);
 
     const handleSignOut = async () => {
         setIsSigningOut(true);
@@ -39,14 +65,14 @@ export default function StudentProfilePage() {
         }
     };
 
-    const isLoading = loadingAuth;
+    const isLoading = loadingAuth || loadingProfile;
 
     return (
         <AuthenticatedLayout>
             <div className="flex flex-col h-full bg-slate-50">
                 <header className="bg-background border-b p-4 sm:p-6">
                     <h1 className="text-2xl font-bold text-foreground">Profil Siswa</h1>
-                    <p className="text-muted-foreground mt-1">Lihat detail akun Anda.</p>
+                    <p className="text-muted-foreground mt-1">Lihat dan kelola detail akun Anda.</p>
                 </header>
 
                 <main className="flex-1 p-4 sm:p-6 md:p-8">
@@ -65,11 +91,17 @@ export default function StudentProfilePage() {
                                         <Skeleton className="h-6 w-3/4"/>
                                         <Skeleton className="h-5 w-1/2"/>
                                     </div>
-                                ): user ? (
+                                ): profile ? (
                                      <>
-                                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                            <Mail className="w-4 h-4"/>
-                                            <span>{user.email}</span>
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <Mail className="w-4 h-4 text-muted-foreground"/>
+                                            <span className="font-medium">Email:</span>
+                                            <span>{profile.email}</span>
+                                        </div>
+                                         <div className="flex items-center gap-3 text-sm">
+                                            <Phone className="w-4 h-4 text-muted-foreground"/>
+                                            <span className="font-medium">No. Telepon:</span>
+                                            <span>{profile.phone || 'Belum ditambahkan'}</span>
                                         </div>
                                      </>
                                 ) : (
