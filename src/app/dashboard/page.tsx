@@ -9,10 +9,10 @@ import { usePathname } from 'next/navigation';
 
 const menuItems = [
     {
-        title: "Manajemen Kelompok",
+        title: "Manajemen Siswa",
         icon: Users,
         href: "/teacher/students",
-        description: "Tambah atau lihat daftar kelompok."
+        description: "Tambah atau lihat daftar siswa."
     },
     {
         title: "Materi Pembelajaran",
