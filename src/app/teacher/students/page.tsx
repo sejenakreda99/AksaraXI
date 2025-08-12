@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { AddGroupForm } from "@/app/dashboard/add-student-form";
+import { AddStudentForm } from "@/app/dashboard/add-student-form";
 import AuthenticatedLayout from "@/app/(authenticated)/layout";
 import {
   Card,
@@ -21,151 +21,97 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { TeacherHeader } from "@/components/layout/teacher-header";
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
-import { EditGroupForm } from './edit-group-form';
-import { DeleteGroupDialog } from './delete-group-dialog';
-import { useToast } from '@/hooks/use-toast';
 
-
-type Group = {
+// Simplified user type
+type User = {
   id: string;
-  className: string;
-  groupName: string;
   email: string;
-  members: string[];
+  role: string;
+  createdAt: string;
 }
 
 export default function TeacherStudentsPage() {
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [students, setStudents] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const { toast } = useToast();
 
-  const fetchGroups = useCallback(async () => {
+  const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const snapshot = await getDocs(collection(db, 'groups'));
+      const snapshot = await getDocs(collection(db, 'users'));
       if (!snapshot.empty) {
-        const groupData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Group));
-        setGroups(groupData);
+        const studentData = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as User))
+          .filter(user => user.role === 'Siswa'); // Only show students
+        setStudents(studentData);
       } else {
-        setGroups([]);
+        setStudents([]);
       }
     } catch (error) {
-      console.error('Error fetching groups:', error);
-      setGroups([]); // Clear groups on error
+      console.error('Error fetching students:', error);
+      setStudents([]); // Clear students on error
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchGroups();
-  }, [fetchGroups]);
-  
-  const handleEditClick = (group: Group) => {
-    setSelectedGroup(group);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDeleteClick = (group: Group) => {
-    setSelectedGroup(group);
-    setIsDeleteDialogOpen(true);
-  };
-  
-  const handleDeleteConfirm = async () => {
-    if (!selectedGroup) return;
-    try {
-      await deleteDoc(doc(db, 'groups', selectedGroup.id));
-      toast({
-        title: 'Berhasil',
-        description: `Kelompok ${selectedGroup.groupName} berhasil dihapus.`
-      });
-      fetchGroups(); // Refresh the list
-    } catch (error) {
-       toast({
-        variant: 'destructive',
-        title: 'Gagal',
-        description: `Gagal menghapus kelompok.`
-      });
-      console.error('Error deleting group:', error);
-    }
-  }
-
+    fetchStudents();
+  }, [fetchStudents]);
 
   return (
     <AuthenticatedLayout>
       <div className="flex flex-col h-full">
         <TeacherHeader
-          title="Manajemen Kelompok"
-          description="Tambah, edit, hapus, dan lihat daftar kelompok yang terdaftar."
+          title="Manajemen Siswa"
+          description="Tambah dan lihat daftar siswa yang terdaftar."
         />
         <main className="flex-1 p-4 sm:p-6 md:p-8">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full max-w-7xl mx-auto">
             <div className="w-full xl:col-span-1">
-              <AddGroupForm onGroupAdded={fetchGroups} />
+              <AddStudentForm onStudentAdded={fetchStudents} />
             </div>
             <div className="w-full xl:col-span-2">
               <Card className="h-full">
                 <CardHeader>
-                  <CardTitle>Daftar Kelompok</CardTitle>
-                  <CardDescription>Berikut adalah daftar kelompok yang terdaftar.</CardDescription>
+                  <CardTitle>Daftar Siswa</CardTitle>
+                  <CardDescription>Berikut adalah daftar akun siswa yang terdaftar.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Table>
-                    <TableCaption>Daftar kelompok akan muncul di sini jika ada.</TableCaption>
+                    <TableCaption>Daftar siswa akan muncul di sini.</TableCaption>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[150px]">Nama Kelompok</TableHead>
-                        <TableHead>Anggota</TableHead>
-                        <TableHead>Kelas</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Tanggal Dibuat</TableHead>
+                        {/* <TableHead className="text-right">Aksi</TableHead> */}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {loading ? (
                         Array.from({ length: 3 }).map((_, index) => (
                            <TableRow key={index}>
-                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                            <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                             <TableCell><Skeleton className="h-5 w-36" /></TableCell>
-                            <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                            <TableCell><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
+                            {/* <TableCell><Skeleton className="h-5 w-20 ml-auto" /></TableCell> */}
                           </TableRow>
                         ))
-                      ) : groups.length > 0 ? (
-                        groups.map((group) => (
-                          <TableRow key={group.id}>
-                            <TableCell className="font-medium">{group.groupName}</TableCell>
-                            <TableCell>
-                                <ul className="list-disc list-inside text-sm">
-                                    {(group.members || []).map(member => <li key={member}>{member}</li>)}
-                                </ul>
-                            </TableCell>
-                            <TableCell>{group.className}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex gap-2 justify-end">
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleEditClick(group)}>
-                                  <Edit className="h-4 w-4"/>
-                                  <span className="sr-only">Edit</span>
-                                </Button>
-                                <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => handleDeleteClick(group)}>
-                                  <Trash2 className="h-4 w-4"/>
-                                   <span className="sr-only">Hapus</span>
-                                </Button>
-                              </div>
-                            </TableCell>
+                      ) : students.length > 0 ? (
+                        students.map((student) => (
+                          <TableRow key={student.id}>
+                            <TableCell className="font-medium">{student.email}</TableCell>
+                            <TableCell>{new Date(student.createdAt).toLocaleDateString('id-ID')}</TableCell>
+                            {/* <TableCell className="text-right">
+                              Aksi (mis. hapus) dapat ditambahkan di sini
+                            </TableCell> */}
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center text-muted-foreground h-24">
-                              Belum ada kelompok yang ditambahkan.
+                            <TableCell colSpan={2} className="text-center text-muted-foreground h-24">
+                              Belum ada siswa yang ditambahkan.
                             </TableCell>
                           </TableRow>
                       )}
@@ -176,24 +122,6 @@ export default function TeacherStudentsPage() {
             </div>
           </div>
         </main>
-        
-        {selectedGroup && (
-          <>
-            <EditGroupForm 
-              isOpen={isEditDialogOpen} 
-              setIsOpen={setIsEditDialogOpen} 
-              group={selectedGroup}
-              onGroupUpdated={fetchGroups}
-            />
-            <DeleteGroupDialog
-              isOpen={isDeleteDialogOpen}
-              setIsOpen={setIsDeleteDialogOpen}
-              groupName={selectedGroup.groupName}
-              onConfirm={handleDeleteConfirm}
-            />
-          </>
-        )}
-
       </div>
     </AuthenticatedLayout>
   );

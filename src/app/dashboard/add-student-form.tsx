@@ -12,18 +12,10 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { createStudent, CreateStudentInput } from '@/ai/flows/create-student-flow';
 
-export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
+export function AddStudentForm({ onStudentAdded }: { onStudentAdded: () => void }) {
   const [isPending, setIsPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
@@ -35,18 +27,12 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
     const formData = new FormData(event.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    const className = formData.get('className') as string;
-    const groupName = formData.get('groupName') as string;
-    const members = (formData.get('members') as string)
-      .split('\n')
-      .map((name) => name.trim())
-      .filter(Boolean);
 
-    if (!email || !password || !className || !groupName || members.length === 0) {
+    if (!email || !password) {
       toast({
         variant: 'destructive',
         title: 'Gagal',
-        description: 'Semua kolom harus diisi.',
+        description: 'Email dan kata sandi harus diisi.',
       });
       setIsPending(false);
       return;
@@ -65,25 +51,21 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
       const studentData: CreateStudentInput = {
         email,
         password,
-        className,
-        groupName,
-        members,
       };
 
       const result = await createStudent(studentData);
 
       toast({
         title: 'Berhasil',
-        description: `Kelompok ${groupName} berhasil dibuat.`,
+        description: `Akun siswa untuk ${email} berhasil dibuat.`,
       });
       formRef.current?.reset();
-      onGroupAdded(); // Refresh the list
+      onStudentAdded(); // Refresh the list
     } catch (error: any) {
       console.error('Error creating user via flow:', error);
       toast({
         variant: 'destructive',
         title: 'Gagal Membuat Akun',
-        // The error message from the flow is user-friendly
         description: error.message || 'Terjadi kesalahan yang tidak diketahui.',
       });
     } finally {
@@ -94,55 +76,15 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Tambah Kelompok Baru</CardTitle>
+        <CardTitle>Tambah Siswa Baru</CardTitle>
         <CardDescription>
-          Buat akun untuk kelompok agar mereka dapat masuk ke platform.
+          Buat akun untuk siswa agar mereka dapat masuk ke platform.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="className">Kelas</Label>
-            <Select name="className" required>
-              <SelectTrigger id="className">
-                <SelectValue placeholder="Pilih Kelas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="XI-2">XI-2</SelectItem>
-                <SelectItem value="XI-3">XI-3</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="groupName">Nama Kelompok</Label>
-            <Select name="groupName" required>
-              <SelectTrigger id="groupName">
-                <SelectValue placeholder="Pilih Kelompok" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 6 }, (_, i) => i + 1).map((num) => (
-                  <SelectItem key={num} value={`Kelompok ${num}`}>
-                    Kelompok {num}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-           <div className="space-y-2">
-            <Label htmlFor="members">Anggota Kelompok</Label>
-            <Textarea
-              id="members"
-              name="members"
-              placeholder="Tuliskan nama anggota, satu nama per baris..."
-              required
-              rows={5}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Kelompok</Label>
+            <Label htmlFor="email">Email Siswa</Label>
             <Input
               id="email"
               name="email"
@@ -164,7 +106,7 @@ export function AddGroupForm({ onGroupAdded }: { onGroupAdded: () => void }) {
             />
           </div>
           <Button type="submit" disabled={isPending} className="w-full">
-            {isPending ? 'Menambahkan...' : 'Tambah Kelompok'}
+            {isPending ? 'Menambahkan...' : 'Tambah Siswa'}
           </Button>
         </form>
       </CardContent>

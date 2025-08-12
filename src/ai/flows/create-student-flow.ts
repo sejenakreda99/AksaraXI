@@ -4,7 +4,7 @@
 /**
  * @fileOverview A flow for creating student user accounts securely.
  *
- * - createStudent - A server-side function to create a new Firebase user and save their group details.
+ * - createStudent - A server-side function to create a new Firebase user.
  * - CreateStudentInput - The input type for the createStudent function.
  * - CreateStudentOutput - The return type for the createStudent function.
  */
@@ -17,9 +17,6 @@ import { adminAuth, adminDb } from '@/lib/firebase/server';
 const CreateStudentInputSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  className: z.string(),
-  groupName: z.string(),
-  members: z.array(z.string()),
 });
 export type CreateStudentInput = z.infer<typeof CreateStudentInputSchema>;
 
@@ -31,11 +28,6 @@ const CreateStudentOutputSchema = z.object({
 export type CreateStudentOutput = z.infer<typeof CreateStudentOutputSchema>;
 
 export async function createStudent(input: CreateStudentInput): Promise<CreateStudentOutput> {
-  // Temporarily bypass the Genkit flow to test direct Firebase Admin SDK call
-  // const userRecord = await (await import('firebase-admin/auth')).getAuth().createUser({
-  //   email: input.email,
-  //   password: input.password,
-  // });
    return createStudentFlow(input);
 }
 
@@ -69,12 +61,11 @@ const createStudentFlow = ai.defineFlow(
         displayName: 'Siswa', // Set role
       });
 
-      // 2. Save the group information to Firestore
-      await adminDb.collection('groups').doc(userRecord.uid).set({
+      // 2. Optional: Save basic user info to Firestore if needed later
+      await adminDb.collection('users').doc(userRecord.uid).set({
         email: input.email,
-        className: input.className,
-        groupName: input.groupName,
-        members: input.members,
+        role: 'Siswa',
+        createdAt: new Date().toISOString(),
       });
 
       return {
