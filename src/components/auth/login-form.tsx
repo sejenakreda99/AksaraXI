@@ -75,20 +75,25 @@ export function LoginForm() {
          router.push("/student");
       } else {
          // Fallback for users without a role
-         router.push("/");
+         await auth.signOut();
          toast({
             variant: "destructive",
             title: "Peran Tidak Ditemukan",
-            description: "Akun Anda tidak memiliki peran yang valid.",
+            description: "Akun Anda tidak memiliki peran yang valid. Silakan hubungi admin.",
          });
+         router.push("/");
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
+      let errorMessage = "Email atau kata sandi yang Anda masukkan salah.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = "Email atau kata sandi salah. Silakan coba lagi.";
+      }
       toast({
         variant: "destructive",
         title: "Gagal Masuk",
-        description: "Email atau kata sandi yang Anda masukkan salah.",
+        description: errorMessage,
       });
     }
   }

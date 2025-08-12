@@ -80,7 +80,7 @@ function AddStudentForm({ onStudentAdded }: { onStudentAdded: () => void }) {
 
       toast({
         title: 'Berhasil',
-        description: `Akun siswa untuk ${email} berhasil dibuat.`,
+        description: `Akun siswa untuk ${result.email} berhasil dibuat.`,
       });
       formRef.current?.reset();
       onStudentAdded(); // Refresh the list

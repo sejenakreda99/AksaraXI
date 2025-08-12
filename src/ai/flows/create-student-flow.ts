@@ -48,8 +48,8 @@ const createStudentFlow = ai.defineFlow(
         displayName: 'Siswa', // Default display name
       });
 
-      // 2. Set custom claim for the user role
-      await setUserRole({ email: userRecord.email!, role: 'Siswa' });
+      // 2. Set custom claim for the user role to 'Siswa'
+      await adminAuth.setCustomUserClaims(userRecord.uid, { role: 'Siswa' });
 
       // 3. Optional: Save basic user info to Firestore if needed later
       await adminDb.collection('users').doc(userRecord.uid).set({

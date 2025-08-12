@@ -33,8 +33,6 @@ const setUserRoleFlow = ai.defineFlow(
     name: 'setUserRoleFlow',
     inputSchema: SetUserRoleInputSchema,
     outputSchema: SetUserRoleOutputSchema,
-    // Note: This flow should ideally be protected to only be run by other admins/flows.
-    // For now, it's a utility flow called by createStudentFlow.
   },
   async ({ email, role }) => {
     try {
@@ -62,7 +60,7 @@ const setUserRoleFlow = ai.defineFlow(
  * You MUST run this flow to give your account 'Guru' permissions.
  *
  * HOW TO RUN:
- * 1. Replace 'admin@demo.com' below with your actual teacher email address.
+ * 1. Replace 'guruindonesia@gmail.com' below with your actual teacher email address.
  * 2. Start the Genkit developer UI (run `npm run genkit:watch` in your terminal).
  * 3. Open your browser to http://localhost:4000.
  * 4. Find 'makeTeacherAdmin' in the list of flows and click the 'Run' button.
