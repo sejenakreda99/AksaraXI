@@ -43,7 +43,7 @@ type MenyimakContentData = {
   statements: Statement[];
   activity2Questions: string[];
   comparisonVideoUrl: string;
-  latihan: {
+  latihan?: { // Make latihan optional to handle cases where it might not exist yet
       youtubeUrl: string;
       statements: LatihanStatement[];
   }
@@ -134,7 +134,7 @@ export default function MenyimakSiswaPage() {
                 } else if (fetchedContent) {
                      // Initialize answers structure if no submission exists
                      const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
-                     fetchedContent.statements.forEach((stmt) => {
+                     (fetchedContent.statements || []).forEach((stmt) => {
                          initialAnswers.kegiatan1[stmt.no.toString()] = { choice: '', evidence: '' };
                      });
                       (fetchedContent.activity2Questions || []).forEach((q) => {
@@ -142,9 +142,12 @@ export default function MenyimakSiswaPage() {
                       });
                       initialAnswers.kegiatan2['comparison'] = '';
                       initialAnswers.kegiatan2['dialogue-fix'] = '';
-                      (fetchedContent.latihan?.statements || []).forEach((_, index) => {
-                         initialAnswers.latihan[(index + 1).toString()] = { choice: '', analysis: '' };
-                     });
+                      // Safely access latihan content
+                      if (fetchedContent.latihan && fetchedContent.latihan.statements) {
+                          (fetchedContent.latihan.statements || []).forEach((_, index) => {
+                             initialAnswers.latihan[(index + 1).toString()] = { choice: '', analysis: '' };
+                         });
+                      }
                      setAnswers(initialAnswers);
                 }
 
@@ -221,8 +224,12 @@ export default function MenyimakSiswaPage() {
 
 
     const renderStepContent = () => {
-        if (loading || !content) {
+        if (loading) {
             return <Card><CardHeader><Skeleton className="h-8 w-3/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-6 w-full" /><Skeleton className="aspect-video w-full" /><Skeleton className="h-48 w-full" /></CardContent></Card>;
+        }
+
+        if (!content) {
+             return <Card><CardHeader><CardTitle>Konten Tidak Tersedia</CardTitle></CardHeader><CardContent><p>Materi untuk bagian ini belum disiapkan oleh guru.</p></CardContent></Card>;
         }
         
         if (currentStep >= steps.length) {
@@ -365,7 +372,7 @@ export default function MenyimakSiswaPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                            {content.latihan.youtubeUrl ? (
+                            {content.latihan?.youtubeUrl ? (
                                 <div className="aspect-video w-full rounded-lg overflow-hidden border">
                                     <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.latihan.youtubeUrl)} title="Pesona Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
                                 </div>
@@ -386,7 +393,7 @@ export default function MenyimakSiswaPage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {content.latihan.statements.map((item, index) => (
+                                            {content.latihan?.statements.map((item, index) => (
                                                 <TableRow key={index}>
                                                     <TableCell>{index + 1}</TableCell>
                                                     <TableCell>
