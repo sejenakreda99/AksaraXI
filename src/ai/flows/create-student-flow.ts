@@ -4,7 +4,7 @@
 /**
  * @fileOverview A flow for creating student user accounts securely.
  *
- * - createStudent - A server-side function to create a new Firebase user.
+ * - createStudent - A server-side function to create a new Firebase user and assign them the 'Siswa' role.
  * - CreateStudentInput - The input type for the createStudent function.
  * - CreateStudentOutput - The return type for the createStudent function.
  */
@@ -12,7 +12,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { adminAuth, adminDb } from '@/lib/firebase/server';
-
 
 const CreateStudentInputSchema = z.object({
   email: z.string().email(),
@@ -31,7 +30,6 @@ export async function createStudent(input: CreateStudentInput): Promise<CreateSt
    return createStudentFlow(input);
 }
 
-
 const createStudentFlow = ai.defineFlow(
   {
     name: 'createStudentFlow',
@@ -39,27 +37,43 @@ const createStudentFlow = ai.defineFlow(
     outputSchema: CreateStudentOutputSchema,
   },
   async (input) => {
-    // ======================================================================
-    // TEMPORARY SOLUTION: Set Teacher Role
-    // This will run when you click "Tambah Siswa"
-    // ======================================================================
     try {
-        const teacherEmail = 'guruindonesia@gmail.com';
-        const user = await adminAuth.getUserByEmail(teacherEmail);
-        await adminAuth.setCustomUserClaims(user.uid, { role: 'Guru' });
-        
-        console.log(`Successfully set role 'Guru' for user ${teacherEmail}.`);
+      // 1. Create the user in Firebase Authentication
+      const userRecord = await adminAuth.createUser({
+        email: input.email,
+        password: input.password,
+        emailVerified: true, // Mark email as verified
+        disabled: false,
+      });
 
-        // Return a dummy response as the form expects one.
-        return {
-            uid: user.uid,
-            email: user.email!,
-            message: `Successfully set role 'Guru' for user ${teacherEmail}. You can now log out and log back in.`
-        };
+      // 2. Set the custom claim 'Siswa' for role-based access control
+      await adminAuth.setCustomUserClaims(userRecord.uid, { role: 'Siswa' });
+
+      // 3. Create a corresponding user document in Firestore
+      const userDocRef = adminDb.collection('users').doc(userRecord.uid);
+      await userDocRef.set({
+        email: input.email,
+        role: 'Siswa',
+        createdAt: new Date().toISOString(),
+      });
+      
+      console.log(`Successfully created student ${input.email} and set role.`);
+      
+      return {
+        uid: userRecord.uid,
+        email: userRecord.email!,
+        message: `Akun siswa untuk ${userRecord.email} berhasil dibuat.`,
+      };
 
     } catch (error: any) {
-        console.error('Error in temporary teacher role setup:', error);
-        throw new Error(`Could not set teacher role: ${error.message}`);
+        console.error('Error in createStudentFlow:', error);
+
+        // Provide a more user-friendly error message
+        if (error.code === 'auth/email-already-exists') {
+            throw new Error('Alamat email ini sudah terdaftar. Silakan gunakan email lain.');
+        }
+
+        throw new Error(`Gagal membuat akun siswa: ${error.message}`);
     }
   }
 );
