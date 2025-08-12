@@ -115,18 +115,24 @@ export default function MenyimakSiswaPage() {
                 }
 
                 if (submissionSnap.exists()) {
-                    setAnswers(submissionSnap.data().answers);
+                    // If submission exists, load it and mark as complete
+                    setAnswers(submissionSnap.data().answers || { kegiatan1: {}, kegiatan2: {}, latihan: {} });
                     setIsCompleted(true);
                 } else if (fetchedContent) {
+                    // If no submission, but content exists, initialize the answers structure
                      const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
+                     
                      (fetchedContent.statements || []).forEach((stmt) => {
                          initialAnswers.kegiatan1[stmt.no.toString()] = { choice: '', evidence: '' };
                      });
+
                       (fetchedContent.activity2Questions || []).forEach((q) => {
                           initialAnswers.kegiatan2[q] = '';
                       });
                       initialAnswers.kegiatan2['comparison'] = '';
                       initialAnswers.kegiatan2['dialogue-fix'] = '';
+                      
+                      // Safely initialize latihan
                       if (fetchedContent.latihan && fetchedContent.latihan.statements) {
                           (fetchedContent.latihan.statements || []).forEach((_, index) => {
                              initialAnswers.latihan[(index + 1).toString()] = { choice: '', analysis: '' };
@@ -261,7 +267,7 @@ export default function MenyimakSiswaPage() {
                                                 <CardDescription className="text-justify">Tentukan apakah pernyataan berikut benar atau salah, dan berikan bukti informasi dari video yang telah Anda simak.</CardDescription>
                                             </CardHeader>
                                             <CardContent className="space-y-6">
-                                                {content.statements.map((stmt) => (
+                                                {(content.statements || []).map((stmt) => (
                                                     <div key={stmt.no} className="border p-4 rounded-lg bg-white">
                                                         <p className="font-semibold text-justify">Pernyataan #{stmt.no}</p>
                                                         <p className="mt-1 text-sm text-justify">{stmt.statement}</p>
@@ -369,7 +375,7 @@ export default function MenyimakSiswaPage() {
                                                             </TableRow>
                                                         </TableHeader>
                                                         <TableBody>
-                                                            {content.latihan?.statements.map((item, index) => (
+                                                            {(content.latihan.statements || []).map((item, index) => (
                                                                 <TableRow key={index}>
                                                                     <TableCell>{index + 1}</TableCell>
                                                                     <TableCell>
@@ -416,5 +422,3 @@ export default function MenyimakSiswaPage() {
         </AuthenticatedLayout>
     );
 }
-
-    
