@@ -60,11 +60,14 @@ export function LoginForm() {
       // THIS IS THE FIX:
       // If the user is the teacher, we will ensure their role is set before attempting to log in.
       // This is a robust way to solve the "role not found" issue permanently.
-      if (values.email === 'guruindonesia@gmail.com') {
+      if (values.email.toLowerCase() === 'guruindonesia@gmail.com') {
           console.log("Teacher email detected. Ensuring 'Guru' role is set...");
           // We call this in the background. We don't need to wait for it,
           // as the subsequent login and token refresh will pick up the new role.
-          await setUserRole({ email: values.email, role: 'Guru' });
+          // Using .catch to prevent unhandled promise rejection if it fails, as login is the primary goal.
+          setUserRole({ email: values.email, role: 'Guru' }).catch(err => {
+              console.error("Failed to set teacher role in background:", err);
+          });
       }
 
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
