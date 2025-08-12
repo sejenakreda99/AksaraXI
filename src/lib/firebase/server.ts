@@ -32,35 +32,4 @@ const adminApp = !getAdminApps().length ? initializeAdminApp({
 const adminAuth = getAdminAuth(adminApp);
 const adminDb = getAdminFirestore(adminApp);
 
-// --- START: ONE-TIME ROLE SETUP ---
-// This code will run once when the server starts.
-// It ensures the main teacher account has the 'Guru' role.
-// This is a reliable way to fix the "role not found" login issue.
-const GURU_EMAIL = 'guruindonesia@gmail.com';
-
-async function setGuruRole() {
-    try {
-        console.log(`Checking role for ${GURU_EMAIL}...`);
-        const user = await adminAuth.getUserByEmail(GURU_EMAIL);
-        if (user.customClaims?.role !== 'Guru') {
-            console.log(`Setting 'Guru' role for ${GURU_EMAIL}...`);
-            await adminAuth.setCustomUserClaims(user.uid, { role: 'Guru' });
-            console.log(`Successfully set 'Guru' role for ${GURU_EMAIL}.`);
-        } else {
-            console.log(`Role for ${GURU_EMAIL} is already set to 'Guru'.`);
-        }
-    } catch (error: any) {
-        if (error.code === 'auth/user-not-found') {
-            console.warn(`Teacher account ${GURU_EMAIL} not found. Please create it first.`);
-        } else {
-            console.error(`Error setting custom claim for ${GURU_EMAIL}:`, error);
-        }
-    }
-}
-
-// Call the function to ensure the role is set on server startup.
-setGuruRole();
-// --- END: ONE-TIME ROLE SETUP ---
-
-
 export { adminApp, adminAuth, adminDb };

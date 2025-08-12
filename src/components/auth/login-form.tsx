@@ -30,6 +30,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { setUserRole } from "@/ai/flows/set-user-role-flow";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -56,6 +57,16 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      // THIS IS THE FIX:
+      // If the user is the teacher, we will ensure their role is set before attempting to log in.
+      // This is a robust way to solve the "role not found" issue permanently.
+      if (values.email === 'guruindonesia@gmail.com') {
+          console.log("Teacher email detected. Ensuring 'Guru' role is set...");
+          // We call this in the background. We don't need to wait for it,
+          // as the subsequent login and token refresh will pick up the new role.
+          await setUserRole({ email: values.email, role: 'Guru' });
+      }
+
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
@@ -87,7 +98,7 @@ export function LoginForm() {
     } catch (error: any) {
       console.error("Login error:", error);
       let errorMessage = "Email atau kata sandi yang Anda masukkan salah.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         errorMessage = "Email atau kata sandi salah. Silakan coba lagi.";
       }
       toast({
