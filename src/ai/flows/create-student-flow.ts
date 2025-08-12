@@ -12,7 +12,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { adminAuth, adminDb } from '@/lib/firebase/server';
-import { setUserRole } from './set-user-role-flow';
 
 
 const CreateStudentInputSchema = z.object({
@@ -40,43 +39,27 @@ const createStudentFlow = ai.defineFlow(
     outputSchema: CreateStudentOutputSchema,
   },
   async (input) => {
+    // ======================================================================
+    // TEMPORARY SOLUTION: Set Teacher Role
+    // This will run when you click "Tambah Siswa"
+    // ======================================================================
     try {
-      // 1. Create the user in Firebase Authentication
-      const userRecord = await adminAuth.createUser({
-        email: input.email,
-        password: input.password,
-        displayName: 'Siswa', // Default display name
-      });
+        const teacherEmail = 'guruindonesia@gmail.com';
+        const user = await adminAuth.getUserByEmail(teacherEmail);
+        await adminAuth.setCustomUserClaims(user.uid, { role: 'Guru' });
+        
+        console.log(`Successfully set role 'Guru' for user ${teacherEmail}.`);
 
-      // 2. Set custom claim for the user role to 'Siswa'
-      await adminAuth.setCustomUserClaims(userRecord.uid, { role: 'Siswa' });
+        // Return a dummy response as the form expects one.
+        return {
+            uid: user.uid,
+            email: user.email!,
+            message: `Successfully set role 'Guru' for user ${teacherEmail}. You can now log out and log back in.`
+        };
 
-      // 3. Optional: Save basic user info to Firestore if needed later
-      await adminDb.collection('users').doc(userRecord.uid).set({
-        email: input.email,
-        role: 'Siswa',
-        createdAt: new Date().toISOString(),
-      });
-
-      return {
-        uid: userRecord.uid,
-        email: userRecord.email || input.email,
-        message: 'Student account created successfully.',
-      };
     } catch (error: any) {
-        // Log the error for debugging on the server
-        console.error('Error in createStudentFlow:', error);
-
-        let errorMessage = 'Gagal membuat akun siswa di server.';
-
-        if (error.code === 'auth/email-already-exists') {
-            errorMessage = 'Email ini sudah terdaftar. Silakan gunakan email lain.';
-        } else if (error.code === 'auth/weak-password') {
-            errorMessage = 'Kata sandi terlalu lemah. Gunakan minimal 8 karakter.';
-        }
-
-        // Throw an error that will be caught by the client-side form
-        throw new Error(errorMessage);
+        console.error('Error in temporary teacher role setup:', error);
+        throw new Error(`Could not set teacher role: ${error.message}`);
     }
   }
 );
