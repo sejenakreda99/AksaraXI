@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -91,7 +90,7 @@ export default function AsesmenSiswaPage() {
             }
         }
         fetchInitialData();
-    }, [chapterId, user, toast]);
+    }, [chapterId, user]);
 
     const handleAnswerChange = (questionKey: string, value: string) => {
         setAnswers(prev => ({...prev, [questionKey]: value}));
@@ -114,7 +113,6 @@ export default function AsesmenSiswaPage() {
                 activity: 'asesmen',
                 answers: answers,
                 lastSubmitted: serverTimestamp(),
-                 // Pertahankan skor yang ada jika sudah dinilai
                 ...(existingSubmission?.scores && { scores: existingSubmission.scores })
             };
 
@@ -160,7 +158,9 @@ export default function AsesmenSiswaPage() {
                                 <Skeleton className="h-64 w-full" />
                                 <Skeleton className="h-48 w-full" />
                              </div>
-                         ) : content ? (
+                         ) : !content ? (
+                             <Card><CardContent className="p-6 text-center text-muted-foreground">Konten asesmen belum tersedia.</CardContent></Card>
+                         ) : (
                             <>
                             <Card>
                                 <CardHeader>
@@ -207,8 +207,6 @@ export default function AsesmenSiswaPage() {
                                 </CardContent>
                             </Card>
                             </>
-                         ) : (
-                              <Card><CardContent className="p-6 text-center text-muted-foreground">Konten asesmen belum tersedia.</CardContent></Card>
                          )}
 
                         <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || loading}>
@@ -221,5 +219,3 @@ export default function AsesmenSiswaPage() {
         </AuthenticatedLayout>
     );
 }
-
-    

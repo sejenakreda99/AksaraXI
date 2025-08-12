@@ -66,7 +66,7 @@ export default function RefleksiSiswaPage() {
             }
         }
         fetchInitialData();
-    }, [chapterId, user, toast]);
+    }, [chapterId, user]);
 
 
     const handleAnswerChange = (index: number, value: string) => {
@@ -95,7 +95,6 @@ export default function RefleksiSiswaPage() {
                 activity: 'refleksi',
                 answers: answers,
                 lastSubmitted: serverTimestamp(),
-                 // Pertahankan skor yang ada jika sudah dinilai
                 ...(existingSubmission?.scores && { scores: existingSubmission.scores })
             };
              await setDoc(submissionRef, dataToSave, { merge: true });
@@ -171,5 +170,3 @@ export default function RefleksiSiswaPage() {
         </AuthenticatedLayout>
     );
 }
-
-    

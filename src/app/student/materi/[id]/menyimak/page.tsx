@@ -7,7 +7,7 @@ import { db, auth } from '@/lib/firebase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Youtube, ArrowLeft, Loader2, Save, CheckCircle } from 'lucide-react';
+import { Youtube, ArrowLeft, Loader2, Save, CheckCircle, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -24,15 +24,11 @@ type Statement = {
   no: number;
   statement: string;
   answer: 'benar' | 'salah';
-  points: number;
-  evidencePoints: number;
 };
 
 type LatihanStatement = {
     statement: string;
     answer: 'benar' | 'salah';
-    points: number;
-    analysisPoints: number;
 }
 
 type MenyimakContentData = {
@@ -101,44 +97,20 @@ export default function MenyimakSiswaPage() {
             setLoading(true);
             try {
                 const contentRef = doc(db, 'chapters', chapterId);
-                const submissionRef = doc(db, 'submissions', `${user!.uid}_${chapterId}_menyimak`);
+                const submissionRef = doc(db, 'submissions', `${user.uid}_${chapterId}_menyimak`);
 
                 const [contentSnap, submissionSnap] = await Promise.all([
                     getDoc(contentRef),
                     getDoc(submissionRef)
                 ]);
                 
-                let fetchedContent: MenyimakContentData | null = null;
                 if (contentSnap.exists() && contentSnap.data().menyimak) {
-                    fetchedContent = contentSnap.data().menyimak as MenyimakContentData;
-                    setContent(fetchedContent);
+                    setContent(contentSnap.data().menyimak);
                 }
 
                 if (submissionSnap.exists()) {
-                    // If submission exists, load it and mark as complete
                     setAnswers(submissionSnap.data().answers || { kegiatan1: {}, kegiatan2: {}, latihan: {} });
                     setIsCompleted(true);
-                } else if (fetchedContent) {
-                    // If no submission, but content exists, initialize the answers structure
-                     const initialAnswers: MenyimakAnswers = { kegiatan1: {}, kegiatan2: {}, latihan: {} };
-                     
-                     (fetchedContent.statements || []).forEach((stmt) => {
-                         initialAnswers.kegiatan1[stmt.no.toString()] = { choice: '', evidence: '' };
-                     });
-
-                      (fetchedContent.activity2Questions || []).forEach((q) => {
-                          initialAnswers.kegiatan2[q] = '';
-                      });
-                      initialAnswers.kegiatan2['comparison'] = '';
-                      initialAnswers.kegiatan2['dialogue-fix'] = '';
-                      
-                      // Safely initialize latihan
-                      if (fetchedContent.latihan && fetchedContent.latihan.statements) {
-                          (fetchedContent.latihan.statements || []).forEach((_, index) => {
-                             initialAnswers.latihan[(index + 1).toString()] = { choice: '', analysis: '' };
-                         });
-                      }
-                     setAnswers(initialAnswers);
                 }
 
             } catch (error) {
@@ -153,7 +125,7 @@ export default function MenyimakSiswaPage() {
             }
         }
         fetchInitialData();
-    }, [chapterId, user, toast]);
+    }, [chapterId, user]);
 
     const handleAnswerChange = (kegiatan: keyof MenyimakAnswers, key: string, type: string, value: string) => {
         setAnswers(prev => {

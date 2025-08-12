@@ -51,7 +51,7 @@ export default function JurnalMembacaSiswaPage() {
             }
         }
         fetchJournal();
-    }, [user, chapterId, toast]);
+    }, [user, chapterId]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -166,5 +166,3 @@ export default function JurnalMembacaSiswaPage() {
         </AuthenticatedLayout>
     );
 }
-
-    
