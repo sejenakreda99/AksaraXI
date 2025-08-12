@@ -54,19 +54,20 @@ const setUserRoleFlow = ai.defineFlow(
 
 /**
  * ===================================================================================
- * UTILITY FLOW TO MAKE YOUR ACCOUNT A TEACHER
+ * ALUR UTILITAS UNTUK MENJADIKAN AKUN ANDA SEORANG GURU
  * ===================================================================================
- * This is a one-time setup flow for your admin/teacher account.
- * You MUST run this flow to give your account 'Guru' permissions.
+ * Ini adalah flow penyiapan satu kali untuk akun admin/guru Anda.
+ * Anda HARUS menjalankan flow ini agar akun Anda mendapatkan izin 'Guru'.
  *
- * HOW TO RUN:
- * 1. Replace 'guruindonesia@gmail.com' below with your actual teacher email address.
- * 2. Start the Genkit developer UI (run `npm run genkit:watch` in your terminal).
- * 3. Open your browser to http://localhost:4000.
- * 4. Find 'makeTeacherAdmin' in the list of flows and click the 'Run' button.
+ * CARA MENJALANKAN:
+ * 1. Pastikan email di bawah (`guruindonesia@gmail.com`) SESUAI dengan email yang Anda
+ *    gunakan untuk login sebagai guru. Jika berbeda, gantilah. Jika sudah sama,
+ *    Anda TIDAK PERLU mengubahnya.
+ * 2. Mulai Genkit developer UI (jalankan `npm run genkit:watch` di terminal Anda).
+ * 3. Buka browser Anda ke http://localhost:4000.
+ * 4. Temukan 'makeTeacherAdmin' di daftar flow dan klik tombol 'Run'.
  *
- * After running this, your account will have the 'Guru' role and will be able
- * to view the student list.
+ * Setelah menjalankan ini, akun Anda akan memiliki peran 'Guru' dan dapat login.
  * ===================================================================================
  */
 ai.defineFlow(
@@ -74,7 +75,8 @@ ai.defineFlow(
     async () => {
         try {
             const result = await setUserRole({
-                email: 'guruindonesia@gmail.com', // <<! REPLACE THIS WITH YOUR TEACHER/ADMIN EMAIL
+                // PASTIKAN EMAIL INI ADALAH EMAIL GURU ANDA
+                email: 'guruindonesia@gmail.com', 
                 role: 'Guru'
             });
             console.log(result.message);
