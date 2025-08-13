@@ -140,6 +140,19 @@ export default function MenyimakLatihanPage() {
         );
     }
     
+    if (!content || !content.latihan) {
+         return (
+             <AuthenticatedLayout>
+                 <div className="flex flex-col h-full items-center justify-center">
+                    <p>Konten latihan belum tersedia.</p>
+                     <Button asChild variant="outline" className="mt-4">
+                        <Link href={`/student/materi/${chapterId}/menyimak`}>Kembali</Link>
+                    </Button>
+                 </div>
+            </AuthenticatedLayout>
+        )
+    }
+    
     return (
         <AuthenticatedLayout>
             <div className="flex flex-col h-full">
@@ -160,7 +173,7 @@ export default function MenyimakLatihanPage() {
                                 <CardTitle>Video Latihan: "Pesona Danau Toba"</CardTitle>
                             </CardHeader>
                              <CardContent className="space-y-6">
-                                {content?.latihan?.youtubeUrl && (
+                                {content.latihan.youtubeUrl && (
                                     <div className="aspect-video w-full rounded-lg overflow-hidden border">
                                         <iframe className="w-full h-full" src={getYoutubeEmbedUrl(content.latihan.youtubeUrl)} title="YouTube: Danau Toba" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
                                     </div>
@@ -172,7 +185,7 @@ export default function MenyimakLatihanPage() {
                                 <CardTitle>Tugas Latihan</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {(content?.latihan?.statements || []).map((stmt, index) => {
+                                {(content.latihan.statements || []).map((stmt, index) => {
                                     const answerKey = index.toString();
                                     const currentAnswer = answers[answerKey] || { choice: '', analysis: '' };
                                     const questionText = stmt.statement;

@@ -13,7 +13,6 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -113,6 +112,19 @@ export default function MenyimakKegiatan2Page() {
                 <div className="flex-1 p-4 md:p-8"><Skeleton className="h-96 w-full" /></div>
             </AuthenticatedLayout>
         );
+    }
+    
+    if (!content) {
+         return (
+             <AuthenticatedLayout>
+                 <div className="flex flex-col h-full items-center justify-center">
+                    <p>Konten tidak tersedia.</p>
+                     <Button asChild variant="outline" className="mt-4">
+                        <Link href={`/student/materi/${chapterId}/menyimak`}>Kembali</Link>
+                    </Button>
+                 </div>
+            </AuthenticatedLayout>
+        )
     }
 
     return (
