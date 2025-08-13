@@ -91,7 +91,9 @@ export default function MembacaSiswaPage() {
             if (submissionSnap.exists()) {
                 const submissionData = submissionSnap.data();
                 setExistingSubmission(submissionData);
-                setAnswers(submissionData.answers);
+                if (submissionData.answers) {
+                    setAnswers(submissionData.answers);
+                }
                 setIsCompleted(true);
             }
 
@@ -126,7 +128,7 @@ export default function MembacaSiswaPage() {
       setAnswers(prev => ({...prev, simpulan: value}));
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Anda harus masuk untuk mengirimkan jawaban." });
@@ -143,14 +145,14 @@ export default function MembacaSiswaPage() {
             activity: 'membaca',
             answers,
             lastSubmitted: serverTimestamp(),
-            ...(existingSubmission?.scores && { scores: existingSubmission.scores })
+            // Hapus skor, karena penilaian tidak dilakukan di sini
         };
         
         await setDoc(submissionRef, dataToSave, { merge: true });
         
         toast({
             title: "Berhasil!",
-            description: "Jawaban Anda telah berhasil disimpan.",
+            description: "Jawaban latihan Anda telah berhasil disimpan.",
         });
         setIsCompleted(true);
 
@@ -185,27 +187,27 @@ export default function MembacaSiswaPage() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 md:p-8">
-            <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+            <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
                  
                 {isCompleted && (
                     <Card className="bg-green-50 border-green-200">
                         <CardHeader className="flex-row items-center gap-4 space-y-0">
                             <CheckCircle className="w-8 h-8 text-green-600" />
                             <div>
-                                <CardTitle className="text-green-800">Tugas Telah Dikumpulkan</CardTitle>
-                                <CardDescription className="text-green-700">Anda dapat meninjau kembali materi atau memperbarui jawaban Anda jika perlu.</CardDescription>
+                                <CardTitle className="text-green-800">Progres Tersimpan</CardTitle>
+                                <CardDescription className="text-green-700">Anda dapat meninjau kembali materi atau memperbarui jawaban latihan Anda kapan saja.</CardDescription>
                             </div>
                         </CardHeader>
                     </Card>
                 )}
                  
-                {loading ? (
+                {loading || !content ? (
                     <div className="space-y-4">
                         <Skeleton className="h-24 w-full" />
                         <Skeleton className="h-96 w-full" />
                         <Skeleton className="h-64 w-full" />
                     </div>
-                ) : content ? (
+                ) : (
                     <>
                         <Card>
                             <CardHeader>
@@ -221,21 +223,20 @@ export default function MembacaSiswaPage() {
                                 <CardTitle>Kegiatan 1: Menganalisis Teks Deskripsi (Suku Abuy)</CardTitle>
                             </CardHeader>
                             <CardContent className='space-y-6'>
-                                <div className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground text-justify">
-                                    <h3 className="font-bold text-center mb-4">Keunikan Adat Istiadat Suku Abuy di Kampung Takpala Alor</h3>
+                                <div className="prose max-w-none prose-sm sm:prose-base whitespace-pre-wrap text-foreground text-justify bg-slate-50 border p-4 rounded-lg">
+                                    <h3 className="font-bold text-center mb-4 not-prose">Keunikan Adat Istiadat Suku Abuy di Kampung Takpala Alor</h3>
                                     {content.kegiatan1MainText}
                                 </div>
                                 <Card className="bg-slate-50 border-slate-200">
                                     <CardHeader>
                                         <CardTitle>Tugas</CardTitle>
-                                        <CardDescription className="text-justify">Setelah kalian menyimak teks tersebut, centanglah pernyataan benar atau salah dalam Tabel 1.3. Lalu, berikan bukti informasi yang mendukung analisis kalian.</CardDescription>
+                                        <CardDescription className="text-justify">Setelah kalian menyimak teks tersebut, centanglah pernyataan benar atau salah dalam tabel di bawah ini. Lalu, berikan bukti informasi yang mendukung analisis kalian.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
                                         {content.kegiatan1Statements.map((stmt, index) => (
                                             <div key={index} className="border p-4 rounded-lg bg-white">
-                                                <p className="font-semibold text-justify">Pernyataan #{index+1}</p>
-                                                <p className="mt-1 text-sm text-justify">{stmt.statement}</p>
-                                                <div className="mt-4 space-y-4">
+                                                <p className="font-semibold text-justify">Pernyataan #{index+1}: <span className="font-normal">{stmt.statement}</span></p>
+                                                <div className="mt-4 grid md:grid-cols-2 gap-4">
                                                     <div>
                                                     <Label className="font-medium">Tentukan jawaban Anda:</Label>
                                                     <RadioGroup className="flex gap-4 mt-2" onValueChange={(value) => handleAnswerChange('kegiatan1', index, 'choice', value)} value={answers?.kegiatan1?.[index]?.choice || ''}>
@@ -243,7 +244,7 @@ export default function MembacaSiswaPage() {
                                                         <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`r-${index}-salah`} /><Label htmlFor={`r-${index}-salah`}>Salah</Label></div>
                                                     </RadioGroup>
                                                     </div>
-                                                    <div>
+                                                    <div className="md:col-span-2">
                                                     <Label htmlFor={`evidence-${index}`} className="font-medium">Tuliskan bukti informasinya:</Label>
                                                     <Textarea id={`evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('kegiatan1', index, 'evidence', e.target.value)} value={answers?.kegiatan1?.[index]?.evidence || ''} />
                                                     </div>
@@ -252,22 +253,21 @@ export default function MembacaSiswaPage() {
                                         ))}
                                     </CardContent>
                                 </Card>
-
-                                <Separator/>
-
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Umpan Balik & Pembahasan</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground text-justify">{content.kegiatan1FeedbackText}</div>
-                                        <Separator className="my-6" />
-                                        <Card className="bg-primary/10 border-primary">
-                                            <CardHeader><CardTitle className="text-primary text-base">Info</CardTitle></CardHeader>
-                                            <CardContent className="text-primary/90 text-sm whitespace-pre-wrap text-justify">
-                                                {content.kegiatan1InfoBoxText}
-                                            </CardContent>
-                                        </Card>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Umpan Balik & Pembahasan</CardTitle>
+                                <CardDescription>Bandingkan jawaban Anda dengan pembahasan berikut.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="prose max-w-none prose-sm sm:prose-base whitespace-pre-wrap text-foreground text-justify">{content.kegiatan1FeedbackText}</div>
+                                <Separator className="my-6" />
+                                <Card className="bg-primary/10 border-primary">
+                                    <CardHeader><CardTitle className="text-primary text-base">Info</CardTitle></CardHeader>
+                                    <CardContent className="text-primary/90 text-sm whitespace-pre-wrap text-justify">
+                                        {content.kegiatan1InfoBoxText}
                                     </CardContent>
                                 </Card>
                             </CardContent>
@@ -278,7 +278,7 @@ export default function MembacaSiswaPage() {
                                 <CardTitle>Kegiatan 2 & Latihan</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="prose max-w-none prose-sm:prose-base whitespace-pre-wrap text-foreground space-y-4 text-justify">
+                                <div className="prose max-w-none prose-sm sm:prose-base whitespace-pre-wrap text-foreground space-y-4 text-justify">
                                     <div className="p-4 bg-slate-50 rounded-lg border">
                                         <h4 className="font-bold not-prose">Kegiatan 2: Mengevaluasi gagasan dan pandangan</h4>
                                         <p>{content.kegiatan2Intro}</p>
@@ -288,14 +288,16 @@ export default function MembacaSiswaPage() {
                                         <p>{content.latihanIntro}</p>
                                     </div>
                                     <Separator/>
-                                    <h3 className="font-bold text-center mb-4">Terminal Baru Bandara Sam Ratulangi Manado, Perpaduan Konsep Tradisional dan Modern</h3>
-                                    {content.latihanMainText}
+                                    <div className="prose max-w-none prose-sm sm:prose-base whitespace-pre-wrap text-foreground text-justify bg-slate-50 border p-4 rounded-lg">
+                                        <h3 className="font-bold text-center mb-4 not-prose">Terminal Baru Bandara Sam Ratulangi Manado, Perpaduan Konsep Tradisional dan Modern</h3>
+                                        {content.latihanMainText}
+                                    </div>
                                 </div>
                                 
                                 <Card className="bg-slate-50 border-slate-200">
                                     <CardHeader>
                                         <CardTitle>Latihan: Identifikasi Ciri Teks Deskripsi</CardTitle>
-                                        <CardDescription className="text-justify">Untuk memudahkan kalian membuktikan teks tersebut termasuk teks deskripsi atau bukan, gunakanlah Tabel 1.4. Centanglah pernyataan benar atau salah. Lalu, berikan buktikan informasi yang mendukung analisis kalian.</CardDescription>
+                                        <CardDescription className="text-justify">Untuk memudahkan kalian membuktikan teks tersebut termasuk teks deskripsi atau bukan, gunakanlah tabel berikut. Centanglah pernyataan benar atau salah, lalu berikan bukti informasi yang mendukung analisis kalian.</CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <Table>
@@ -308,12 +310,14 @@ export default function MembacaSiswaPage() {
                                             <TableBody>
                                                 {content.latihanStatements.map((stmt, index) => (
                                                     <TableRow key={index}>
-                                                        <TableCell>
+                                                        <TableCell className="align-top">
                                                             <p className="font-semibold text-justify">{stmt.statement}</p>
-                                                            <Label htmlFor={`latihan-evidence-${index}`} className="font-medium mt-4 block">Bukti Informasi:</Label>
-                                                            <Textarea id={`latihan-evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('latihan', index, 'evidence', e.target.value)} value={answers?.latihan?.[index]?.evidence || ''} />
+                                                            <div className="mt-4">
+                                                                <Label htmlFor={`latihan-evidence-${index}`} className="font-medium mt-4 block">Bukti Informasi:</Label>
+                                                                <Textarea id={`latihan-evidence-${index}`} className="mt-2 bg-white" placeholder="Tuliskan bukti pendukung dari teks di sini..." rows={4} onChange={(e) => handleAnswerChange('latihan', index, 'evidence', e.target.value)} value={answers?.latihan?.[index]?.evidence || ''} />
+                                                            </div>
                                                         </TableCell>
-                                                        <TableCell>
+                                                        <TableCell className="align-top">
                                                             <RadioGroup className="flex flex-col gap-4 mt-2 items-center" onValueChange={(value) => handleAnswerChange('latihan', index, 'choice', value)} value={answers?.latihan?.[index]?.choice || ''}>
                                                                 <div className="flex items-center space-x-2"><RadioGroupItem value="benar" id={`l-r-${index}-benar`} /><Label htmlFor={`l-r-${index}-benar`}>Benar</Label></div>
                                                                 <div className="flex items-center space-x-2"><RadioGroupItem value="salah" id={`l-r-${index}-salah`} /><Label htmlFor={`l-r-${index}-salah`}>Salah</Label></div>
@@ -332,7 +336,7 @@ export default function MembacaSiswaPage() {
                                     </CardHeader>
                                     <CardContent>
                                         <Label htmlFor="simpulan" className="text-justify">Berdasarkan hasil analisis ciri-ciri teks deskripsi, maka teks berjudul “Terminal Baru Bandara Sam Ratulangi Manado, Perpaduan Konsep Tradisional dan Modern” ...</Label>
-                                        <Textarea id="simpulan" className="mt-2" placeholder="termasuk/tidak termasuk teks deskripsi karena..." rows={6} value={answers?.simpulan || ''} onChange={(e) => handleSimpulanChange(e.target.value)} />
+                                        <Textarea id="simpulan" className="mt-2" placeholder="...termasuk/tidak termasuk teks deskripsi karena..." rows={6} value={answers?.simpulan || ''} onChange={(e) => handleSimpulanChange(e.target.value)} />
                                         <Separator className="my-6" />
                                         <p className="text-sm text-muted-foreground text-justify">Sampaikan secara lisan hasil analisis kalian di depan kelas. Buka kesempatan tanya jawab sehingga teman kalian yang menyimak memberikan tanggapan. Kalian yang mendapatkan giliran menyampaikan hasil analisis, kemudian menjawab tanggapan tersebut.</p>
                                     </CardContent>
@@ -340,13 +344,11 @@ export default function MembacaSiswaPage() {
                             </CardContent>
                         </Card>
                     </>
-                ) : (
-                    <Card><CardContent className="p-6 text-center text-muted-foreground">Konten untuk bagian ini belum disiapkan oleh guru.</CardContent></Card>
                 )}
 
-                <Button type="submit" onClick={e => handleSubmit(e as any)} disabled={isSubmitting || loading} className="w-full" size="lg">
+                <Button type="submit" disabled={isSubmitting || loading} className="w-full" size="lg">
                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    {isSubmitting ? 'Menyimpan...' : 'Simpan & Kirim Jawaban'}
+                    {isSubmitting ? 'Menyimpan...' : 'Simpan Progres Latihan'}
                 </Button>
             </form>
         </main>
